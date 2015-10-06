@@ -16,6 +16,7 @@
   <run_depend>rviz</run_depend>
   <run_depend>robot_state_publisher</run_depend>
   <run_depend>joint_state_publisher</run_depend>
+  <run_depend>iai_kuka_lwr4_description</run_depend>
 
   <export>
 

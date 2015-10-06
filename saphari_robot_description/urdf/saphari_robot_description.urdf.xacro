@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<robot name="saphari_robot">
+
+  <link name="ground_plane_frame"/>
+
+  <link name="table_link">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://saphari_robot_description/meshes/table.stl"/>
+      </geometry>
+      <material name="Grey"/>
+    </visual>
+  </link>
+
+  <joint name="ground_plane_to_table_offset" type="fixed">
+    <origin xyz="0 0 0.89" rpy="0 0 0"/>
+    <parent link="ground_plane_frame"/>
+    <child link="table_link"/>
+  </joint>
+ 
+  <link name="lwr_mounting_frame"/>
+
+  <joint name="table_lwr_mounting_offset" type="fixed">
+    <origin xyz="0.47 1.029 -0.025" rpy="0 0 0"/>
+    <parent link="table_link"/>
+    <child link="lwr_mounting_frame"/>
+  </joint>
+
+</robot>

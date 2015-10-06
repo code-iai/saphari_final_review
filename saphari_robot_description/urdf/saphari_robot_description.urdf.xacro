@@ -4,6 +4,7 @@
   <include filename="$(find iai_kuka_lwr4_description)/urdf/kuka_lwr_arm.urdf.xacro"/>
   <include filename="$(find iai_kuka_lwr4_description)/urdf/gazebo.urdf.xacro"/>
   <include filename="$(find iai_kuka_lwr4_description)/defs/materials.xml"/>
+  <include filename="$(find iai_adapters_description)/urdf/fwk_fwa_050.urdf.xacro"/>
 
   <link name="ground_plane_frame"/>
 
@@ -23,16 +24,20 @@
     <child link="table_link"/>
   </joint>
  
-  <link name="lwr_mounting_frame"/>
+  <link name="arm_base_link"/>
 
-  <joint name="table_lwr_mounting_offset" type="fixed">
+  <joint name="table_arm_base_link_offset" type="fixed">
     <origin xyz="0.47 1.029 -0.025" rpy="0 0 0"/>
     <parent link="table_link"/>
-    <child link="lwr_mounting_frame"/>
+    <child link="arm_base_link"/>
   </joint>
 
-  <kuka_lwr_arm parent="lwr_mounting_frame" name="arm">
+  <kuka_lwr_arm parent="arm_base_link" prefix="">
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </kuka_lwr_arm>
+
+  <fwk_fwa_050_xacro parent="arm_cabling_adaptor_link" prefix="arm">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+  </fwk_fwa_050_xacro>
 
 </robot>

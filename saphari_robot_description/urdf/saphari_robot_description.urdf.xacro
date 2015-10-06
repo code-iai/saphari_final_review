@@ -5,6 +5,7 @@
   <include filename="$(find iai_kuka_lwr4_description)/urdf/gazebo.urdf.xacro"/>
   <include filename="$(find iai_kuka_lwr4_description)/defs/materials.xml"/>
   <include filename="$(find iai_adapters_description)/urdf/fwk_fwa_050.urdf.xacro"/>
+  <include filename="$(find iai_wsg_50_description)/urdf/wsg_50.urdf.xacro"/>	
 
   <link name="ground_plane_frame"/>
 
@@ -39,5 +40,9 @@
   <fwk_fwa_050_xacro parent="arm_cabling_adaptor_link" prefix="arm">
     <origin xyz="0 0 0" rpy="0 0 0" />
   </fwk_fwa_050_xacro>
+
+  <wsg_50_xacro name="gripper" parent="arm_fwk_fwa_050_frame_out">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </wsg_50_xacro>
 
 </robot>

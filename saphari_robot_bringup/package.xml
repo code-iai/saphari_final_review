@@ -15,6 +15,7 @@
   <run_depend>saphari_robot_description</run_depend>
   <run_depend>robot_state_publisher</run_depend>
   <run_depend>joint_state_publisher</run_depend>
+  <run_depend>dlr_action_bridge</run_depend>
 
   <export>
 

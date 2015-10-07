@@ -1,0 +1,7 @@
+<launch>
+  <include file="$(find saphari_robot_description)/launch/upload.launch" />
+
+  <node name="robot_state_publisher" pkg="robot_state_publisher"
+        type="state_publisher" />
+
+</launch>

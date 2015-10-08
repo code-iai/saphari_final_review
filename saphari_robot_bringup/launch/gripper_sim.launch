@@ -1,0 +1,15 @@
+<launch>
+  <arg name="dt" default="0.01" />
+
+  <include file="$(find iai_wsg_50_description)/launch/upload.launch" >
+    <arg name="param-name" value="loopback_gripper/robot_description" />
+  </include>
+
+  <node name="loopback_gripper" type="loopback_controller_manager" pkg="loopback_controller_manager" output="screen">
+    <param name="dt" value="$(arg dt)" /> <!-- in [s], default: 0.01 -->
+    <param name="damping" value="1.0" /> <!-- default: 0.1 -->
+    <remap from="/joint_states" to="~joint_states" />
+    <remap from="/mechanism_statistics" to="~mechanism_statistics" />
+  </node>
+
+</launch>

@@ -22,6 +22,11 @@ In your ```catkin``` workspace, please add the following PRIVATELY available rep
 In your ```rosbuild``` workspace, please add the following PRIVATELY available repos:
 * ```git clone ssh://gitolite@kif.ai.uni-bremen.de:2023/dlr_lwr.git```
 
+Unfortunately, you will need one of 'em precious ```CATKIN_IGNORE``` to make your workspace compile:
+* ```roscd iai_boxy_hw```
+* ```touch CATKIN_IGNORE```
+* ```roscd && cd ..```
+* 
 First, build the ```catkin``` workspace:
 * ```catkin_make```
 

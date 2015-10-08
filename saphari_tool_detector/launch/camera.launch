@@ -1,0 +1,54 @@
+<launch>
+  <!-- Serial number of the camera to use
+  Uni-Bremen: <arg name="camera_serial" default="15296932" />
+  DLR:        <arg name="camera_serial" default="12351127" />
+  -->
+  <arg name="camera_serial" default="15296932" />
+
+  <arg name="calibrated" default="1" />
+
+  <param name="/camera/image_raw/compressed/jpeg_quality" value="100" />
+  <param name="/camera/image_mono/compressed/jpeg_quality" value="100" />
+  <param name="/camera/image_color/compressed/jpeg_quality" value="100" />
+  <param name="/camera/image_rect_mono/compressed/jpeg_quality" value="100" />
+  <param name="/camera/image_rect_color/compressed/jpeg_quality" value="100" />
+
+  <node pkg="tf" type="static_transform_publisher" name="static_camera_table_tf" args="0 0 0.75 0 0 3.14159265358979323846 /table_frame /camera_frame 100" />
+
+  <group ns="camera">
+    <node pkg="nodelet" type="nodelet" name="camera_nodelet_manager" args="manager" />
+
+    <node pkg="nodelet" type="nodelet" name="camera_nodelet"
+          args="load pointgrey_camera_driver/PointGreyCameraNodelet camera_nodelet_manager" >
+      <param name="frame_id" value="camera" />
+      <param name="serial" value="$(arg camera_serial)" />
+
+      <param name="frame_rate" value="2" />
+
+      <param name="camera_info_url" if="$(arg calibrated)"
+             value="package://saphari_tool_detector/calib/calib_$(arg camera_serial).yaml" />
+    </node>
+
+    <node pkg="nodelet" type="nodelet" name="image_proc_debayer"
+          args="load image_proc/debayer camera_nodelet_manager">
+      <param name="debayer" value="3" />
+    </node>
+
+    <!-- Monochrome rectified image -->
+    <node pkg="nodelet" type="nodelet" name="rectify_mono"
+          args="load image_proc/rectify camera_nodelet_manager"
+          respawn="true" if="$(arg calibrated)">
+      <remap from="image_rect" to="image_rect_mono" />
+      <param name="interpolation" value="2" />
+    </node>
+
+    <!-- Color rectified image -->
+    <node pkg="nodelet" type="nodelet" name="rectify_color"
+          args="load image_proc/rectify camera_nodelet_manager"
+          respawn="true" if="$(arg calibrated)">
+      <remap from="image_mono" to="image_color" />
+      <remap from="image_rect" to="image_rect_color" />
+      <param name="interpolation" value="2" />
+    </node>
+  </group>
+</launch>

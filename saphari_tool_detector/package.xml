@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>saphari_tool_detector</name>
+  <version>0.0.0</version>
+  <description>The saphari_tool_detector package</description>
+
+  <maintainer email="wiedemeyer@cs.uni-bremen.de">Thiemo Wiedemeyer</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">https://github.com/robosherlock/robosherlock</url>
+
+  <author email="wiedemeyer@cs.uni-bremen.de">Thiemo Wiedemeyer</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+ 
+  <depend>cmake_modules     </depend>
+  <depend>roscpp            </depend>
+  <depend>roslib            </depend>
+  <depend>tf                </depend>
+  <depend>tf_conversions    </depend>
+  <depend>rostime           </depend>
+  <depend>cv_bridge         </depend>
+  <depend>image_transport   </depend>
+  <depend>message_filters   </depend>
+  <depend>message_generation</depend>
+  <depend>message_runtime   </depend>
+
+  <depend>sensor_msgs       </depend>
+  <depend>geometry_msgs     </depend>
+  <depend>std_msgs          </depend>
+
+  <export>
+  </export>
+</package>

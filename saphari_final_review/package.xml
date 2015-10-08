@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package>
+  <name>saphari_final_review</name>
+  <version>0.0.1</version>
+  <description>
+    Configurations, launch files, and source code for the final SAPHARI review.
+  </description>
+
+  <maintainer email="georg.bartels@cs.uni-bremen.de">Georg Bartels</maintainer>
+  <author email="georg.bartels@cs.uni-bremen.de">Georg Bartels</author>
+
+  <license>TODO</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <run_depend>saphari_robot_description</run_depend>
+  <run_depend>saphari_robot_bringup</run_depend>
+
+  <export>
+    <metapackage/>
+  </export>
+</package>

@@ -1,0 +1,24 @@
+<launch>
+  <include file="$(find saphari_robot_description)/launch/upload.launch" />
+
+  <include file="$(find dlr_action_bridge)/launch/single_arm_sim.launch">
+    <arg name="joint_states_rate" value="100" />
+  </include>
+
+  <include file="$(find saphari_robot_bringup)/launch/gripper_sim.launch" />
+
+  <node name="robot_state_publisher" pkg="robot_state_publisher"
+        type="state_publisher" />
+
+  <node pkg="joint_state_publisher" type="joint_state_publisher"
+        name="joint_state_publisher">
+    <rosparam param="source_list">
+      - beasty/joint_states
+      - gripper/joint_states
+    </rosparam>
+    <param name="rate" value="50"/>
+  </node>
+
+  <node name="rviz" pkg="rviz" type="rviz" 
+        args="-d $(find saphari_robot_bringup)/sim.rviz" />
+</launch>

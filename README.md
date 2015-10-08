@@ -17,7 +17,7 @@ In your ```catkin``` workspace, please add the following PUBLICLY available repo
 * ```git clone git@github.com:code-iai/iai_common_msgs.git```
 
 In your ```catkin``` workspace, please add the following PRIVATELY available repos:
-* ```git clone gitolite@kif.ai.uni-bremen.de:iai_drivers_private.git```
+* ```git clone ssh://gitolite@kif.ai.uni-bremen.de:2023/iai_drivers_private.git```
 
 In your ```rosbuild``` workspace, please add the following PRIVATELY available repos:
 * ```git clone ssh://gitolite@kif.ai.uni-bremen.de:2023/dlr_lwr.git```

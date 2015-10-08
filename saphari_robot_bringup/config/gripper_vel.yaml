@@ -1,0 +1,8 @@
+gripper_vel:
+  type: "iai_robot_mechanism_controllers/MultiJointVelocityController"
+  joints:
+    - gripper_base_gripper_left_joint
+    - gripper_base_gripper_right_joint
+  gains:
+    gripper_base_gripper_left_joint: {p: 2.5, i: 0.0, d: 0.0}
+    gripper_base_gripper_right_joint: {p: 2.5, i: 0.0, d: 0.0}

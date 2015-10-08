@@ -18,6 +18,9 @@
   <run_depend>dlr_action_bridge</run_depend>
   <run_depend>iai_wsg_50_description</run_depend>
   <run_depend>loopback_controller_manager</run_depend>
+  <run_depend>pr2_controller_manager</run_depend>
+  <run_depend>iai_boxy_controller_configuration</run_depend>
+
 
   <export>
 

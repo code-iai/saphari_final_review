@@ -13,6 +13,8 @@ For building the sources, you will need a ```catkin``` workspace overlayed with 
 In your ```catkin``` workspace, please add the following PUBLICLY available repos:
 * ```git clone git@github.com:code-iai/saphari_final_review.git```
 * ```git clone git@github.com:code-iai/iai_robots.git```
+* ```git clone git@github.com:code-iai/iai_control_pkgs.git```
+* ```git clone git@github.com:code-iai/iai_common_msgs.git```
 
 In your ```catkin``` workspace, please add the following PRIVATELY available repos:
 * ```git clone gitolite@kif.ai.uni-bremen.de:iai_drivers_private.git```

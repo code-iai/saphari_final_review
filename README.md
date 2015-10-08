@@ -42,7 +42,7 @@ Finally, your user needs the rights to write to shared memory and set high real-
 
 ### Simulation
 Start the simulated environment:
-* ```roslaunch saphari_robot_bringup sim.launch```
+* ```roslaunch saphari_robot_bringup robot_sim.launch```
 
 ## Debugging/Testing
 
@@ -52,9 +52,13 @@ To play with the ```urdf``` of the robot in ```rviz``` launch:
 
 ### SIMULATION
 Start the simulation:
-* ```roslaunch saphari_robot_bringup sim.launch```
+* ```roslaunch saphari_robot_bringup robot_sim.launch```
  
 Use ```beastypy``` to verify that we can move the arm around:
 * ```roscd dlr_beastypy_examples```
 * ```./src/rcu_test_sim.py```
 * ```>>> start_on_table(beasty)```
+
+Use the command-line tools to check that we can command the gripper:
+* ```rostopic pub -r 10 /gripper/position_goal iai_wsg_50_msgs/PositionCmd "pos: 90 speed: 20.0 force: 10.0"
+* ```rostopic pub -r 10 /gripper/position_goal iai_wsg_50_msgs/PositionCmd "pos: 10 speed: 20.0 force: 10.0"

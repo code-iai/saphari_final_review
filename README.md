@@ -26,7 +26,7 @@ Unfortunately, you will need one of 'em precious ```CATKIN_IGNORE``` to make you
 * ```roscd iai_boxy_hw```
 * ```touch CATKIN_IGNORE```
 * ```roscd && cd ..```
-* 
+ 
 First, build the ```catkin``` workspace:
 * ```catkin_make```
 

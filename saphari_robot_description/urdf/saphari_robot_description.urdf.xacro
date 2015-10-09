@@ -45,4 +45,22 @@
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </wsg_50_xacro>
 
+  <link name="firefly_adaptor_link">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://saphari_robot_description/meshes/firefly_adaptor.stl"/>
+      </geometry>
+      <material name="Yellow">
+        <color rgba="1.0 0.93 0.7 1.0"/>
+      </material>
+    </visual>
+  </link>
+
+  <joint name="firefly_adaptor_mounting" type="fixed">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <parent link="gripper_base_link"/>
+    <child link="firefly_adaptor_link"/>
+  </joint>
+
 </robot>

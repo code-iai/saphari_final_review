@@ -25,7 +25,15 @@
   <arg name="width"           default="1600" />
   <arg name="height"          default="1199" />
 
-  <node pkg="saphari_tool_detector" type="detect_tools" name="tool_detector" ns="tool_detector" >
+  <!-- Fake perception -->
+  <arg name="fake_perception" default="false" />
+
+  <!-- Publish static tf for camera and table -->
+  <arg name="static_tf"       default="false" />
+
+  <node if="$(arg static_tf)" pkg="tf" type="static_transform_publisher" name="static_camera_table_tf" args="0 0 0.75 0 0 3.14159265358979323846 /table_frame /camera_frame 100" />
+
+  <node pkg="saphari_tool_detector" type="detect_tools" name="tool_detector" ns="tool_detector" output="screen" >
     <param name="topic"           type="str"    value="$(arg topic)" />
     <param name="table_frame"     type="str"    value="$(arg table_frame)" />
     <param name="camera_frame"    type="str"    value="$(arg camera_frame)" />
@@ -38,5 +46,6 @@
     <param name="y"               type="int"    value="$(arg y)" />
     <param name="width"           type="int"    value="$(arg width)" />
     <param name="height"          type="int"    value="$(arg height)" />
+    <param name="fake_perception" type="bool"   value="$(arg fake_perception)" />
   </node>
 </launch>

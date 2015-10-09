@@ -53,6 +53,7 @@ private:
   std::string topic, tableFrame, cameraFrame, dataPath;
   double thresholdLow, thresholdHigh, maxOverlap;
   int thresholdHough;
+  bool fakePerception;
 
   //Visualizer visualizer;
   Perception perception;
@@ -67,6 +68,7 @@ private:
   ros::ServiceServer service;
   ros::Publisher debug;
 
+  tf::Transform transform;
   tf::Vector3 normal;
   double distance;
   std::vector<Tool> tools;
@@ -91,6 +93,7 @@ public:
     priv_nh.param("y", y, 0);
     priv_nh.param("width", width, 1600);
     priv_nh.param("height", height, 1199);
+    priv_nh.param("fake_perception", fakePerception, false);
 
     //visualizer.setDataPath(dataPath);
     perception.setDataPath(dataPath);
@@ -98,11 +101,41 @@ public:
     perception.setROI(roi);
 
     tfPublisher = std::thread(&ToolDetection::publishStaticTF, this);
-    service = nh.advertiseService("detect_tools", &ToolDetection::detectTools, this);
     debug = nh.advertise<sensor_msgs::Image>("debug_image", 5);
+
+    if(fakePerception)
+    {
+      service = nh.advertiseService("detect_tools", &ToolDetection::fakeResults, this);
+      lookupTransform();
+
+      tf::Quaternion q(0, 0, 0, 1);
+      tools.resize(3);
+      tools[0].name = "hook";
+      tools[0].id = 0;
+      tools[0].pose = transform * tf::Transform(q, tf::Vector3(0.0, 0.25, 0));
+      tools[1].name = "rake";
+      tools[1].id = 1;
+      tools[1].pose = transform * tf::Transform(q, tf::Vector3(0.1, 0.25, 0));
+      tools[2].name = "scissor";
+      tools[2].id = 2;
+      tools[2].pose = transform * tf::Transform(q, tf::Vector3(0.2, 0.25, 0));
+    }
+    else
+    {
+      service = nh.advertiseService("detect_tools", &ToolDetection::detectTools, this);
+
+      std::cout << "loading templates..." << std::endl;
+      if(!perception.loadTemplates(thresholdHough))
+      {
+        std::cerr << "could not load templates" << std::endl;
+        return;
+      }
+
+      receiver.start(topic);
+    }
   }
 
-  void start()
+  /*void start()
   {
     std::cout << "loading templates..." << std::endl;
     if(!perception.loadTemplates(thresholdHough))
@@ -112,7 +145,7 @@ public:
     }
 
     receiver.start(topic);
-    /*std::cout << "waiting for camera..." << std::endl;
+    std::cout << "waiting for camera..." << std::endl;
     if(!receiver.get(color, cameraMatrix, true))
     {
       return;
@@ -159,8 +192,8 @@ public:
       }
 
       input = checkKeys();
-    }*/
-  }
+    }
+  }*/
 
   bool detectTools(saphari_tool_detector::DetectToolsRequest &request, saphari_tool_detector::DetectToolsResponse &response)
   {
@@ -200,6 +233,35 @@ public:
     }
 
     createDebugImage(now);
+    lock.unlock();
+
+    return true;
+  }
+
+  bool fakeResults(saphari_tool_detector::DetectToolsRequest &request, saphari_tool_detector::DetectToolsResponse &response)
+  {
+    ros::Time now = ros::Time::now();
+    tf::Quaternion q(0, 0, 0, 1);
+    lookupTransform();
+
+    lock.lock();
+    tools[0].pose = transform * tf::Transform(q, tf::Vector3(0.0, 0.25, 0));
+    tools[1].pose = transform * tf::Transform(q, tf::Vector3(0.1, 0.25, 0));
+    tools[2].pose = transform * tf::Transform(q, tf::Vector3(0.2, 0.25, 0));
+
+    for(size_t i = 0; i < tools.size(); ++i)
+    {
+      Tool &t = tools[i];
+      saphari_tool_detector::Tool tool;
+
+      std::ostringstream oss;
+      oss << "/tool_" << i << '_' << t.name;
+
+      tool.id = t.id;
+      tool.name = t.name;
+      tf::transformStampedTFToMsg(tf::StampedTransform(t.pose, now, cameraFrame, oss.str()), tool.pose);
+      response.tools.push_back(tool);
+    }
     lock.unlock();
 
     return true;
@@ -311,6 +373,7 @@ private:
       normal = transform.getBasis() * tf::Vector3(0, 0, 1);
       normal.normalize();
       distance = normal.dot(transform.getOrigin());
+      this->transform = transform;
 
       //std::cout << "Normal: " << normal.x() << ", " << normal.y() << ", " << normal.z() << std::endl;
       //std::cout << "Distance: " << distance << std::endl;
@@ -470,7 +533,6 @@ int main(int argc, char **argv)
 
   std::cout << "starting tool detection..." << std::endl;
 
-  detection.start();
   ros::spin();
 
   std::cout << "tool detection stopped." << std::endl;

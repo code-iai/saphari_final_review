@@ -3,8 +3,8 @@
   <arg name="topic"           default="/camera/image_rect_color" />
 
   <!-- Frames for table and camera -->
-  <arg name="table_frame"     default="/table_frame" />
-  <arg name="camera_frame"    default="/camera_frame" />
+  <arg name="table_frame"     default="/table_link" />
+  <arg name="camera_frame"    default="/blackfly_camera_link" />
 
   <!-- Camera topic -->
   <arg name="data_path"       default="$(find saphari_tool_detector)/data/" />
@@ -28,6 +28,9 @@
   <!-- Fake perception -->
   <arg name="fake_perception" default="false" />
 
+  <!-- Publish tf of detected tool -->
+  <arg name="publish_tf"       default="false" />
+
   <!-- Publish static tf for camera and table -->
   <arg name="static_tf"       default="false" />
 
@@ -47,5 +50,6 @@
     <param name="width"           type="int"    value="$(arg width)" />
     <param name="height"          type="int"    value="$(arg height)" />
     <param name="fake_perception" type="bool"   value="$(arg fake_perception)" />
+    <param name="publish_tf"      type="bool"   value="$(arg publish_tf)" />
   </node>
 </launch>

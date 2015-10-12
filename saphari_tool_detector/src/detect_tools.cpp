@@ -77,9 +77,10 @@ private:
   std::mutex lock;
 
 public:
-  ToolDetection() : mode(COLOR), nh(), priv_nh("~"), listener(nh, ros::Duration(10.0)), normal(0, 0, 1), distance(0)
+  ToolDetection() : mode(COLOR), nh(), priv_nh("~"), listener(nh, ros::Duration(5.0)), normal(0, 0, 1), distance(0)
   {
     int32_t x, y, width, height;
+    bool publish_tf;
 
     priv_nh.param("topic", topic, std::string("/camera/image_rect_color"));
     priv_nh.param("table_frame", tableFrame, std::string("/table_frame"));
@@ -94,13 +95,17 @@ public:
     priv_nh.param("width", width, 1600);
     priv_nh.param("height", height, 1199);
     priv_nh.param("fake_perception", fakePerception, false);
+    priv_nh.param("publish_tf", publish_tf, false);
 
     //visualizer.setDataPath(dataPath);
     perception.setDataPath(dataPath);
     roi = cv::Rect(x, y, width, height);
     perception.setROI(roi);
 
-    tfPublisher = std::thread(&ToolDetection::publishStaticTF, this);
+    if(publish_tf)
+    {
+      tfPublisher = std::thread(&ToolDetection::publishStaticTF, this);
+    }
     debug = nh.advertise<sensor_msgs::Image>("debug_image", 5);
 
     if(fakePerception)
@@ -202,7 +207,10 @@ public:
       return false;
     }
     ros::Time now = ros::Time::now();
-    lookupTransform();
+    if(!lookupTransform())
+    {
+      return false;
+    }
 
     cv::cvtColor(color, mono, CV_BGR2GRAY);
     perception.detectEdges(mono, edges, dx, dy, thresholdLow, thresholdHigh);
@@ -242,7 +250,10 @@ public:
   {
     ros::Time now = ros::Time::now();
     tf::Quaternion q(0, 0, 0, 1);
-    lookupTransform();
+    if(!lookupTransform())
+    {
+      return false;
+    }
 
     lock.lock();
     tools[0].pose = transform * tf::Transform(q, tf::Vector3(0.0, 0.25, 0));
@@ -362,12 +373,12 @@ private:
     tool.pose.setBasis(rot);
   }
 
-  void lookupTransform()
+  bool lookupTransform()
   {
     tf::StampedTransform transform;
     try
     {
-      listener.waitForTransform(cameraFrame, tableFrame, ros::Time(0), ros::Duration(10));
+      listener.waitForTransform(cameraFrame, tableFrame, ros::Time(0), ros::Duration(5));
       listener.lookupTransform(cameraFrame, tableFrame, ros::Time(0), transform);
 
       normal = transform.getBasis() * tf::Vector3(0, 0, 1);
@@ -381,7 +392,9 @@ private:
     catch(const tf::TransformException &ex)
     {
       std::cerr << ex.what() << std::endl;
+      return false;
     }
+    return true;
   }
 
   bool checkOverlap(const Tool &tool, const std::vector<Tool> &tools)

@@ -7,6 +7,12 @@
 
   <include file="$(find saphari_robot_bringup)/launch/gripper_sim.launch" />
 
+  <include file="$(find saphari_tool_detector)/launch/detector.launch" >
+    <arg name="fake_perception" value="true" />
+    <arg name="camera_frame" value="blackfly_camera" />
+    <arg name="table_frame" value="table_link" />
+  </include>
+
   <node name="robot_state_publisher" pkg="robot_state_publisher"
         type="state_publisher" />
 

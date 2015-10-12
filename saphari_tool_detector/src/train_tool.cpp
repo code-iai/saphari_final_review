@@ -248,7 +248,7 @@ private:
     if(p0.x > 0 && p0.y > 0)
     {
       cv::circle(disp, p0, 3, CV_RGB(0, 255, 255), 1, CV_AA);
-      if(p1.x != p0.x && p1.y != p0.y)
+      if(p1.x != p0.x || p1.y != p0.y)
       {
         cv::line(disp, p0, p1, CV_RGB(0, 255, 0), 1, CV_AA);
       }

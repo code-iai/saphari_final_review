@@ -1,0 +1,25 @@
+# IT IS UNLIKELY YOU WANT TO EDIT THIS FILE BY HAND,
+# UNLESS FOR REMOVING ENTRIES.
+# IF YOU WANT TO CHANGE THE ROS ENVIRONMENT VARIABLES
+# USE THE rosinstall TOOL INSTEAD.
+# IF YOU CHANGE IT, USE rosinstall FOR THE CHANGES TO TAKE EFFECT
+- git: 
+    local-name: iai_common_msgs
+    uri: https://github.com/code-iai/iai_common_msgs.git
+    version: master
+- git: 
+    local-name: iai_robots
+    uri: https://github.com/code-iai/iai_robots.git
+    version: master
+- git: 
+    local-name: iai_control_pkgs
+    uri: https://github.com/code-iai/iai_control_pkgs.git
+    version: master
+- git: 
+    local-name: saphari_final_review
+    uri: https://github.com/code-iai/saphari_final_review.git
+    version: master
+- git: 
+    local-name: iai_drivers_private
+    uri: ssh://gitolite@kif.ai.uni-bremen.de:2023/iai_drivers_private.git
+    version: master

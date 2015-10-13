@@ -1,4 +1,8 @@
 <launch>
   <node name="semrec" pkg="semrec" type="semrec" args="-c $(find saphari_task_executive)/config/semrec_config.cfg" 
    output="screen"/>
+
+  <node name="mongodb_log" pkg="mongodb_log" type="mongodb_log" args="/tf /logged_designators" />
+
+  <include file="$(find knowrob_saphari)/launch/knowrob_saphari.launch" />
 </launch>

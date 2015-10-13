@@ -23,3 +23,19 @@
     local-name: iai_drivers_private
     uri: ssh://gitolite@kif.ai.uni-bremen.de:2023/iai_drivers_private.git
     version: master
+- git:
+    local-name: semrec
+    uri: https://github.com/code-iai/semrec.git
+    version: master
+- git:
+    local-name: sr_plugin_knowrob
+    uri: https://github.com/code-iai/sr_plugin_knowrob.git
+    version: master
+- git:
+    local-name: designator_integration
+    uri: https://github.com/code-iai/designator_integration.git
+    version: master
+- git:
+    local-name: ros-mongodb_log
+    uri: https://github.com/code-iai/ros-mongodb_log.git
+    version: master

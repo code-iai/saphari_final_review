@@ -1,0 +1,4 @@
+<launch>
+  <node name="semrec" pkg="semrec" type="semrec" args="-c $(find saphari_task_executive)/config/semrec_config.cfg" 
+   output="screen"/>
+</launch>

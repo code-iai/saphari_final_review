@@ -35,9 +35,11 @@
                cram-beliefstate
                designators
                cram-language-designator-support
-               saphari_tool_detector-srv)
+               saphari_tool_detector-srv
+               saphari_task_executive-srv)
   :components
   ((:module "src"
     :components
     ((:file "package")
-     (:file "tool-perception" :depends-on ("package"))))))
+     (:file "tool-perception" :depends-on ("package"))
+     (:file "main" :depends-on ("package" "tool-perception"))))))

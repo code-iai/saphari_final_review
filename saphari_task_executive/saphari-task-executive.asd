@@ -31,7 +31,11 @@
   :license "BSD"
   :description "Task executive of the final review demo of the SAPHARI project."
   :depends-on (roslisp
-               cram-json-prolog)
+               cram-json-prolog
+               cram-beliefstate
+               designators
+               cram-language-designator-support
+               saphari_tool_detector-srv)
   :components
   ((:module "src"
     :components

@@ -13,9 +13,14 @@
   <license>TODO</license>
 
   <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>roslisp</build_depend>
+  <build_depend>cram_json_prolog</build_depend>
+
   <run_depend>semrec</run_depend>
   <run_depend>mongodb_log</run_depend>
   <run_depend>knowrob_saphari</run_depend>
+  <run_depend>roslisp</run_depend>
+  <run_depend>cram_json_prolog</run_depend>
 
   <export>
 

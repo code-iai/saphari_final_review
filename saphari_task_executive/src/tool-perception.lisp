@@ -29,7 +29,81 @@
 (in-package :saphari-task-executive)
 
 ;;;
-;;; HIGH-LEVEL INTERFACE
+;;; GENERAL UTILS
+;;;
+
+(defun conc-strings (&rest strings)
+  "Concatenates a list of strings into one string."
+  (apply #'concatenate 'string strings))
+
+(defun string->keyword (s)
+  (declare (type string s))
+  (intern (string-upcase s) :keyword))
+
+;;;
+;;; KNOWROB UTILS
+;;;
+
+(defun json-symbol->keyword (json-symbol)
+  (declare (type symbol json-symbol))
+  (string->keyword (json-symbol->string json-symbol)))
+
+(defun json-symbol->string (json-symbol)
+  (declare (type symbol json-symbol))
+  (remove #\' (symbol-name json-symbol)))
+
+;;;
+;;; QUERY KNOWROB
+;;;
+
+(defun keywords->knowrob-string-list (&rest keywords)
+  (let* ((strings (mapcar #'symbol-name keywords))
+         (quoted-strings (mapcar (lambda (s) (conc-strings "'" s "'")) strings))
+         (comma-strings
+           (apply #'conc-strings
+                  (mapcar (lambda (s) (conc-strings s ",")) quoted-strings))))
+    (conc-strings "[" (remove #\, comma-strings :from-end t :count 1) "]")))
+
+(defun query-latest-instrument-detections (&rest class-keywords)
+  (let ((query-string
+          (conc-strings "knowrob_saphari:saphari_latest_object_detections("
+                        (apply #'keywords->knowrob-string-list class-keywords)
+                        ",_Detections),"
+                        "member(_Detection, _Detections),"
+                        "mng_designator(_Detection, _ObjJava),"
+                        "mng_designator_props(_Detection, _ObjJava, ['TYPE'], DESIGTYPE),"
+                        "mng_designator_props(_Detection, _ObjJava, ['AT', 'POSE'], _DesigPose),"
+                        "jpl_get(_DesigPose, 'frameID', FRAMEID),"
+                        "jpl_get(_DesigPose, 'timeStamp', _TimeStampIso),"
+                        "jpl_call(_TimeStampIso, 'toSeconds', [], TIMESTAMP),"
+;;                        "jpl_call(_TimeStampIso, 'totalNsecs', [], TIMESTAMP),"
+                        "jpl_call(_DesigPose, 'getData', [], _Pose),"
+                        "knowrob_coordinates:matrix4d_to_list(_Pose, _PoseList),"
+                        "matrix_rotation(_PoseList, [QW, QX, QY, QZ]),"
+                        "matrix_translation(_PoseList, [X, Y, Z]).")))
+    (let ((bindings (cut:force-ll (prolog-simple query-string))))
+      (mapcar (lambda (binding)
+                (cut:with-vars-bound (?QW ?QX ?QY ?QZ
+                                          ?X ?Y ?Z
+                                          ?TIMESTAMP ?FRAMEID
+                                          ?DESIGTYPE) binding
+                  (type-and-pose-stamped->obj-desig
+                   (json-symbol->keyword ?DESIGTYPE)
+                   (make-msg
+                    "geometry_msgs/PoseStamped"
+                    (:stamp :header) ?TIMESTAMP
+                    (:frame_id :header) (json-symbol->string ?FRAMEID)
+                    (:x :position :pose) ?X
+                    (:y :position :pose) ?Y
+                    (:z :position :pose) ?Z
+                    (:x :orientation :pose) ?QX
+                    (:y :orientation :pose) ?QY
+                    (:z :orientation :pose) ?QZ
+                    (:w :orientation :pose) ?QW))))
+              bindings))))
+
+;;;
+;;; HIGH-LEVEL PLAN INTERFACE
 ;;;
 
 (cpl-impl:def-cram-function perceive-surgical-instruments ()
@@ -80,14 +154,21 @@
 (defun tool-percept->object-desig (tool-percept)
   (declare (type saphari_tool_detector-msg:tool tool-percept))
   (with-fields (name pose) tool-percept
-    (let* ((loc (desig:make-designator
-                 'desig:location
-                 `((:pose ,(transform-stamped->pose-stamped pose)))))
-           (obj (desig:make-designator
-                 'desig:object
-                 `((:type ,(string->keyword name))
-                   (:at ,loc)))))
-      obj)))
+    (type-and-pose-stamped->obj-desig
+     (string->keyword name)
+     (transform-stamped->pose-stamped pose))))
+
+(defun type-and-pose-stamped->obj-desig (object-type pose-stamped)
+  (declare (type keyword object-type)
+           (type geometry_msgs-msg:posestamped pose-stamped))
+  (desig:make-designator
+   'desig:object
+   `((:type ,object-type)
+     (:at ,(pose-stamped->loc-desig pose-stamped)))))
+
+(defun pose-stamped->loc-desig (pose-stamped)
+  (declare (type geometry_msgs-msg:posestamped pose-stamped))
+  (desig:make-designator 'desig:location `((:pose ,pose-stamped))))
 
 ;;;
 ;;; ROS MESSAGE CONVERSIONS
@@ -112,19 +193,3 @@
     (make-msg "geometry_msgs/PoseStamped"
               :header header
               :pose (transform->pose transform))))
-      
-;;;
-;;; CONVENIENCE CONVERSIONS
-;;;
-
-(defun string->keyword (s)
-  (declare (type string s))
-  (intern (string-upcase s) :keyword))
-
-;; sanity check that we can reach knowrob
-;; (prolog-simple "member(A, [1, 2])")
-
-;; query for latest detection of a bowl from Daniel's test episode
-;; (prolog-simple "mng_db('test')")
-;; (prolog-simple "owl_parse('/tmp/log.owl')")
-;; (prolog-simple "knowrob_saphari:saphari_latest_object_detection('Bowl', D)")

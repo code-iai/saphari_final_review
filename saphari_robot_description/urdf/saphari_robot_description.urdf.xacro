@@ -43,7 +43,7 @@
   </fwk_fwa_050_xacro>
 
   <wsg_50_xacro name="gripper" parent="arm_fwk_fwa_050_frame_out">
-    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <origin xyz="0 0 0" rpy="0 0 ${-1*PI*135/180}"/>
   </wsg_50_xacro>
 
   <link name="blackfly_adaptor_link">

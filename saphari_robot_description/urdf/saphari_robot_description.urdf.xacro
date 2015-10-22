@@ -7,6 +7,7 @@
 
   <property name="PI" value="3.1415926535897931" />
 
+  <!-- FURNITURE AND SCENE -->
   <link name="ground_plane_frame"/>
 
   <link name="table_link">
@@ -26,6 +27,7 @@
     <child link="table_link"/>
   </joint>
  
+  <!-- LWR AND GRIPPER -->
   <link name="arm_base_link"/>
 
   <joint name="table_arm_base_link_offset" type="fixed">
@@ -46,6 +48,7 @@
     <origin xyz="0 0 0" rpy="0 0 ${-1*PI*135/180}"/>
   </wsg_50_xacro>
 
+  <!-- WRIST CAM WITH MOUNTING -->
   <link name="blackfly_adaptor_link">
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
@@ -80,6 +83,24 @@
     <origin xyz="0 -0.0545 0.035" rpy="0 0 3.14"/>
     <parent link="gripper_base_link"/>
     <child link="blackfly_camera"/>
+  </joint>
+
+  <!-- CAMERA CALIBRATION -->
+  <!-- TO BE SIMPLIFIED INTO ONE LINK-JOINT COMBO -->
+  <link name="optical_frame_x" />
+
+  <joint name="optical_joint_x" type="fixed">
+    <origin xyz="0.000836 -0.053028 0.073603" rpy="0.007552 6.274592 3.141201"/>
+    <parent link="gripper_base_link" />
+    <child link="optical_frame_x" />
+  </joint>
+
+  <link name="optical_frame" />
+
+  <joint name="optical_joint" type="fixed">
+    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 ${PI}" />
+    <parent link="optical_frame_x" />
+    <child link="optical_frame" />
   </joint>
 
 </robot>

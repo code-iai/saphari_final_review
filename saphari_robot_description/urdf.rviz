@@ -10,7 +10,7 @@ Panels:
         - /TF1
         - /TF1/Frames1
       Splitter Ratio: 0.503968
-    Tree Height: 595
+    Tree Height: 1315
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -100,11 +100,6 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        arm_cabling_adaptor_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
         arm_flange_link:
           Alpha: 1
           Show Axes: false
@@ -118,17 +113,17 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
+        blackfly_adaptor_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        blackfly_camera:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
         calib_arm_base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        firefly_adaptor_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        firefly_camera:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -166,6 +161,49 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
+        instrument_pad:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        optical_frame_x:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        screen:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        screenholder_1_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        screenholder_2_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        screenholder_3_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        screenholder_4_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        sorting_basket:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
         table_link:
           Alpha: 1
           Show Axes: false
@@ -183,51 +221,67 @@ Visualization Manager:
       Frames:
         All Enabled: false
         arm_1_link:
-          Value: false
+          Value: true
         arm_2_link:
-          Value: false
+          Value: true
         arm_3_link:
-          Value: false
+          Value: true
         arm_4_link:
-          Value: false
+          Value: true
         arm_5_link:
-          Value: false
+          Value: true
         arm_6_link:
-          Value: false
+          Value: true
         arm_7_link:
-          Value: false
+          Value: true
         arm_base_link:
-          Value: false
-        arm_cabling_adaptor_link:
-          Value: false
+          Value: true
         arm_flange_link:
-          Value: false
+          Value: true
         arm_fwk_fwa_050_frame_in:
-          Value: false
+          Value: true
         arm_fwk_fwa_050_frame_out:
-          Value: false
+          Value: true
+        blackfly_adaptor_link:
+          Value: true
+        blackfly_camera:
+          Value: true
         calib_arm_base_link:
-          Value: false
-        firefly_adaptor_link:
-          Value: false
-        firefly_camera:
           Value: true
         gripper_base_link:
-          Value: false
+          Value: true
         gripper_finger_left_link:
-          Value: false
+          Value: true
         gripper_finger_right_link:
-          Value: false
+          Value: true
         gripper_gripper_left_link:
-          Value: false
+          Value: true
         gripper_gripper_right_link:
-          Value: false
+          Value: true
         gripper_tool_frame:
-          Value: false
+          Value: true
         ground_plane_frame:
-          Value: false
+          Value: true
+        instrument_pad:
+          Value: true
+        optical_frame:
+          Value: true
+        optical_frame_x:
+          Value: true
+        screen:
+          Value: true
+        screenholder_1_link:
+          Value: true
+        screenholder_2_link:
+          Value: true
+        screenholder_3_link:
+          Value: true
+        screenholder_4_link:
+          Value: true
+        sorting_basket:
+          Value: true
         table_link:
-          Value: false
+          Value: true
       Marker Scale: 0.5
       Name: TF
       Show Arrows: true
@@ -246,22 +300,34 @@ Visualization Manager:
                           arm_6_link:
                             arm_7_link:
                               arm_flange_link:
-                                arm_cabling_adaptor_link:
-                                  arm_fwk_fwa_050_frame_in:
-                                    arm_fwk_fwa_050_frame_out:
-                                      gripper_base_link:
-                                        firefly_adaptor_link:
+                                arm_fwk_fwa_050_frame_in:
+                                  arm_fwk_fwa_050_frame_out:
+                                    gripper_base_link:
+                                      blackfly_adaptor_link:
+                                        {}
+                                      blackfly_camera:
+                                        {}
+                                      gripper_gripper_left_link:
+                                        gripper_finger_left_link:
                                           {}
-                                        firefly_camera:
+                                      gripper_gripper_right_link:
+                                        gripper_finger_right_link:
                                           {}
-                                        gripper_gripper_left_link:
-                                          gripper_finger_left_link:
-                                            {}
-                                        gripper_gripper_right_link:
-                                          gripper_finger_right_link:
-                                            {}
-                                        gripper_tool_frame:
+                                      gripper_tool_frame:
+                                        {}
+                                      optical_frame_x:
+                                        optical_frame:
                                           {}
+            instrument_pad:
+              {}
+            screenholder_1_link:
+              screenholder_2_link:
+                screenholder_3_link:
+                  screenholder_4_link:
+                    screen:
+                      {}
+            sorting_basket:
+              {}
       Update Interval: 0
       Value: true
   Enabled: true
@@ -288,30 +354,30 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.27329
+      Distance: 3.70937
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.19755
-        Y: 1.45199
-        Z: 2.0296
+        X: 1.48075
+        Y: 1.2044
+        Z: 0.766934
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.249797
+      Pitch: 1.1748
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 5.14864
+      Yaw: 4.71368
     Saved: ~
 Window Geometry:
   Displays:
     collapsed: false
-  Height: 876
+  Height: 1596
   Hide Left Dock: false
   Hide Right Dock: true
-  QMainWindow State: 000000ff00000000fd0000000400000000000001a2000002e2fc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000006400fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c0061007900730100000028000002e2000000dd00fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f000003f2fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a005600690065007700730000000028000003f2000000b000fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000005ff0000003efc0100000002fb0000000800540069006d00650100000000000005ff000002f600fffffffb0000000800540069006d0065010000000000000450000000000000000000000457000002e200000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000400000000000001a2000005b2fc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000006400fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c0061007900730100000028000005b2000000dd00fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f000003f2fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a005600690065007700730000000028000003f2000000b000fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e1000001970000000300000aff0000003efc0100000002fb0000000800540069006d0065010000000000000aff000002f600fffffffb0000000800540069006d0065010000000000000450000000000000000000000957000005b200000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
@@ -320,6 +386,6 @@ Window Geometry:
     collapsed: false
   Views:
     collapsed: true
-  Width: 1535
-  X: 55
-  Y: 14
+  Width: 2815
+  X: 65
+  Y: 24

@@ -11,12 +11,12 @@ Please install the following debian deps:
 To speed-up development, you will need three workspaces which overlay sequently: First, there is a ```catkin``` workspace for ```knowrob```, then comes another ```catkin``` workspace for all other ```catkin``` packages, and finally there is a ```rosbuild``` workspace for the ```dlr_action_bridge```. For convenience, we have created several ```rosinstall``` files.
 
 First, create the workspaces in the above described order:
-* ```cd && mkdir -p ros/saphari_knowrob/src && mkdir -p ros/saphari_catkin/src && mdir ros/saphari_rosbuild```
+* ```cd && mkdir -p ros/saphari_knowrob/src && mkdir -p ros/saphari_catkin/src && mkdir ros/saphari_rosbuild```
 * ```cd ~/ros/saphari_knowrob/src && wstool init```
 * ```cd ~/ros/saphari_knowrob && source /opt/ros/indigo/setup.bash && catkin_make```
 * ```cd ~/ros/saphari_catkin/src && wstool init```
-* ```cd ~/ros/saphari_catkin && source ~/ros/catkin_knowrob/devel/setup.bash && catkin_make```
-* ```cd ~/ros/saphari_rosbuidl && wstool init```
+* ```cd ~/ros/saphari_catkin && source ~/ros/saphari_knowrob/devel/setup.bash && catkin_make```
+* ```cd ~/ros/saphari_rosbuild && wstool init```
 * ```echo source ~/ros/saphari_catkin/devel/setup.bash >> ~/.bashrc```
 * ```echo export ROS_PACKAGE_PATH=~/ros/saphari_rosbuild:${ROS_PACKAGE_PATH} >> ~/.bashrc```
 * ```source ~/.bashrc```

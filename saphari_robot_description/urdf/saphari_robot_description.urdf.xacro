@@ -5,6 +5,8 @@
   <include filename="$(find iai_adapters_description)/urdf/fwk_fwa_050.urdf.xacro"/>
   <include filename="$(find iai_wsg_50_description)/urdf/wsg_50.urdf.xacro"/>	
 
+  <property name="PI" value="3.1415926535897931" />
+
   <link name="ground_plane_frame"/>
 
   <link name="table_link">
@@ -33,7 +35,7 @@
   </joint>
 
   <kuka_lwr_arm parent="arm_base_link" prefix="">
-    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <origin xyz="0 0 0" rpy="0 0 ${PI / 2.0}"/>
   </kuka_lwr_arm>
 
   <fwk_fwa_050_xacro parent="arm_cabling_adaptor_link" prefix="arm">

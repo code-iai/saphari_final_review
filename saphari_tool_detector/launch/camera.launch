@@ -7,11 +7,6 @@
 
   <arg name="calibrated" default="1" />
 
-  <!-- Publish static tf for camera and table -->
-  <arg name="static_tf"       default="false" />
-
-  <node if="$(arg static_tf)" pkg="tf" type="static_transform_publisher" name="static_camera_table_tf" args="0 0 0.75 0 0 3.14159265358979323846 /table_frame /camera_frame 100" />
-
   <param name="/camera/image_raw/compressed/jpeg_quality" value="100" />
   <param name="/camera/image_mono/compressed/jpeg_quality" value="100" />
   <param name="/camera/image_color/compressed/jpeg_quality" value="100" />

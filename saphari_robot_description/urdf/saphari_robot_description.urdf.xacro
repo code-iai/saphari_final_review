@@ -29,16 +29,16 @@
   <link name="arm_base_link"/>
 
   <joint name="table_arm_base_link_offset" type="fixed">
-    <origin xyz="0.47 1.029 -0.025" rpy="0 0 0"/>
+    <origin xyz="0.47 1.029 -0.025" rpy="0 0 ${PI / 2.0}"/>
     <parent link="table_link"/>
     <child link="arm_base_link"/>
   </joint>
 
   <kuka_lwr_arm parent="arm_base_link" prefix="">
-    <origin xyz="0 0 0" rpy="0 0 ${PI / 2.0}"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
   </kuka_lwr_arm>
 
-  <fwk_fwa_050_xacro parent="arm_cabling_adaptor_link" prefix="arm">
+  <fwk_fwa_050_xacro parent="arm_flange_link" prefix="arm">
     <origin xyz="0 0 0" rpy="0 0 0" />
   </fwk_fwa_050_xacro>
 

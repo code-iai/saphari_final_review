@@ -33,10 +33,8 @@ Afterwards, init and build the remaining catkin packages in the 2nd overlay. Unf
 * ```cd ~/ros/saphari_catkin/src```
 * ```wstool merge https://raw.githubusercontent.com/code-iai/saphari_final_review/master/saphari_final_review/rosinstall/saphari_catkin.rosinstall```
 * ```wstool update```
-* ```roscd iai_boxy_hw```
-* ```touch CATKIN_IGNORE```
-* ```cd ~/ros/saphari_catkin```
-* ```catkin_make```
+* ```roscd iai_boxy_hw && touch CATKIN_IGNORE```
+* ```cd ~/ros/saphari_catkin && catkin_make```
 
 Finally, checkout and build the ```dlr_action_bridge``` in the ```rosbuild``` workspace:
 * ```cd ~/ros/saphari_rosbuild```

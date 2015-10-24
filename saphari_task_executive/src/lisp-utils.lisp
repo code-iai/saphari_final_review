@@ -26,23 +26,12 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(asdf:defsystem saphari-task-executive
-  :author "Georg Bartels <georg.bartels@cs.uni-bremen.de>"
-  :license "BSD"
-  :description "Task executive of the final review demo of the SAPHARI project."
-  :depends-on (roslisp
-               cram-json-prolog
-               cram-beliefstate
-               roslisp-beasty
-               designators
-               cram-language-designator-support
-               saphari_tool_detector-srv
-               saphari_task_executive-srv)
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "lisp-utils" :depends-on ("package"))
-     (:file "tool-perception" :depends-on ("package" "lisp-utils"))
-     (:file "plans" :depends-on ("package"))
-     (:file "main" :depends-on ("package" "tool-perception"))))))
+(in-package :saphari-task-executive)
+
+(defun conc-strings (&rest strings)
+  "Concatenates a list of strings into one string."
+  (apply #'concatenate 'string strings))
+
+(defun string->keyword (s)
+  (declare (type string s))
+  (intern (string-upcase s) :keyword))

@@ -29,18 +29,6 @@
 (in-package :saphari-task-executive)
 
 ;;;
-;;; GENERAL UTILS
-;;;
-
-(defun conc-strings (&rest strings)
-  "Concatenates a list of strings into one string."
-  (apply #'concatenate 'string strings))
-
-(defun string->keyword (s)
-  (declare (type string s))
-  (intern (string-upcase s) :keyword))
-
-;;;
 ;;; KNOWROB UTILS
 ;;;
 

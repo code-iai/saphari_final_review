@@ -19,6 +19,7 @@
   <run_depend>iai_kuka_lwr4_description</run_depend>
   <run_depend>iai_adapters_description</run_depend>
   <run_depend>iai_wsg_50_description</run_depend>
+  <run_depend>iai_kinect_description</run_depend>
 
   <export>
 

@@ -5,16 +5,31 @@
   <include filename="$(find iai_adapters_description)/urdf/fwk_fwa_050.urdf.xacro"/>
   <include filename="$(find iai_wsg_50_description)/urdf/wsg_50.urdf.xacro"/>	
   <include filename="$(find saphari_robot_description)/urdf/saphari_table.urdf.xacro"/>	
-
+  <include filename="$(find saphari_robot_description)/urdf/saphari_map.urdf.xacro"/>	
 
   <property name="PI" value="3.1415926535897931" />
 
   <!-- FURNITURE AND SCENE -->
-  <link name="map"/>
+
+  <saphari_map map_frame="map"/>
 
   <saphari_table parent="map">
     <origin xyz="0 0 0.89" rpy="0 0 0"/>
   </saphari_table>
+
+
+
+
+  <!--link name="measurement_frame"/>
+
+  <joint name="measurement" type="fixed">
+    <origin xyz="0.6 0.75 0" rpy="0 0 0"/>
+    <parent link="table_link"/>
+    <child link="measurement_frame"/>
+  </joint-->
+ 
+
+
 
   <link name="instrument_pad">
     <visual>

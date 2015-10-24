@@ -9,7 +9,7 @@ Panels:
         - /RobotModel1
         - /TF1
         - /TF1/Frames1
-      Splitter Ratio: 0.503968
+      Splitter Ratio: 0.692308
     Tree Height: 1315
   - Class: rviz/Selection
     Name: Selection
@@ -162,6 +162,52 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
+        kinect_depth_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        kinect_depth_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        kinect_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        kinect_mounting_1_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        kinect_mounting_2_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        kinect_mounting_3_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        kinect_mounting_4_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        kinect_mounting_5_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        kinect_rgb_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        kinect_rgb_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
         map:
           Alpha: 1
           Show Axes: false
@@ -205,6 +251,11 @@ Visualization Manager:
           Show Trail: false
           Value: true
         table_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wall:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -262,6 +313,26 @@ Visualization Manager:
           Value: true
         instrument_pad:
           Value: true
+        kinect_depth_frame:
+          Value: true
+        kinect_depth_optical_frame:
+          Value: true
+        kinect_link:
+          Value: true
+        kinect_mounting_1_link:
+          Value: true
+        kinect_mounting_2_link:
+          Value: true
+        kinect_mounting_3_link:
+          Value: true
+        kinect_mounting_4_link:
+          Value: true
+        kinect_mounting_5_link:
+          Value: true
+        kinect_rgb_frame:
+          Value: true
+        kinect_rgb_optical_frame:
+          Value: true
         map:
           Value: true
         optical_frame:
@@ -281,6 +352,8 @@ Visualization Manager:
         sorting_basket:
           Value: true
         table_link:
+          Value: true
+        wall:
           Value: true
       Marker Scale: 0.5
       Name: TF
@@ -328,6 +401,19 @@ Visualization Manager:
                       {}
             sorting_basket:
               {}
+          wall:
+            kinect_mounting_1_link:
+              kinect_mounting_2_link:
+                kinect_mounting_3_link:
+                  kinect_mounting_4_link:
+                    kinect_mounting_5_link:
+                      kinect_link:
+                        kinect_depth_frame:
+                          kinect_depth_optical_frame:
+                            {}
+                        kinect_rgb_frame:
+                          kinect_rgb_optical_frame:
+                            {}
       Update Interval: 0
       Value: true
   Enabled: true
@@ -354,22 +440,22 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 4.15449
+      Distance: 3.24475
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 1.48075
-        Y: 1.2044
-        Z: 0.766934
+        X: 1.19999
+        Y: 0.513734
+        Z: 1.18521
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.589801
+      Pitch: 0.334798
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 4.72368
+      Yaw: 4.8587
     Saved: ~
 Window Geometry:
   Displays:

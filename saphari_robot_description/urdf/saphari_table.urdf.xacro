@@ -1,0 +1,116 @@
+<?xml version="1.0"?>
+<robot name="saphari_table">
+
+  <property name="PI" value="3.1415926535897931" />
+
+  <macro name="saphari_table" params="parent *origin">
+
+    <link name="table_link">
+      <visual>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+        <geometry> <mesh filename="package://saphari_robot_description/meshes/table.stl"/>
+        </geometry>
+        <material name="Grey">
+          <color rgba="0.7 0.7 0.7 1.0"/>
+        </material>
+      </visual>
+    </link>
+  
+    <joint name="ground_plane_to_table_offset" type="fixed">
+      <!--origin xyz="0 0 0.89" rpy="0 0 0"/-->
+      <insert_block name="origin"/>
+      <parent link="${parent}"/>
+      <child link="table_link"/>
+    </joint>
+  
+    <link name="screenholder_1_link">
+      <visual>
+        <origin xyz="0.04 0.165 0.02" rpy="0 0 0" />
+        <geometry>
+          <box size="0.08 0.325 0.04" />
+        </geometry>
+        <material name="Grey"/>
+      </visual>
+    </link>
+  
+    <joint name="screenholder_mounting_joint" type="fixed">
+      <!-- TODO: verify y-component of this translation! -->
+      <origin xyz="1.19 0.6 -0.08" rpy="0 0 0"/>
+      <parent link="table_link"/>
+      <child link="screenholder_1_link"/>
+    </joint>
+  
+    <link name="screenholder_2_link">
+      <visual>
+        <origin xyz="0.04 0.02 0.1625" rpy="0 0 0" />
+        <geometry>
+          <box size="0.08 0.04 0.325" />
+        </geometry>
+        <material name="Grey"/>
+      </visual>
+    </link>
+  
+    <joint name="screenholder_1_joint" type="fixed">
+      <origin xyz="0.0 ${0.325 - 0.045 - 0.04} 0.04" rpy="0 0 0"/>
+      <parent link="screenholder_1_link"/>
+      <child link="screenholder_2_link"/>
+    </joint>
+  
+    <link name="screenholder_3_link">
+      <visual>
+        <origin xyz="0 -0.01 ${0.05/2}" rpy="0 0 0" />
+        <geometry>
+          <cylinder radius="0.01" length="0.05"/>
+        </geometry>
+        <material name="Black">
+          <color rgba="0 0 0 1.0"/>
+        </material>
+      </visual>
+    </link>
+  
+    <joint name="screenholder_2_joint" type="fixed">
+      <origin xyz="${0.08/2} 0.0 ${0.325 - 0.05 - 0.05/2}" rpy="0 0 0"/>
+      <parent link="screenholder_2_link"/>
+      <child link="screenholder_3_link"/>
+    </joint>
+  
+    <link name="screenholder_4_link">
+      <visual>
+        <origin xyz="0 ${-0.06/2} ${0.04/2}" rpy="0 0 0" />
+        <geometry>
+          <box size="0.01 0.06 0.04" />
+        </geometry>
+        <material name="Black">
+          <color rgba="0 0 0 1.0"/>
+        </material>
+      </visual>
+    </link>
+  
+    <joint name="screenholder_3_joint" type="fixed">
+      <origin xyz="0 ${-0.02/2} 0.005" rpy="0 0 ${-45*PI/180}"/>
+      <parent link="screenholder_3_link"/>
+      <child link="screenholder_4_link"/>
+    </joint>
+  
+    <link name="screen">
+      <visual>
+        <origin xyz="0 ${-0.045/2} ${0.32/2}" rpy="0 0 0" />
+        <geometry>
+          <box size="0.55 0.045 0.32" />
+        </geometry>
+        <material name="Black">
+          <color rgba="0 0 0 1.0"/>
+        </material>
+      </visual>
+    </link>
+  
+    <joint name="screen_mounting_joint" type="fixed">
+      <!-- TODO: verify the z-component of this translation -->
+      <origin xyz="0 -0.06 -0.18" rpy="0 0 0"/>
+      <parent link="screenholder_4_link"/>
+      <child link="screen"/>
+    </joint>
+
+  </macro>
+
+</robot>

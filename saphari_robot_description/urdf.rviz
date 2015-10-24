@@ -157,15 +157,15 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        ground_plane_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
         instrument_pad:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
+        map:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
         optical_frame:
           Alpha: 1
           Show Axes: false
@@ -260,9 +260,9 @@ Visualization Manager:
           Value: true
         gripper_tool_frame:
           Value: true
-        ground_plane_frame:
-          Value: true
         instrument_pad:
+          Value: true
+        map:
           Value: true
         optical_frame:
           Value: true
@@ -288,7 +288,7 @@ Visualization Manager:
       Show Axes: true
       Show Names: false
       Tree:
-        ground_plane_frame:
+        map:
           table_link:
             arm_base_link:
               calib_arm_base_link:
@@ -333,7 +333,7 @@ Visualization Manager:
   Enabled: true
   Global Options:
     Background Color: 193; 193; 193
-    Fixed Frame: ground_plane_frame
+    Fixed Frame: map
     Frame Rate: 30
   Name: root
   Tools:
@@ -354,7 +354,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 3.70937
+      Distance: 4.15449
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
@@ -366,10 +366,10 @@ Visualization Manager:
         Z: 0.766934
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 1.1748
+      Pitch: 0.589801
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 4.71368
+      Yaw: 4.72368
     Saved: ~
 Window Geometry:
   Displays:

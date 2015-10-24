@@ -33,6 +33,7 @@
   :depends-on (roslisp
                cram-json-prolog
                cram-beliefstate
+               roslisp-beasty
                designators
                cram-language-designator-support
                saphari_tool_detector-srv
@@ -42,4 +43,5 @@
     :components
     ((:file "package")
      (:file "tool-perception" :depends-on ("package"))
+     (:file "plans" :depends-on ("package"))
      (:file "main" :depends-on ("package" "tool-perception"))))))

@@ -1,6 +1,6 @@
 <launch>
 
-  <arg name="urdf-name" default="saphari_robot_description.urdf.xacro"/>
+  <arg name="urdf-name" default="saphari_setup_description.urdf.xacro"/>
   <arg name="urdf-path" default="$(find saphari_robot_description)/urdf/$(arg urdf-name)"/>
   <arg name="param-name" default="robot_description"/>
 

@@ -13,6 +13,8 @@
     <arg name="table_frame" value="table_link" />
   </include>
 
+  <include file="$(find saphari_interactive_markers)/launch/saphari_interactive_markers.launch" />
+
   <node name="robot_state_publisher" pkg="robot_state_publisher"
         type="state_publisher" />
 

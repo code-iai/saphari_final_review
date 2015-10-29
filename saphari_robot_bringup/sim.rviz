@@ -6,8 +6,12 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-      Splitter Ratio: 0.5
-    Tree Height: 565
+        - /TF1
+        - /TF1/Frames1
+        - /TF1/Tree1
+        - /InteractiveMarkers1
+      Splitter Ratio: 0.671141
+    Tree Height: 1176
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -264,154 +268,27 @@ Visualization Manager:
       Value: true
       Visual Enabled: true
     - Class: rviz/TF
-      Enabled: true
+      Enabled: false
       Frame Timeout: 15
       Frames:
-        All Enabled: true
-        arm_1_link:
-          Value: true
-        arm_2_link:
-          Value: true
-        arm_3_link:
-          Value: true
-        arm_4_link:
-          Value: true
-        arm_5_link:
-          Value: true
-        arm_6_link:
-          Value: true
-        arm_7_link:
-          Value: true
-        arm_base_link:
-          Value: true
-        arm_flange_link:
-          Value: true
-        arm_fwk_fwa_050_frame_in:
-          Value: true
-        arm_fwk_fwa_050_frame_out:
-          Value: true
-        blackfly_adaptor_link:
-          Value: true
-        blackfly_camera:
-          Value: true
-        calib_arm_base_link:
-          Value: true
-        gripper_base_link:
-          Value: true
-        gripper_finger_left_link:
-          Value: true
-        gripper_finger_right_link:
-          Value: true
-        gripper_gripper_left_link:
-          Value: true
-        gripper_gripper_right_link:
-          Value: true
-        gripper_tool_frame:
-          Value: true
-        instrument_pad:
-          Value: true
-        kinect_depth_frame:
-          Value: true
-        kinect_depth_optical_frame:
-          Value: true
-        kinect_link:
-          Value: true
-        kinect_mounting_1_link:
-          Value: true
-        kinect_mounting_2_link:
-          Value: true
-        kinect_mounting_3_link:
-          Value: true
-        kinect_mounting_4_link:
-          Value: true
-        kinect_mounting_5_link:
-          Value: true
-        kinect_rgb_frame:
-          Value: true
-        kinect_rgb_optical_frame:
-          Value: true
-        map:
-          Value: true
-        optical_frame:
-          Value: true
-        optical_frame_x:
-          Value: true
-        screen:
-          Value: true
-        screenholder_1_link:
-          Value: true
-        screenholder_2_link:
-          Value: true
-        screenholder_3_link:
-          Value: true
-        screenholder_4_link:
-          Value: true
-        sorting_basket:
-          Value: true
-        table_link:
-          Value: true
-        wall:
-          Value: true
+        All Enabled: false
       Marker Scale: 0.5
       Name: TF
       Show Arrows: true
       Show Axes: true
       Show Names: false
       Tree:
-        map:
-          table_link:
-            arm_base_link:
-              calib_arm_base_link:
-                arm_1_link:
-                  arm_2_link:
-                    arm_3_link:
-                      arm_4_link:
-                        arm_5_link:
-                          arm_6_link:
-                            arm_7_link:
-                              arm_flange_link:
-                                arm_fwk_fwa_050_frame_in:
-                                  arm_fwk_fwa_050_frame_out:
-                                    gripper_base_link:
-                                      blackfly_adaptor_link:
-                                        {}
-                                      blackfly_camera:
-                                        {}
-                                      gripper_gripper_left_link:
-                                        gripper_finger_left_link:
-                                          {}
-                                      gripper_gripper_right_link:
-                                        gripper_finger_right_link:
-                                          {}
-                                      gripper_tool_frame:
-                                        {}
-                                      optical_frame_x:
-                                        optical_frame:
-                                          {}
-            instrument_pad:
-              {}
-            screenholder_1_link:
-              screenholder_2_link:
-                screenholder_3_link:
-                  screenholder_4_link:
-                    screen:
-                      {}
-            sorting_basket:
-              {}
-          wall:
-            kinect_mounting_1_link:
-              kinect_mounting_2_link:
-                kinect_mounting_3_link:
-                  kinect_mounting_4_link:
-                    kinect_mounting_5_link:
-                      kinect_link:
-                        kinect_depth_frame:
-                          kinect_depth_optical_frame:
-                            {}
-                        kinect_rgb_frame:
-                          kinect_rgb_optical_frame:
-                            {}
+        {}
       Update Interval: 0
+      Value: false
+    - Class: rviz/InteractiveMarkers
+      Enable Transparency: true
+      Enabled: true
+      Name: InteractiveMarkers
+      Show Axes: false
+      Show Descriptions: true
+      Show Visual Aids: false
+      Update Topic: /saphari_interactive_markers/update
       Value: true
   Enabled: true
   Global Options:
@@ -437,30 +314,30 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 4.97985
+      Distance: 3.6822
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.282435
-        Y: 0.930189
-        Z: 0.866914
+        X: 0.89449
+        Y: 1.20421
+        Z: 1.73221
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.445398
+      Pitch: 0.790398
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 4.8804
+      Yaw: 3.71542
     Saved: ~
 Window Geometry:
   Displays:
-    collapsed: true
+    collapsed: false
   Height: 1457
-  Hide Left Dock: true
+  Hide Left Dock: false
   Hide Right Dock: false
-  QMainWindow State: 000000ff00000000fd00000004000000000000013c000002c4fc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000006400fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c0061007900730000000028000002c4000000dd00fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f00000527fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073010000002800000527000000b000fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000006290000003efc0100000002fb0000000800540069006d0065010000000000000629000002f600fffffffb0000000800540069006d00650100000000000004500000000000000000000005140000052700000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd00000004000000000000013c00000527fc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000006400fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000002800000527000000dd00fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f00000527fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073010000002800000527000000b000fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000006290000003efc0100000002fb0000000800540069006d0065010000000000000629000002f600fffffffb0000000800540069006d00650100000000000004500000000000000000000003d20000052700000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
@@ -470,5 +347,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1577
-  X: 1224
-  Y: 67
+  X: 282
+  Y: 43

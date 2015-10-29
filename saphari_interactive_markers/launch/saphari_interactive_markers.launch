@@ -1,0 +1,4 @@
+<launch>
+  <node pkg="saphari_interactive_markers" type="saphari_interactive_markers"
+        name="saphari_interactive_markers" output="screen"/>
+</launch>

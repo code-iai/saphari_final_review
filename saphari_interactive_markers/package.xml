@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>saphari_interactive_markers</name>
+  <version>0.0.0</version>
+  <description>The saphari_interactive_markers package</description>
+
+  <maintainer email="georg@todo.todo">georg</maintainer>
+  <license>BSD</license>
+
+  <author email="georg.bartels@cs.uni-bremen.de">Georg Bartels</author>
+  <maintainer email="georg.bartels@cs.uni-bremen.de">Georg Bartels</maintainer>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>roscpp</depend>
+  <depend>interactive_markers</depend>
+  <depend>visualization_msgs</depend>
+  <depend>geometry_msgs</depend>
+
+</package>

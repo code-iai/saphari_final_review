@@ -16,6 +16,7 @@
   <run_depend>saphari_robot_bringup</run_depend>
   <run_depend>saphari_task_executive</run_depend>
   <run_depend>saphari_tool_detector</run_depend>
+  <run_depend>saphari_interactive_markers</run_depend>
 
   <export>
     <metapackage/>

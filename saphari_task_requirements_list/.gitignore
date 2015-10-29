@@ -1,0 +1,7 @@
+.idea
+**/.idea
+
+msg_gen
+build
+
+**/*.pyc

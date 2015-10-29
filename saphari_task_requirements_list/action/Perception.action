@@ -1,0 +1,7 @@
+# elements detected -> ID is kind
+saphari_msgs/Equipment[] perceived
+---
+int32 errorCode
+TaskState state
+---
+int32 status

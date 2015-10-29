@@ -6,7 +6,6 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /TF1
         - /TF1/Frames1
         - /TF1/Tree1
         - /InteractiveMarkers1
@@ -268,19 +267,155 @@ Visualization Manager:
       Value: true
       Visual Enabled: true
     - Class: rviz/TF
-      Enabled: false
+      Enabled: true
       Frame Timeout: 15
       Frames:
         All Enabled: false
+        arm_1_link:
+          Value: false
+        arm_2_link:
+          Value: false
+        arm_3_link:
+          Value: false
+        arm_4_link:
+          Value: false
+        arm_5_link:
+          Value: false
+        arm_6_link:
+          Value: false
+        arm_7_link:
+          Value: false
+        arm_base_link:
+          Value: false
+        arm_flange_link:
+          Value: true
+        arm_fwk_fwa_050_frame_in:
+          Value: false
+        arm_fwk_fwa_050_frame_out:
+          Value: false
+        blackfly_adaptor_link:
+          Value: false
+        blackfly_camera:
+          Value: false
+        calib_arm_base_link:
+          Value: false
+        gripper_base_link:
+          Value: false
+        gripper_finger_left_link:
+          Value: false
+        gripper_finger_right_link:
+          Value: false
+        gripper_gripper_left_link:
+          Value: false
+        gripper_gripper_right_link:
+          Value: false
+        gripper_tool_frame:
+          Value: true
+        instrument_pad:
+          Value: false
+        kinect_depth_frame:
+          Value: false
+        kinect_depth_optical_frame:
+          Value: false
+        kinect_link:
+          Value: false
+        kinect_mounting_1_link:
+          Value: false
+        kinect_mounting_2_link:
+          Value: false
+        kinect_mounting_3_link:
+          Value: false
+        kinect_mounting_4_link:
+          Value: false
+        kinect_mounting_5_link:
+          Value: false
+        kinect_rgb_frame:
+          Value: false
+        kinect_rgb_optical_frame:
+          Value: false
+        map:
+          Value: false
+        optical_frame:
+          Value: false
+        optical_frame_x:
+          Value: false
+        screen:
+          Value: false
+        screenholder_1_link:
+          Value: false
+        screenholder_2_link:
+          Value: false
+        screenholder_3_link:
+          Value: false
+        screenholder_4_link:
+          Value: false
+        sorting_basket:
+          Value: false
+        table_link:
+          Value: false
+        wall:
+          Value: false
       Marker Scale: 0.5
       Name: TF
       Show Arrows: true
       Show Axes: true
       Show Names: false
       Tree:
-        {}
+        map:
+          table_link:
+            arm_base_link:
+              calib_arm_base_link:
+                arm_1_link:
+                  arm_2_link:
+                    arm_3_link:
+                      arm_4_link:
+                        arm_5_link:
+                          arm_6_link:
+                            arm_7_link:
+                              arm_flange_link:
+                                arm_fwk_fwa_050_frame_in:
+                                  arm_fwk_fwa_050_frame_out:
+                                    gripper_base_link:
+                                      blackfly_adaptor_link:
+                                        {}
+                                      blackfly_camera:
+                                        {}
+                                      gripper_gripper_left_link:
+                                        gripper_finger_left_link:
+                                          {}
+                                      gripper_gripper_right_link:
+                                        gripper_finger_right_link:
+                                          {}
+                                      gripper_tool_frame:
+                                        {}
+                                      optical_frame_x:
+                                        optical_frame:
+                                          {}
+            instrument_pad:
+              {}
+            screenholder_1_link:
+              screenholder_2_link:
+                screenholder_3_link:
+                  screenholder_4_link:
+                    screen:
+                      {}
+            sorting_basket:
+              {}
+          wall:
+            kinect_mounting_1_link:
+              kinect_mounting_2_link:
+                kinect_mounting_3_link:
+                  kinect_mounting_4_link:
+                    kinect_mounting_5_link:
+                      kinect_link:
+                        kinect_depth_frame:
+                          kinect_depth_optical_frame:
+                            {}
+                        kinect_rgb_frame:
+                          kinect_rgb_optical_frame:
+                            {}
       Update Interval: 0
-      Value: false
+      Value: true
     - Class: rviz/InteractiveMarkers
       Enable Transparency: true
       Enabled: true
@@ -314,22 +449,22 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 3.6822
+      Distance: 2.40247
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.89449
-        Y: 1.20421
-        Z: 1.73221
+        X: 0.364372
+        Y: 0.748977
+        Z: 1.46869
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.790398
+      Pitch: 0.0803963
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.71542
+      Yaw: 3.92045
     Saved: ~
 Window Geometry:
   Displays:
@@ -347,5 +482,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1577
-  X: 282
-  Y: 43
+  X: 272
+  Y: 33

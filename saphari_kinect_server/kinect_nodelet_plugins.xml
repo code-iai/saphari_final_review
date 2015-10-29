@@ -1,0 +1,7 @@
+<library path="lib/libkinect_nodelet">
+  <class name="saphari_kinect_server/KinectServerNodelet" type="saphari_kinect_server::KinectServerNodelet" base_class_type="nodelet::Nodelet">
+  <description>
+  OpenNI Kinect Server Nodelet.
+  </description>
+  </class>
+</library>

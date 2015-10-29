@@ -19,7 +19,7 @@ class SaphariInteractiveMarkers
           ("saphari_interactive_markers", "", false);
 
       visualization_msgs::InteractiveMarker beasty_6dof_marker =
-          create_beasty_6dof_marker("gripper_tool_frame", 0.2);
+          create_beasty_6dof_marker("arm_flange_link", 0.2);
       server_->insert(beasty_6dof_marker);
       server_->setCallback(beasty_6dof_marker.name, boost::bind(
           &SaphariInteractiveMarkers::feedback_callback, this, _1));
@@ -43,9 +43,13 @@ class SaphariInteractiveMarkers
         goal_msg.header = feedback->header;
         goal_msg.pose = feedback->pose;
         goal_pub_.publish(goal_msg);
+
+        geometry_msgs::Pose identity_pose;
+        identity_pose.orientation.w = 1.0;
+        server_->setPose( feedback->marker_name, identity_pose); 
+        server_->applyChanges();
       }
 
-      server_->applyChanges();
     }
 
     visualization_msgs::InteractiveMarker create_beasty_6dof_marker(const std::string& frame_id, double marker_scale) const

@@ -1,0 +1,11 @@
+int32 ITEM_REMOVED = 1 # element removed from target tray
+int32 ITEM_INSERT = 3 # taken by the robot or human and released to a to new state (Pose etc.)
+
+int8 action_type
+int8 slot_id
+saphari_msgs/Equipment item
+---
+int32 errorCode
+TaskState state
+---
+int32 status

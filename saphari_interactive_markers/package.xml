@@ -15,5 +15,8 @@
   <depend>interactive_markers</depend>
   <depend>visualization_msgs</depend>
   <depend>geometry_msgs</depend>
+  <depend>roslisp</depend>
+  <depend>cl_tf2</depend>
+  <depend>cram_beasty</depend>
 
 </package>

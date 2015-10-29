@@ -17,7 +17,8 @@ find_package(catkin REQUIRED
   roscpp 
   interactive_markers 
   visualization_msgs 
-  geometry_msgs)
+  geometry_msgs
+  roslisp)
 
 catkin_package()
 
@@ -29,3 +30,7 @@ add_executable(saphari_interactive_markers
 
 target_link_libraries(saphari_interactive_markers
   ${catkin_LIBRARIES})
+
+add_lisp_executable(beasty_goal_relay
+  saphari-interactive-markers
+  saphari-interactive-markers::main)

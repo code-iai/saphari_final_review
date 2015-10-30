@@ -1,0 +1,6 @@
+<launch>
+
+	<node pkg="kinect_server" type="calib" name="calib" output="screen"> 
+  	</node>
+
+</launch>

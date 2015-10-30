@@ -17,7 +17,7 @@
 #include <string>
 #include <vector>
 
-#include <saphari_msgs/HumansState.h>
+#include <saphari_msgs/Humans.h>
 
 #define pi_ 3.1416
 
@@ -70,9 +70,9 @@ public:
     XnChar g_strPose[20];
 
     // Human state publisher
-    saphari_msgs::HumansState humanMsg;
+    saphari_msgs::Humans humansMsg;
     saphari_msgs::Human emptyHm;
-    ros::Publisher humanStatePub;
+    ros::Publisher humansPub;
 
 protected:
     XnUserID getClosestUser();

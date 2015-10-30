@@ -34,7 +34,7 @@
   <!-- Publish static tf for camera and table -->
   <arg name="static_tf"       default="false" />
 
-  <node if="$(arg static_tf)" pkg="tf" type="static_transform_publisher" name="static_camera_table_tf" args="0 0 0.75 0 0 3.14159265358979323846 (arg table_frame) (arg camera_frame) 100" />
+  <node if="$(arg static_tf)" pkg="tf" type="static_transform_publisher" name="static_camera_table_tf" args="0 0 0.75 0 0 3.14159265358979323846 $(arg table_frame) $(arg camera_frame) 100" />
 
   <node pkg="saphari_tool_detector" type="detect_tools" name="tool_detector" ns="tool_detector" output="screen" >
     <param name="topic"           type="str"    value="$(arg topic)" />

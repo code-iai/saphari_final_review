@@ -1,0 +1,35 @@
+{
+  "target_items": [
+    {
+      "info": {
+        "description": "schneidet",
+        "id": 1002,
+        "kind": 1,
+        "name": "Schere",
+        "size": 0.0
+      },
+      "slot": 0
+    },
+    {
+      "info": {
+        "description": "kann man falten",
+        "id": 1001,
+        "kind": 2,
+        "name": "Papier",
+        "size": 0.0
+      },
+      "slot": 0
+    },
+    {
+      "info": {
+        "description": "If you get hit it hurts otherwise it is fun.",
+        "id": 1000,
+        "kind": 7,
+        "name": "Hammer",
+        "size": 0.0
+      },
+      "slot": 0
+    }
+  ],
+  "task_name": ""
+}

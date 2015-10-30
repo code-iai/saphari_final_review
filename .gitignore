@@ -1,1 +1,9 @@
 *.fasl
+
+# ignore temporary files
+**/*~
+**/*.swp
+
+# ignore build folders
+**/bin
+**/build

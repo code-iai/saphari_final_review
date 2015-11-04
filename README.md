@@ -26,8 +26,7 @@ Then, initialize and build the knowrob workspace:
 * ```wstool merge https://raw.githubusercontent.com/code-iai/saphari_final_review/master/saphari_final_review/rosinstall/saphari_knowrob.rosinstall```
 * ```wstool update```
 * ```rosdep install --ignore-src --from-paths stacks/```
-* ```cd ~/ros/saphari_knowrob```
-* ```catkin_make```
+* ```cd ~/ros/saphari_knowrob && catkin_make```
 
 Afterwards, init and build the remaining catkin packages in the 2nd overlay. Unfortunately, you will need one of 'em precious ```CATKIN_IGNORE``` to make your everything compile:
 * ```cd ~/ros/saphari_catkin/src```

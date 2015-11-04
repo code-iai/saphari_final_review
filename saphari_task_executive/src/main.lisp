@@ -28,69 +28,85 @@
 
 (in-package :saphari-task-executive)
 
-(defparameter *executive-state* nil)
+(defun make-demo-handle (&optional (sim-p t))
+  (list
+   :json-prolog nil
+   :sim-p sim-p
+   :tool-perception (ros-interface-tool-perception)
+   :beasty (make-and-init-beasty-handle sim-p)))
 
-(defun main()
-  (setf *executive-state* nil)
-  (with-ros-node ("saphari_task_executive")
-    (when (init)
-      (loop-at-most-every 1 (publish-state)))))
-
-;;;
-;;; FUNCTIONS USED IN MAIN
-;;;
-
-(defun init ()
-  (ros-info :saphari-task-executive "Initializing...")
-  (if (and
-       (register-service-fn "~request_state" #'request-state 'saphari_task_executive-srv:requeststate)
-       (advertise "~state" "saphari_task_executive/State"))
-    ;; TODO: advertise service
-      (progn
-        (ros-info :saphari-task-executive "Init successful.")
-        (setf *executive-state* :initialized))
-      (ros-info :saphari-task-executive "Init failed.")))
-
-(defun publish-state ()
-  (publish
-   "~state"
-   (make-msg
-    "saphari_task_executive/State"
-    :state (symbol-code 'saphari_task_executive-msg:state *executive-state*))))
-
-(def-service-callback (request-state saphari_task_executive-srv:requeststate) (state)
-  (ros-info :saphari-task-executive "~%Requested to change to state: ~a~%" state)
-  (make-response :success t :status_message "All fine.")
-  )
+(defun main ()
+  (with-ros-node ("cram")
+    (cpl:top-level
+      (lookat-pickup-zone (make-demo-handle)))))
 
 ;;;
-;;; IMPLEMENTATION OF HIGH-LEVEL SERVICE INTERFACE
-;;;
+;;; BELOW: OLD STATE-MACHINE INTERFACE. MAYBE USEFUL, LATER.
+;;; 
 
-(defun configure ()
-  (ros-info :saphari-task-executive "Configuring...")
-  ;; TODO: implement me
-  (setf *executive-state* :stopped)
-  (ros-info :saphari-task-executive "Configure successful.")
-  t)
+;; (defparameter *executive-state* nil)
 
-(defun cleanup ()
-  (ros-info :saphari-task-executive "Cleaning up...")
-  ;; TODO: implement me
-  (setf *executive-state* :initialized)
-  (ros-info :saphari-task-executive "Cleanup successful.")
-  t)
+;; (defun main()
+;;   (setf *executive-state* nil)
+;;   (with-ros-node ("saphari_task_executive")
+;;     (when (init)
+;;       (loop-at-most-every 1 (publish-state)))))
 
-(defun start ()
-  (ros-info :saphari-task-executive "Starting...")
-  ;; TODO: implement me
-  (setf *executive-state* :running)
-  (ros-info :saphari-task-executive "Start successful.")
-  t)
+;; ;;;
+;; ;;; FUNCTIONS USED IN MAIN
+;; ;;;
 
-(defun stop ()
-  (ros-info :saphari-task-executive "Starting...")
-  ;; TODO: implement me
-  (setf *executive-state* :running)
-  (ros-info :saphari-task-executive "Start successful.")
-  t)
+;; (defun init ()
+;;   (ros-info :saphari-task-executive "Initializing...")
+;;   (if (and
+;;        (register-service-fn "~request_state" #'request-state 'saphari_task_executive-srv:requeststate)
+;;        (advertise "~state" "saphari_task_executive/State"))
+;;     ;; TODO: advertise service
+;;       (progn
+;;         (ros-info :saphari-task-executive "Init successful.")
+;;         (setf *executive-state* :initialized))
+;;       (ros-info :saphari-task-executive "Init failed.")))
+
+;; (defun publish-state ()
+;;   (publish
+;;    "~state"
+;;    (make-msg
+;;     "saphari_task_executive/State"
+;;     :state (symbol-code 'saphari_task_executive-msg:state *executive-state*))))
+
+;; (def-service-callback (request-state saphari_task_executive-srv:requeststate) (state)
+;;   (ros-info :saphari-task-executive "~%Requested to change to state: ~a~%" state)
+;;   (make-response :success t :status_message "All fine.")
+;;   )
+
+;; ;;;
+;; ;;; IMPLEMENTATION OF HIGH-LEVEL SERVICE INTERFACE
+;; ;;;
+
+;; (defun configure ()
+;;   (ros-info :saphari-task-executive "Configuring...")
+;;   ;; TODO: implement me
+;;   (setf *executive-state* :stopped)
+;;   (ros-info :saphari-task-executive "Configure successful.")
+;;   t)
+
+;; (defun cleanup ()
+;;   (ros-info :saphari-task-executive "Cleaning up...")
+;;   ;; TODO: implement me
+;;   (setf *executive-state* :initialized)
+;;   (ros-info :saphari-task-executive "Cleanup successful.")
+;;   t)
+
+;; (defun start ()
+;;   (ros-info :saphari-task-executive "Starting...")
+;;   ;; TODO: implement me
+;;   (setf *executive-state* :running)
+;;   (ros-info :saphari-task-executive "Start successful.")
+;;   t)
+
+;; (defun stop ()
+;;   (ros-info :saphari-task-executive "Starting...")
+;;   ;; TODO: implement me
+;;   (setf *executive-state* :running)
+;;   (ros-info :saphari-task-executive "Start successful.")
+;;   t)

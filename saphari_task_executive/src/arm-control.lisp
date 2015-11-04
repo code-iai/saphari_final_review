@@ -28,29 +28,11 @@
 
 (in-package :saphari-task-executive)
 
-(cpl-impl:def-cram-function perceive-tools (demo-handle &rest desigs)
-  (cpl:try-in-order
-    (apply #'query-tool-perception demo-handle desigs)
-    (cpl:seq
-      (lookat-pickup-zone demo-handle)
-      (ros-info :saphari-task-executive "Moving arm to look at pickup zone.")
-      (trigger-tool-perception demo-handle)
-      (apply #'query-tool-perception demo-handle desigs))))
+(defun beasty-default-parameters ()
+  "Returns the default parameters of beasty as a list in the following order:
+ ACTION-NAME, USER-ID, and USER-PASSWORD."
+  (list "beasty" 1 1337))
 
-;; TODO: turn me into a plan
-(defun lookat-pickup-zone (demo-handle &optional (distance 30))
-  ;; TOOD: use with-designators
-  (let ((desig (action-designator
-                `((:an :action)
-                  (:to :see)
-                  (:obj ,(object-designator '((:an :object)
-                                              (:type :pickup-zone))))
-                  (:distance ,distance)
-                  (:sim ,(getf demo-handle :sim-p))))))
-    (perform-beasty-motion demo-handle desig)))
-
-;; TODO: turn me into a plan
-(defun perform-beasty-motion (demo-handle desig)
-  (roslisp-beasty:move-beasty-and-wait
-   (getf demo-handle :beasty)
-   (infer-motion-goal desig)))
+(defun make-and-init-beasty-handle (&optional (sim-p t))
+  "Creates, initialises and returns a beasty handle using the default parameters."
+  (apply #'roslisp-beasty:make-and-init-beasty-handle (conc-lists (beasty-default-parameters) (list sim-p))))

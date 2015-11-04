@@ -29,6 +29,60 @@
 (in-package :saphari-task-executive)
 
 ;;;
+;;; NUMBER UTILS
+;;;
+
+(defun metric-input->cm-keyword (metric-input)
+  "Returns the keyword representing 'metric-input'. Assumes
+ that 'metric-input' is either in centimeters and INTEGER, or in
+ meters and RATIO or FLOAT, or meters of centimeters
+ and STRING. NOTE: Returns 'metric-input' if it is a keyword.
+
+ EXAMPLES:
+ STE> (metric-input->cm-keyword 0.2)
+ :20cm
+ STE> (metric-input->cm-keyword 20)
+ :20cm
+ STE> (metric-input->cm-keyword 2/10)
+ :20cm
+ STE> (metric-input->cm-keyword \"20\")
+ :20cm
+ STE> (metric-input->cm-keyword \"0.2\")
+ :20cm
+"
+  (if (keywordp metric-input)
+      metric-input
+      (metric-input->cm-keyword
+       (etypecase metric-input
+         (string (read-from-string metric-input))
+         (ratio (float metric-input))
+         (float (round (* 100 metric-input)))
+         (integer (string->keyword (conc-strings (write-to-string metric-input) "cm")))))))
+
+;;;
+;;; MAGIC NUMBERS
+;;;
+
+(defun 20cm-lookat-pickup-config ()
+  (list -0.162 0.870 -0.185 -1.181 0.165 1.088 0.432))
+
+(defun 30cm-lookat-pickup-config ()
+  (list -0.159 0.762 -0.200 -1.092 0.149 1.284 0.444))
+
+(defun 40cm-lookat-pickup-config ()
+  (list -0.166 0.708 -0.209 -0.919 0.141 1.509 0.457))
+
+(defun 50cm-lookat-pickup-config ()
+  (list -0.195 0.733 -0.207 -0.611 0.148 1.79 0.474))
+
+(defun lookat-pickup-config (metric-input)
+  (case (metric-input->cm-keyword metric-input)
+    (:20cm (20cm-lookat-pickup-config))
+    (:30cm (30cm-lookat-pickup-config))
+    (:40cm (40cm-lookat-pickup-config))
+    (:50cm (50cm-lookat-pickup-config))))
+
+;;;
 ;;; KNOWROB UTILS
 ;;;
 
@@ -52,7 +106,7 @@
                   (mapcar (lambda (s) (conc-strings s ",")) quoted-strings))))
     (conc-strings "[" (remove #\, comma-strings :from-end t :count 1) "]")))
 
-(defun query-latest-instrument-detections (&rest class-keywords)
+(defun query-knowrob-tool-perception (&rest class-keywords)
   (let ((query-string
           (conc-strings "knowrob_saphari:saphari_latest_object_detections("
                         (apply #'keywords->knowrob-string-list class-keywords)
@@ -94,13 +148,20 @@
 ;;; HIGH-LEVEL PLAN INTERFACE
 ;;;
 
-(cpl-impl:def-cram-function perceive-surgical-instruments ()
+(cpl-impl:def-cram-function trigger-tool-perception (demo-handle)
   (cpl-desig-supp:with-designators ((obj-desig (desig:object '((:type :surgical-instrument)))))
     (let* ((logging-id (on-prepare-perception-request obj-desig))
            (desigs (tool-perception-response->object-desigs
-                    (trigger-tool-perception))))
-      (on-finish-perception-request logging-id desigs)
+                    (apply #'call-service (getf demo-handle :tool-perception)))))
+        (on-finish-perception-request logging-id desigs)
       desigs)))
+
+(cpl-impl:def-cram-function query-tool-perception (demo-handle &rest desigs)
+  (if (getf demo-handle :json-prolog)
+      ;; TODO: desig->class-keywords
+      ;; TODO: equate?
+      (apply #'query-knowrob-tool-perception desigs)
+      (cpl:fail "Tool query failed: json-prolog disabled.")))
 
 ;;;
 ;;; LOGGING INTERFACE
@@ -122,11 +183,11 @@
   (beliefstate:stop-node id :success (not (eql results nil))))
 
 ;;;
-;;; ROS INTERFACING
+;;; ROS INTERFACE
 ;;;
 
-(defun trigger-tool-perception ()
-  (call-service
+(defun ros-interface-tool-perception ()
+  (list
    "/tool_detector/detect_tools"
    "saphari_tool_detector/DetectTools"))
 

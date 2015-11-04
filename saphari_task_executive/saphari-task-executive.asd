@@ -43,6 +43,9 @@
     :components
     ((:file "package")
      (:file "lisp-utils" :depends-on ("package"))
+     (:file "designator-utils" :depends-on ("package"))
+     (:file "designator-reasoning" :depends-on ("package" "designator-utils"))
      (:file "tool-perception" :depends-on ("package" "lisp-utils"))
-     (:file "plans" :depends-on ("package"))
-     (:file "main" :depends-on ("package" "tool-perception"))))))
+     (:file "arm-control" :depends-on ("package" "lisp-utils"))
+     (:file "plans" :depends-on ("package" "designator-utils" "designator-reasoning" "tool-perception" "arm-control"))
+     (:file "main" :depends-on ("package" "tool-perception" "arm-control" "plans"))))))

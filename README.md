@@ -5,9 +5,6 @@ Configurations, launch files, and source code for the final SAPHARI review.
 
 This installation was tested for Ubuntu 14.04 with ROS Indigo.
 
-Please install the following debian deps:
-* ```sudo apt-get install libcdk5-dev libncurses5-dev automake autoconf```
-
 To speed-up development, you will need three workspaces which overlay sequently: First, there is a ```catkin``` workspace for ```knowrob```, then comes another ```catkin``` workspace for all other ```catkin``` packages, and finally there is a ```rosbuild``` workspace for the ```dlr_action_bridge```. For convenience, we have created several ```rosinstall``` files.
 
 First, create the workspaces in the above described order:
@@ -32,6 +29,7 @@ Afterwards, init and build the remaining catkin packages in the 2nd overlay. Unf
 * ```cd ~/ros/saphari_catkin/src```
 * ```wstool merge https://raw.githubusercontent.com/code-iai/saphari_final_review/master/saphari_final_review/rosinstall/saphari_catkin.rosinstall```
 * ```wstool update```
+* TODO: add correct ```rosdep``` rule!
 * ```roscd iai_boxy_hw && touch CATKIN_IGNORE```
 * ```cd ~/ros/saphari_catkin && catkin_make```
 

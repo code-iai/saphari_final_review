@@ -5,6 +5,10 @@ Configurations, launch files, and source code for the final SAPHARI review.
 
 This installation was tested for Ubuntu 14.04 with ROS Indigo.
 
+Please install MongoDB and the C++ client for MongoDB following these external instructions:
+* ```MongoDB```: https://docs.mongodb.org/manual/tutorial/install-mongodb-on-ubuntu/
+* ```MongoDB C++ Client``` (branch ```compat26```): https://github.com/mongodb/mongo-cxx-driver/wiki/Download-and-Compile-the-Legacy-Driver
+
 To speed-up development, you will need three workspaces which overlay sequently: First, there is a ```catkin``` workspace for ```knowrob```, then comes another ```catkin``` workspace for all other ```catkin``` packages, and finally there is a ```rosbuild``` workspace for the ```dlr_action_bridge```. For convenience, we have created several ```rosinstall``` files.
 
 First, create the workspaces in the above described order:

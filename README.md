@@ -25,12 +25,13 @@ Then, initialize and build the knowrob workspace:
 * ```rosdep install --ignore-src --from-paths stacks/```
 * ```cd ~/ros/saphari_knowrob && catkin_make```
 
-Afterwards, init and build the remaining catkin packages in the 2nd overlay. Unfortunately, you will need one of 'em precious ```CATKIN_IGNORE``` to make your everything compile:
+Afterwards, init and build the remaining catkin packages in the 2nd overlay. Unfortunately, you will need several of 'em precious ```CATKIN_IGNORE``` to make your everything compile:
 * ```cd ~/ros/saphari_catkin/src```
 * ```wstool merge https://raw.githubusercontent.com/code-iai/saphari_final_review/master/saphari_final_review/rosinstall/saphari_catkin.rosinstall```
 * ```wstool update```
 * TODO: add correct ```rosdep``` rule!
 * ```roscd iai_boxy_hw && touch CATKIN_IGNORE```
+* ```roscd robosherlock_process_module && touch CATKIN_IGNORE```
 * ```cd ~/ros/saphari_catkin && catkin_make```
 
 Finally, checkout and build the ```dlr_action_bridge``` in the ```rosbuild``` workspace:

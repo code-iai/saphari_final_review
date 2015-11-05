@@ -35,6 +35,7 @@
    :tool-perception (ros-interface-tool-perception)
    :beasty (make-and-init-beasty-handle sim-p)
    :wsg50 (make-wsg-handle)
+   :tf-broadcaster (advertise "/tf" "tf2_msgs/TFMessage")
    ))
 
 (defun main ()
@@ -44,12 +45,14 @@
         ;; TODO: loop
         ;; TODO: human reactivity
         (lookat-pickup-zone demo-handle)
-        ;; TODO: perceive tools
-        ;; TODO: infer target-object and target-location
-        (grasp-object demo-handle nil)
-        (move-above-target-zone demo-handle)
-        (place-object demo-handle nil nil)
-      ))))
+        (let ((object-desigs (trigger-tool-perception demo-handle)))
+          (ros-info :saphari-task-executive "Perceived tools: ~a" object-desigs)
+          ;; TODO: infer target-object and target-location
+          (when object-desigs
+            (grasp-object demo-handle (car object-desigs))
+            (move-above-target-zone demo-handle)
+            (place-object demo-handle nil nil)
+      ))))))
 
 ;;;
 ;;; BELOW: OLD STATE-MACHINE INTERFACE. MAYBE USEFUL, LATER.

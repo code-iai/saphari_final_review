@@ -153,7 +153,8 @@
     (let* ((logging-id (on-prepare-perception-request obj-desig))
            (desigs (tool-perception-response->object-desigs
                     (apply #'call-service (getf demo-handle :tool-perception)))))
-        (on-finish-perception-request logging-id desigs)
+      (on-finish-perception-request logging-id desigs)
+      (publish-tool-poses-to-tf demo-handle desigs)
       desigs)))
 
 (cpl-impl:def-cram-function query-tool-perception (demo-handle &rest desigs)
@@ -163,6 +164,23 @@
       (apply #'query-knowrob-tool-perception desigs)
       (cpl:fail "Tool query failed: json-prolog disabled.")))
 
+;;;
+;;; VISUALIZATION
+;;;
+
+(defun publish-tool-poses-to-tf (demo-handle desigs)
+  (ros-info :saphar-task-executive "Publishing poses of ~a" desigs)
+  (flet ((get-tool-transform (desig)
+           (alexandria:when-let* ((tool-keyword (desig-prop-value desig :type))
+                                  (loc-desig (desig-prop-value desig :at))
+                                  (pose-stamped (desig-prop-value loc-desig :pose)))
+             (pose-stamped->transform-stamped pose-stamped (symbol-name tool-keyword)))))
+    (alexandria:when-let ((transforms
+                           (remove-if-not #'identity (mapcar #'get-tool-transform desigs)))
+                          (broadcaster (getf demo-handle :tf-broadcaster)))
+      (ros-info :saphari-task-executive "Publishing transforms: ~a" transforms)
+      (publish broadcaster (make-message "tf2_msgs/TFMessage" :transforms (coerce transforms 'vector))))))
+  
 ;;;
 ;;; LOGGING INTERFACE
 ;;;
@@ -223,6 +241,20 @@
 ;;; ROS MESSAGE CONVERSIONS
 ;;;
 
+(defun vector3->point (vector3)
+  (declare (type geometry_msgs-msg:vector3 vector3))
+  (with-fields (x y z) vector3
+    (make-msg
+     "geometry_msgs/Point"
+     :x x :y y :z z)))
+
+(defun point->vector3 (point)
+  (declare (type geometry_msgs-msg:point point))
+  (with-fields (x y z) point
+    (make-msg
+     "geometry_msgs/Vector3"
+     :x x :y y :z z)))
+
 (defun transform->pose (transform)
   "Converts `transform' of type geometry_msgs/Transform into an
  instance of type geometry_msgs/Pose without changing `transform'."
@@ -230,8 +262,18 @@
   (with-fields (translation rotation) transform
     (make-msg
      "geometry_msgs/Pose"
-     :position translation
+     :position (vector3->point translation)
      :orientation rotation)))
+
+(defun pose->transform (pose)
+  "Converts `pose' of type geometry_msgs/Pose into an instance
+ of type geometry_msgs/Transform without changing `pose'."
+  (declare (type geometry_msgs-msg:pose pose))
+  (with-fields (position orientation) pose
+    (make-message
+     "geometry_msgs/Transform"
+     :translation (point->vector3 position)
+     :rotation orientation)))
                   
 (defun transform-stamped->pose-stamped (transform-stamped)
   "Converts `transform-staped' of type geometry_msgs/TransformStamped
@@ -242,3 +284,13 @@
     (make-msg "geometry_msgs/PoseStamped"
               :header header
               :pose (transform->pose transform))))
+
+(defun pose-stamped->transform-stamped (pose-stamped child-frame-id)
+  "Converts `pose-staped' of type geometry_msgs/PoseStamped into
+ an instance of type geometry_msgs/TransformStamped using `child-frame-id'.
+ Note: Both inputs will remain unchanged."
+  (with-fields (header pose) pose-stamped
+    (make-msg "geometry_msgs/TransformStamped"
+              :header header
+              :child_frame_id child-frame-id
+              :transform (pose->transform pose))))

@@ -90,22 +90,58 @@
   </wsg_50_xacro>
 
   <!-- WRIST CAM WITH MOUNTING -->
-  <link name="blackfly_adaptor_link">
+  <link name="gripper_top_protector">
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://saphari_robot_description/meshes/blackfly_adaptor.stl"/>
+        <mesh filename="package://saphari_robot_description/meshes/top_protector.stl" scale="0.001 0.001 0.001"/>
       </geometry>
-      <material name="Yellow">
-        <color rgba="1.0 0.93 0.7 1.0"/>
+      <material name="Blue">
+        <color rgba="0.0 0.0 1.0 1.0"/>
       </material>
     </visual>
   </link>
 
-  <joint name="blackfly_adaptor_mounting" type="fixed">
-    <origin xyz="0 0 0" rpy="0 0 0"/>
+  <link name="gripper_bottom_protector">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://saphari_robot_description/meshes/bottom_protector.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="Blue">
+        <color rgba="0.0 0.0 1.0 1.0"/>
+      </material>
+    </visual>
+  </link>
+
+  <link name="blackfly_holder">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://saphari_robot_description/meshes/camera_mount_blackfly.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="Blue">
+        <color rgba="0.0 0.0 1.0 1.0"/>
+      </material>
+    </visual>
+  </link>
+
+  <joint name="gripper_top_protector_mounting" type="fixed">
+    <origin xyz="0 0 0" rpy="${-90*PI/180} 0 ${PI}"/>
     <parent link="gripper_base_link"/>
-    <child link="blackfly_adaptor_link"/>
+    <child link="gripper_top_protector"/>
+  </joint>
+
+  <joint name="gripper_bottom_protector_mounting" type="fixed">
+    <origin xyz="0 0 0.07" rpy="${90*PI/180} 0 0"/>
+    <parent link="gripper_base_link"/>
+    <child link="gripper_bottom_protector"/>
+  </joint>
+
+  <joint name="blackfly_holder_mounting" type="fixed">
+    <origin xyz="0 0 0" rpy="${-90*PI/180} 0 0"/>
+    <parent link="gripper_base_link"/>
+    <child link="blackfly_holder"/>
   </joint>
 
   <link name="blackfly_camera">

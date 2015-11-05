@@ -1,0 +1,28 @@
+<launch>
+  <include file="$(find saphari_robot_description)/launch/upload.launch" />
+
+  <include file="$(find dlr_action_bridge)/launch/dlr_saphari.launch">
+    <arg name="joint_states_rate" value="100" />
+  </include>
+
+  <!--include file="$(find saphari_tool_detector)/launch/detector.launch" >
+    <arg name="fake_perception" value="false" />
+    <arg name="camera_frame" value="blackfly_camera" />
+    <arg name="table_frame" value="table_link" />
+  </include-->
+
+  <node name="robot_state_publisher" pkg="robot_state_publisher"
+        type="state_publisher" />
+
+  <node pkg="joint_state_publisher" type="joint_state_publisher"
+        name="joint_state_publisher">
+    <rosparam param="source_list">
+      - beasty/joint_states
+      - gripper/joint_states
+    </rosparam>
+    <param name="rate" value="50"/>
+  </node>
+
+  <node pkg="tf2_ros" type="buffer_server" name="buffer_server" />
+ 
+</launch>

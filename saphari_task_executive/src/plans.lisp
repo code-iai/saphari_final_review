@@ -37,8 +37,7 @@
       (trigger-tool-perception demo-handle)
       (apply #'query-tool-perception demo-handle desigs))))
 
-;; TODO: turn me into a plan
-(defun lookat-pickup-zone (demo-handle &optional (distance 30))
+(cpl:def-cram-function lookat-pickup-zone (demo-handle &optional (distance 30))
   ;; TOOD: use with-designators
   (let ((desig (action-designator
                 `((:an :action)
@@ -49,8 +48,44 @@
                   (:sim ,(getf demo-handle :sim-p))))))
     (perform-beasty-motion demo-handle desig)))
 
+(cpl:def-cram-function move-above-target-zone (demo-handle)
+  ;; TODO: use with-designators
+  (let ((desig (action-designator
+                `((:an :action)
+                  (:to :move)
+                  (:sim ,(getf demo-handle :sim-p))
+                  (:at ,(location-designator
+                         `((:a :location)
+                           (:above ,(object-designator
+                                     '((:an :object)
+                                       (:type :surgical-basket)))))))))))
+     (perform-beasty-motion demo-handle desig)))
+
+(cpl:def-cram-function grasp-object (demo-handle object)
+  ;; TODO: use with-designators
+  (let ((desig (action-designator
+                `((:an :action)
+                  (:to :grasp)
+                  (:obj ,object)))))
+    ;; TODO: complete me
+    (perform-gripper-motion demo-handle desig)))
+
+(cpl:def-cram-function place-object (demo-handle object location)
+  ;; TODO: use with-designators
+  (let ((desig (action-designator
+                `((:an :action)
+                  (:to :place)
+                  (:obj ,object)
+                  (:at ,location)))))
+    ;; TODO: complete me
+    (perform-gripper-motion demo-handle desig)))
+
 ;; TODO: turn me into a plan
 (defun perform-beasty-motion (demo-handle desig)
   (roslisp-beasty:move-beasty-and-wait
    (getf demo-handle :beasty)
    (infer-motion-goal desig)))
+
+(cpl:def-cram-function perform-gripper-motion (demo-handle desig)
+  (destructuring-bind (width speed force) (infer-gripper-goal desig)
+    (cram-wsg50:move-wsg50-and-wait (getf demo-handle :wsg50) width speed force 5 5)))

@@ -33,12 +33,23 @@
    :json-prolog nil
    :sim-p sim-p
    :tool-perception (ros-interface-tool-perception)
-   :beasty (make-and-init-beasty-handle sim-p)))
+   :beasty (make-and-init-beasty-handle sim-p)
+   :wsg50 (make-wsg-handle)
+   ))
 
 (defun main ()
   (with-ros-node ("cram")
-    (cpl:top-level
-      (lookat-pickup-zone (make-demo-handle)))))
+    (let ((demo-handle (make-demo-handle)))
+      (cpl:top-level
+        ;; TODO: loop
+        ;; TODO: human reactivity
+        (lookat-pickup-zone demo-handle)
+        ;; TODO: perceive tools
+        ;; TODO: infer target-object and target-location
+        (grasp-object demo-handle nil)
+        (move-above-target-zone demo-handle)
+        (place-object demo-handle nil nil)
+      ))))
 
 ;;;
 ;;; BELOW: OLD STATE-MACHINE INTERFACE. MAYBE USEFUL, LATER.

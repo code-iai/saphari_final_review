@@ -36,3 +36,6 @@
 (defun make-and-init-beasty-handle (&optional (sim-p t))
   "Creates, initialises and returns a beasty handle using the default parameters."
   (apply #'roslisp-beasty:make-and-init-beasty-handle (conc-lists (beasty-default-parameters) (list sim-p))))
+
+(defun make-wsg-handle ()
+  (cram-wsg50:make-wsg50-handle "gripper"))

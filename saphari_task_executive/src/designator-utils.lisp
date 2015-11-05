@@ -73,3 +73,23 @@
                        desig-2 prop value
                        :test (if (desig-p value) #'desig-descr-equal #'equal))))
                   (desig:description desig-1)))))
+
+(defun desig-descr (desig)
+  (when (desig-p desig)
+    (desig:description desig)))
+
+(defun desig-descr-recur (desig)
+  (loop for (prop value) in (desig-descr desig) collect
+        `(,(if (desig-p prop) (desig-descr-recur prop) prop)
+          ,(if (desig-p value) (desig-descr-recur value) value))))
+
+(defun sample-desig ()
+  (action-designator
+    `((:an action)
+      (:to :place)
+      (:obj ,(object-designator
+              '((:an object)
+                (:type :apple))))
+      (:at ,(location-designator
+             '((:far away))))
+      (:distance 42))))

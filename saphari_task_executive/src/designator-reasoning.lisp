@@ -33,6 +33,7 @@
  goal exists. Throws a CRAM failure if no matching motion goal exists."
   (or
    (infer-lookat-motion-goal desig)
+   (infer-pre-place-motion-goal desig)
    (cpl:fail "Could not resolve: ~a" desig)))
 
 (defun infer-lookat-motion-goal (desig)
@@ -69,3 +70,54 @@
                          (sim-p (desig-prop-value desig :sim)))
      (roslisp-beasty:make-default-joint-goal
       (lookat-pickup-config distance) sim-p))))
+
+(defun infer-pre-place-motion-goal (desig)
+  (and
+   (desig-prop-value-p desig :an :action)
+   (desig-prop-value-p desig :to :move)
+   (alexandria:when-let ((sim-p (desig-prop-value desig :sim))
+                         (loc (desig-prop-value desig :at)))
+     (and
+      (desig-prop-value-p loc :a :location)
+      (alexandria:when-let ((obj (desig-prop-value loc :above)))
+        (and
+         (desig-prop-value-p obj :an :object)
+         (desig-prop-value-p obj :type :surgical-basket))))
+     (roslisp-beasty:make-default-joint-goal
+      ;; TODO: move this into a default function
+      (list
+       0.5003623962402344
+       0.8569384217262268
+       0.08925693482160568
+       -1.1276057958602905
+       -0.0697876513004303
+       1.164320468902588
+       0.5868684649467468)
+      sim-p))))
+                          
+
+(defun infer-gripper-goal (desig)
+  (or
+   (infer-gripper-grasp-goal desig)
+   (infer-gripper-place-goal desig)
+   (cpl:fail "Could not resolve: ~a" desig)))
+
+(defun infer-gripper-grasp-goal (desig)
+  (and
+   (desig-prop-value-p desig :an :action)
+   (desig-prop-value-p desig :to :grasp)
+   ;; TODO: more about objects?
+   (list
+    cram-wsg50:*wsg50-closed-width*
+    cram-wsg50:*default-speed*
+    cram-wsg50:*default-force*)))
+
+(defun infer-gripper-place-goal (desig)
+  (and
+   (desig-prop-value-p desig :an :action)
+   (desig-prop-value-p desig :to :place)
+   ;; TODO: more about objects?
+   (list
+    cram-wsg50:*wsg50-open-width*
+    cram-wsg50:*default-speed*
+    cram-wsg50:*default-force*)))

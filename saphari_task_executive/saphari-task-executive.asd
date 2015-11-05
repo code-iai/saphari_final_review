@@ -34,6 +34,7 @@
                cram-json-prolog
                cram-beliefstate
                roslisp-beasty
+               cram-wsg50
                designators
                cram-language-designator-support
                saphari_tool_detector-srv

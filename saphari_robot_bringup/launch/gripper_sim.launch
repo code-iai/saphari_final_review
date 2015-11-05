@@ -23,7 +23,7 @@
     <remap from="~pos_command_in" to="~do_not_use" />
     <remap from="~vel_command_out" to="/gripper_vel/command" />
     <remap from="~wsg_speed_in" to="/gripper/speed_goal" />
-    <remap from="~wsg_position_in" to="/gripper/position_goal" />
+    <remap from="~wsg_position_in" to="/gripper/goal_position" />
     <param name="vel_command_type" value="MultiJointVelocityCommand" />
     <param name="max_speed" value="1.2" />
     <param name="p_gain" value="3.5" />

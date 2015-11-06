@@ -3,8 +3,8 @@
   <arg name="topic"           default="/camera/image_rect_color" />
 
   <!-- Frames for table and camera -->
-  <arg name="table_frame"     default="/table_link" />
-  <arg name="camera_frame"    default="/blackfly_camera_link" />
+  <arg name="table_frame"     default="table_link" />
+  <arg name="camera_frame"    default="optical_frame" />
 
   <!-- Camera topic -->
   <arg name="data_path"       default="$(find saphari_tool_detector)/data/" />
@@ -14,10 +14,12 @@
   <arg name="threshold_high"  default="100.0" />
 
   <!-- Threshold for hough tool detection -->
-  <arg name="threshold_hough" default="50" />
+  <!--arg name="threshold_hough" default="50" /-->
+  <arg name="threshold_hough" default="62" />
 
   <!-- Maximum allowed overlap -->
-  <arg name="max_overlap"     default="0.4" />
+  <!--arg name="max_overlap"     default="0.4" /-->
+  <arg name="max_overlap"     default="0.3" />
 
   <!-- Bounding box for tool detection area -->
   <arg name="x"               default="200" />
@@ -29,7 +31,7 @@
   <arg name="fake_perception" default="false" />
 
   <!-- Publish tf of detected tool -->
-  <arg name="publish_tf"       default="false" />
+  <arg name="publish_tf"       default="true" />
 
   <!-- Publish static tf for camera and table -->
   <arg name="static_tf"       default="false" />

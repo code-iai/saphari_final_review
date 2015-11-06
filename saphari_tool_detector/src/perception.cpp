@@ -208,7 +208,7 @@ void Perception::loadTemplate(const std::string &filepath, const int thresholdHo
 
   t.ght->set("minDist", 100);
   t.ght->set("levels", 360);
-  t.ght->set("dp", 1.0);
+  t.ght->set("dp", 2.0);
   if(estimateScale && estimateRotation)
   {
     t.ght->set("angleThresh", 1000);
@@ -232,7 +232,7 @@ void Perception::loadTemplate(const std::string &filepath, const int thresholdHo
   {
     t.ght->set("minAngle", 0.0);
     t.ght->set("maxAngle", 360.0);
-    t.ght->set("angleStep", 1.0);
+    t.ght->set("angleStep", 2.0);
   }
 
   t.ght->setTemplate(t.edges, t.dx, t.dy, t.center);

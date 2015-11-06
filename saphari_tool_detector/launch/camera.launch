@@ -3,7 +3,7 @@
   Uni-Bremen: <arg name="camera_serial" default="15296932" />
   DLR:        <arg name="camera_serial" default="12351127" />
   -->
-  <arg name="camera_serial" default="15296932" />
+  <arg name="camera_serial" default="15360637" />
 
   <arg name="calibrated" default="1" />
 

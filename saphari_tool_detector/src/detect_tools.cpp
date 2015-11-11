@@ -111,15 +111,15 @@ public:
       tools[0].id = 0;
       tools[0].name = "hook";
       tools[0].confidence = 1.0;
-      tools[0].pose = transform * tf::Transform(q, tf::Vector3(0.0, 0.25, 0));
+      tools[0].pose = transform * tf::Transform(q, tf::Vector3(0.1, 0.35, 0));
       tools[1].id = 1;
       tools[1].name = "rake";
       tools[1].confidence = 1.0;
-      tools[1].pose = transform * tf::Transform(q, tf::Vector3(0.1, 0.25, 0));
+      tools[1].pose = transform * tf::Transform(q, tf::Vector3(0.25, 0.3, 0));
       tools[2].id = 2;
       tools[2].name = "scissor";
       tools[2].confidence = 1.0;
-      tools[2].pose = transform * tf::Transform(q, tf::Vector3(0.2, 0.25, 0));
+      tools[2].pose = transform * tf::Transform(q, tf::Vector3(0.4, 0.4, 0));
     }
     else
     {

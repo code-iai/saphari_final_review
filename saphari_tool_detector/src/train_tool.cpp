@@ -217,6 +217,34 @@ private:
         break;
       }
     }
+    std::vector<cv::Mat> images;
+    size_t count = 8;
+    std::string message;
+    {
+      std::ostringstream oss;
+      oss << "Rotate tool. Press 'SPACE' to capture an image. " << count << " images remaining.";
+      message = oss.str();
+    }
+    for(size_t i = count; i > 0 && ros::ok();)
+    {
+      if(receiver.get(color, cameraMatrix, false))
+      {
+        visualizer.show(color, message, "Image");
+      }
+
+      int32_t key = visualizer.getKey(10);
+      if(key >= 0 && (key & 0xFF) == ' ')
+      {
+        cv::Mat tmp;
+        cv::cvtColor(color, tmp, CV_BGR2GRAY);
+        images.push_back(tmp);
+        --i;
+        std::ostringstream oss;
+        oss << "Rotate tool. Press 'SPACE' to capture an image. " << i << " images remaining.";
+        message = oss.str();
+
+      }
+    }
 
     if(ros::ok())
     {
@@ -224,7 +252,7 @@ private:
                     cv::Point(std::max(roi.val[0], roi.val[2]), std::max(roi.val[1], roi.val[3])));
       cv::Point center(axis.val[0] - rect.x, axis.val[1] - rect.y);
       cv::Point direction(axis.val[2] - axis.val[0], axis.val[3] - axis.val[1]);
-      perception.storeTemplate(name, id, rect, center, direction);
+      perception.storeTemplate(name, id, rect, center, direction, images);
     }
 
     ros::shutdown();

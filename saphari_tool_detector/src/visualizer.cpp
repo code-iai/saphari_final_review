@@ -54,7 +54,7 @@ void Visualizer::show(const cv::Mat &image, const std::string &name, const std::
     return;
   }
 
-  cv::putText(disp, name, cv::Point(5, 15), cv::FONT_HERSHEY_SIMPLEX, 0.5, CV_RGB(255, 0, 0), 1, CV_AA);
+  cv::putText(disp, name, cv::Point(5, 15), cv::FONT_HERSHEY_COMPLEX_SMALL, 1.5, CV_RGB(255, 255, 255), 1, CV_AA);
 
   if(windows.find(window) == windows.end())
   {

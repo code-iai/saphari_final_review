@@ -44,17 +44,25 @@ For the training it is needed to move the camera/arm to the position from where 
 2. Start the training for a tool with `rosrun saphari_tool_detector train_tool _id:=<tool_id> _name:=<tool_name>`. Replace `tool_id` and `tool_name` with the name and id of the tool.
 
 3. Align the tool to one of the axis and press `SPACE` to continue.
-   ![Training step 1](https://github.com/code-iai/saphari_final_review/blob/master/saphari_tool_detector/doc/training_step1.jpg)
+   ![Training step 3](https://github.com/code-iai/saphari_final_review/blob/master/saphari_tool_detector/doc/training_step1.jpg)
 
 4. Draw a minimal bounding box with a few pixel border around the object and press `SPACE` to continue.
 
    *Tipp: For example click somewhere left top of the object and draw the bounding box so that the bottom and right side of the bounding box fits the object, then release the mouse button and click again. Now draw a bounding box that fits all sides.*
 
-   ![Training step 2](https://github.com/code-iai/saphari_final_review/blob/master/saphari_tool_detector/doc/training_step2.jpg)
+   ![Training step 4](https://github.com/code-iai/saphari_final_review/blob/master/saphari_tool_detector/doc/training_step2.jpg)
 
 5. Select the reference point of the object by clicking somewhere on the image, a small circle should be drawn. Then move the mouse around and a line should be drawn, fit this line to the desired orientation axis of the object pointing to the front of the tool and click again to summit. Press `SPACE` to continue.
 
-   ![Training step 3](https://github.com/code-iai/saphari_final_review/blob/master/saphari_tool_detector/doc/training_step3.jpg)
+   ![Training step 5](https://github.com/code-iai/saphari_final_review/blob/master/saphari_tool_detector/doc/training_step3.jpg)
+
+6. Capture 8 images of different rotations. Make sure to move the tool befor capturing the first image. Press `SPACE` to continue.
+
+   ![Training step 6](https://github.com/code-iai/saphari_final_review/blob/master/saphari_tool_detector/doc/training_step4.jpg)
+
+7. Continue with step 2. until all tools are trained.
+
+8. Learn meaningful confidence values by executing `rosrun saphari_tool_detector train_confidence` after all tools are trained.
 
 ## Usage
 
@@ -62,7 +70,7 @@ For the training it is needed to move the camera/arm to the position from where 
 
 2. Launch the detector `roslaunch saphari_tools detector.launch`.
 
-3. Call the service with an empty request message: `rosservice call /tool_detector/detect_tools {}`
+3. Call the service with an empty request message: `rosservice call /tool_detector/detect_tools 0 0 0 0`. The 4 parameters are `x`, `y`, `width` and `height` of a region of interest for the detection, `0 0 0 0` will result in the full image being used.
 
 The service will response with a list of results. Each result is a `Tool.msg` and contains the `id`, `name` and `pose` of the detected objects. In parallel a debug image is published under `/tool_detector/debug_image`
 
@@ -75,11 +83,8 @@ The service will response with a list of results. Each result is a `Tool.msg` an
 - `threshold_low`: Lower threshold for the edge detection
 - `threshold_high`: Higher threshold for the edge detection
 - `threshold_hough`: Minimum votes for an object to be detected
-- `max_overlap`: Maximum allowed overlap between bounding boxes of detected objects. Objects with less votes will be discarded
-- `x`: Top-left x coordinate of a region of interest.
-- `y`: Top-left y coordinate of a region of interest.
-- `width`: Width of the region of interest.
-- `height`: Height of the region of interest.
+- `max_overlap`: Maximum allowed overlap between bounding boxes of detected objects. Objects with less confidence will be discarded
+- `min_confidence`: Minimum confidence of detected objects.
 - `fake_perception`: Instead of running the perception it will publish some static results.
 - `publish_tf`: Publish poses of the object in TF under `/tool_<id>_<name>`.
 - `static_tf`: Enable a static TF publisher for the camera and table frame.

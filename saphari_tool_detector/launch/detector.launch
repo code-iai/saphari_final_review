@@ -14,18 +14,13 @@
   <arg name="threshold_high"  default="100.0" />
 
   <!-- Threshold for hough tool detection -->
-  <!--arg name="threshold_hough" default="50" /-->
-  <arg name="threshold_hough" default="62" />
+  <arg name="threshold_hough" default="50" />
 
   <!-- Maximum allowed overlap -->
-  <!--arg name="max_overlap"     default="0.4" /-->
-  <arg name="max_overlap"     default="0.3" />
+  <arg name="max_overlap"     default="0.4" />
 
-  <!-- Bounding box for tool detection area -->
-  <arg name="x"               default="200" />
-  <arg name="y"               default="0" />
-  <arg name="width"           default="1600" />
-  <arg name="height"          default="1199" />
+  <!-- Minimum confidence -->
+  <arg name="min_confidence"  default="0.1" />
 
   <!-- Fake perception -->
   <arg name="fake_perception" default="false" />
@@ -34,7 +29,7 @@
   <arg name="publish_tf"       default="true" />
 
   <!-- Publish static tf for camera and table -->
-  <arg name="static_tf"       default="false" />
+  <arg name="static_tf"       default="true" />
 
   <node if="$(arg static_tf)" pkg="tf" type="static_transform_publisher" name="static_camera_table_tf" args="0 0 0.75 0 0 3.14159265358979323846 $(arg table_frame) $(arg camera_frame) 100" />
 
@@ -47,10 +42,7 @@
     <param name="threshold_high"  type="double" value="$(arg threshold_high)" />
     <param name="threshold_hough" type="int"    value="$(arg threshold_hough)" />
     <param name="max_overlap"     type="double" value="$(arg max_overlap)" />
-    <param name="x"               type="int"    value="$(arg x)" />
-    <param name="y"               type="int"    value="$(arg y)" />
-    <param name="width"           type="int"    value="$(arg width)" />
-    <param name="height"          type="int"    value="$(arg height)" />
+    <param name="min_confidence"  type="double" value="$(arg min_confidence)" />
     <param name="fake_perception" type="bool"   value="$(arg fake_perception)" />
     <param name="publish_tf"      type="bool"   value="$(arg publish_tf)" />
   </node>

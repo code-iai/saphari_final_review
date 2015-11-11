@@ -1,7 +1,8 @@
 <launch>
   <!-- Serial number of the camera to use
-  Uni-Bremen: <arg name="camera_serial" default="15296932" />
-  DLR:        <arg name="camera_serial" default="12351127" />
+  Uni-Bremen:   <arg name="camera_serial" default="15296932" />
+  DLR:          <arg name="camera_serial" default="12351127" />
+  DLR BlackFly: <arg name="camera_serial" default="15360637" />
   -->
   <arg name="camera_serial" default="15360637" />
 

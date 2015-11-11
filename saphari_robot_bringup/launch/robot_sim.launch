@@ -11,6 +11,7 @@
     <arg name="fake_perception" value="true" />
     <arg name="camera_frame" value="blackfly_camera" />
     <arg name="table_frame" value="table_link" />
+    <arg name="static_tf" value="false" />
   </include>
 
   <include file="$(find saphari_interactive_markers)/launch/saphari_interactive_markers.launch" />

@@ -11,25 +11,14 @@
 
   <!-- FURNITURE AND SCENE -->
 
-  <saphari_map map_frame="map"/>
+  <saphari_map map_frame="map" kinect_calib_parent_frame="arm_base_link" kinect_calib_frame="openni_depth_frame">
+    <origin xyz="0.286111 -1.14642 1.34476" rpy="-2.1339635300413633 -0.07999807283761096 0.9304591444760072"/>
+    <!-- ORIGINAL QUATERNION: 0.773385 0.409824 -0.185113 -0.446826 -->
+  </saphari_map>
 
   <saphari_table parent="map">
     <origin xyz="0 0 0.89" rpy="0 0 0"/>
   </saphari_table>
-
-
-
-
-  <!--link name="measurement_frame"/>
-
-  <joint name="measurement" type="fixed">
-    <origin xyz="0.6 0.75 0" rpy="0 0 0"/>
-    <parent link="table_link"/>
-    <child link="measurement_frame"/>
-  </joint-->
- 
-
-
 
   <link name="instrument_pad">
     <visual>
@@ -68,6 +57,7 @@
   </joint>
 
   <!-- LWR AND GRIPPER -->
+
   <link name="arm_base_link"/>
 
   <joint name="table_arm_base_link_offset" type="fixed">
@@ -86,10 +76,10 @@
 
   <wsg_50_xacro name="gripper" parent="arm_fwk_fwa_050_frame_out">
     <origin xyz="0 0 0" rpy="0 0 ${PI*45/180}"/>
-    <!--origin xyz="0 0 0" rpy="0 0 ${-1*PI*135/180}"/-->
   </wsg_50_xacro>
 
   <!-- WRIST CAM WITH MOUNTING -->
+
   <link name="gripper_top_protector">
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>

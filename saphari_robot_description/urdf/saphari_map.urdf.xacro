@@ -3,7 +3,7 @@
 
   <include filename="$(find iai_kinect_description)/urdf/kinect.urdf.xacro"/>
 
-  <macro name="saphari_map" params="map_frame">
+  <macro name="saphari_map" params="map_frame kinect_calib_parent_frame kinect_calib_frame *kinect_calib">
 
     <link name="${map_frame}"/>
 
@@ -107,10 +107,18 @@
       <child link="kinect_mounting_5_link"/>
     </joint>
 
-    <!-- TODO: correct calibration! so far only visually pleasing -->
     <kinect name="kinect" parent="kinect_mounting_5_link">
       <origin xyz="0.03 -0.01 ${-0.03 -0.02 -0.015}" rpy="0 0 ${-90*PI/180}"/>
     </kinect>
+
+    <link name="${kinect_calib_frame}"/>
+
+    <joint name="kinect_calibration" type="fixed">
+      <insert_block name="kinect_calib"/>
+      <parent link="${kinect_calib_parent_frame}"/>
+      <child link="${kinect_calib_frame}"/>
+    </joint>
+
   </macro>
 
 </robot>

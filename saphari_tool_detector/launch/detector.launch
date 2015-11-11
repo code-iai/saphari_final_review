@@ -20,7 +20,7 @@
   <arg name="max_overlap"     default="0.4" />
 
   <!-- Minimum confidence -->
-  <arg name="min_confidence"  default="0.1" />
+  <arg name="min_confidence"  default="0.2" />
 
   <!-- Fake perception -->
   <arg name="fake_perception" default="false" />

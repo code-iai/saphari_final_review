@@ -66,7 +66,7 @@
     <child link="arm_base_link"/>
   </joint>
 
-  <kuka_lwr_arm parent="arm_base_link" prefix="">
+  <kuka_lwr_arm parent="arm_base_link" prefix="" color_postfix="_blue">
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </kuka_lwr_arm>
 

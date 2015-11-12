@@ -106,20 +106,19 @@ public:
       service = nh.advertiseService("detect_tools", &ToolDetection::fakeResults, this);
       lookupTransform();
 
-      tf::Quaternion q(0, 0, 0, 1);
       tools.resize(3);
+      tools[0].pose = transform * tf::Transform(tf::Quaternion(0, 0, 0.67559, 0.73727), tf::Vector3(0.1, 0.35, 0));
+      tools[1].pose = transform * tf::Transform(tf::Quaternion(0, 0, -0.57357, 0.81915), tf::Vector3(0.25, 0.3, 0));
+      tools[2].pose = transform * tf::Transform(tf::Quaternion(0, 0, 0.17364, 0.9848), tf::Vector3(0.4, 0.4, 0));
       tools[0].id = 0;
       tools[0].name = "hook";
       tools[0].confidence = 1.0;
-      tools[0].pose = transform * tf::Transform(q, tf::Vector3(0.1, 0.35, 0));
       tools[1].id = 1;
       tools[1].name = "rake";
       tools[1].confidence = 1.0;
-      tools[1].pose = transform * tf::Transform(q, tf::Vector3(0.25, 0.3, 0));
       tools[2].id = 2;
       tools[2].name = "scissor";
       tools[2].confidence = 1.0;
-      tools[2].pose = transform * tf::Transform(q, tf::Vector3(0.4, 0.4, 0));
     }
     else
     {
@@ -213,16 +212,15 @@ public:
   bool fakeResults(saphari_tool_detector::DetectToolsRequest &request, saphari_tool_detector::DetectToolsResponse &response)
   {
     ros::Time now = ros::Time::now();
-    tf::Quaternion q(0, 0, 0, 1);
     if(!lookupTransform())
     {
       return false;
     }
 
     lock.lock();
-    tools[0].pose = transform * tf::Transform(q, tf::Vector3(0.1, 0.4, 0));
-    tools[1].pose = transform * tf::Transform(q, tf::Vector3(0.3, 0.4, 0));
-    tools[2].pose = transform * tf::Transform(q, tf::Vector3(0.5, 0.4, 0));
+    tools[0].pose = transform * tf::Transform(tf::Quaternion(0, 0, 0.67559, 0.73727), tf::Vector3(0.1, 0.35, 0));
+    tools[1].pose = transform * tf::Transform(tf::Quaternion(0, 0, -0.57357, 0.81915), tf::Vector3(0.25, 0.3, 0));
+    tools[2].pose = transform * tf::Transform(tf::Quaternion(0, 0, 0.17364, 0.9848), tf::Vector3(0.4, 0.4, 0));
 
     for(size_t i = 0; i < tools.size(); ++i)
     {

@@ -40,9 +40,9 @@
 
   <link name="sorting_basket">
     <visual>
-      <origin xyz="0.2025 0.125 0.02" rpy="0 0 0" />
+      <origin xyz="0.2025 0.0 0.02" rpy="0 0 0" />
       <geometry>
-        <box size="0.405 0.25 0.04" />
+        <mesh filename="package://saphari_robot_description/meshes/saphari_basket.dae"/>
       </geometry>
       <material name="Silver">
         <color rgba="${160/255} ${160/255} ${190/255} 1.0"/>

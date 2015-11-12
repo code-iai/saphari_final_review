@@ -8,7 +8,7 @@
     <link name="table_link">
       <visual>
         <origin rpy="0 0 0" xyz="0 0 0"/>
-        <geometry> <mesh filename="package://saphari_robot_description/meshes/table.stl"/>
+        <geometry> <mesh filename="package://saphari_robot_description/meshes/table.dae"/>
         </geometry>
         <material name="Grey">
           <color rgba="0.7 0.7 0.7 1.0"/>

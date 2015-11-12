@@ -82,6 +82,8 @@
     (:40cm (40cm-lookat-pickup-config))
     (:50cm (50cm-lookat-pickup-config))))
 
+
+  
 ;;;
 ;;; KNOWROB UTILS
 ;;;
@@ -154,7 +156,7 @@
            (desigs (tool-perception-response->object-desigs
                     (apply #'call-service (getf demo-handle :tool-perception)))))
       (on-finish-perception-request logging-id desigs)
-      (publish-tool-poses-to-tf demo-handle desigs)
+      (publish-tool-markers demo-handle desigs)
       desigs)))
 
 (cpl-impl:def-cram-function query-tool-perception (demo-handle &rest desigs)
@@ -165,22 +167,53 @@
       (cpl:fail "Tool query failed: json-prolog disabled.")))
 
 ;;;
-;;; VISUALIZATION
+;;; TF VIZ
 ;;;
 
 (defun publish-tool-poses-to-tf (demo-handle desigs)
-  (ros-info :saphar-task-executive "Publishing poses of ~a" desigs)
-  (flet ((get-tool-transform (desig)
-           (alexandria:when-let* ((tool-keyword (desig-prop-value desig :type))
-                                  (loc-desig (desig-prop-value desig :at))
-                                  (pose-stamped (desig-prop-value loc-desig :pose)))
-             (pose-stamped->transform-stamped pose-stamped (symbol-name tool-keyword)))))
-    (alexandria:when-let ((transforms
-                           (remove-if-not #'identity (mapcar #'get-tool-transform desigs)))
-                          (broadcaster (getf demo-handle :tf-broadcaster)))
-      (ros-info :saphari-task-executive "Publishing transforms: ~a" transforms)
-      (publish broadcaster (make-message "tf2_msgs/TFMessage" :transforms (coerce transforms 'vector))))))
-  
+  (alexandria:when-let ((transforms
+                         (remove-if-not #'identity (mapcar #'infer-object-transform desigs)))
+                        (broadcaster (getf demo-handle :tf-broadcaster)))
+    (publish broadcaster (make-message "tf2_msgs/TFMessage" :transforms (coerce transforms 'vector)))))
+
+;;;
+;;; MARKER VIZ
+;;;
+
+(defun instrument-type->mesh-path (type-keyword)
+  (case type-keyword
+    (:hook "package://saphari_task_executive/models/hospital/surgical-instruments/Hook.dae")
+    (:scissor "package://saphari_task_executive/models/hospital/surgical-instruments/Scissors.dae")
+    (:rake "package://saphari_task_executive/models/hospital/surgical-instruments/Rake.dae")
+    (t nil)))
+
+(defun tool-desig->marker (desig id)
+  (alexandria:when-let* ((type-keyword (desig-prop-value desig :type))
+                         (mesh-path (instrument-type->mesh-path type-keyword))
+                         (pose-stamped (infer-object-pose desig)))
+    (with-fields (header pose) pose-stamped
+      (make-message
+       "visualization_msgs/Marker"
+       :header header
+       :ns "cram_instrument_visualization"
+       :id id
+       :type (symbol-code 'visualization_msgs-msg:Marker :mesh_resource)
+       :action (symbol-code 'visualization_msgs-msg:Marker :add)
+       :pose pose
+       (:x :scale) 1.0 (:y :scale) 1.0 (:z :scale) 1.0
+       (:r :color) 0.7 (:g :color) 0.7 (:b :color) 0.7 (:a :color) 1.0
+       :mesh_resource mesh-path
+       :mesh_use_embedded_materials t))))
+
+(defun publish-tool-markers (demo-handle desigs)
+  (alexandria:when-let ((markers
+                         (remove-if-not #'identity
+                                        (loop for desig in desigs
+                                              counting t into index
+                                              collect (tool-desig->marker desig index))))
+                        (pub (getf demo-handle :marker-pub)))
+    (publish pub (make-msg "visualization_msgs/MarkerArray" :markers (coerce markers 'vector)))))
+       
 ;;;
 ;;; LOGGING INTERFACE
 ;;;
@@ -230,7 +263,8 @@
            (type geometry_msgs-msg:posestamped pose-stamped))
   (desig:make-designator
    'desig:object
-   `((:type ,object-type)
+   `((:an :object)
+     (:type ,object-type)
      (:at ,(pose-stamped->loc-desig pose-stamped)))))
 
 (defun pose-stamped->loc-desig (pose-stamped)

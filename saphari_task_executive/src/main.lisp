@@ -36,6 +36,7 @@
    :beasty (make-and-init-beasty-handle sim-p)
    :wsg50 (make-wsg-handle)
    :tf-broadcaster (advertise "/tf" "tf2_msgs/TFMessage")
+   :marker-pub (advertise "visualization_marker_array" "visualization_msgs/MarkerArray")
    ))
 
 (defun main ()
@@ -54,6 +55,9 @@
             (place-object demo-handle nil nil)
       ))))))
 
+(defun bringup-scripting-environment ()
+  (start-ros-node "cram")
+  (setf *dh* (make-demo-handle)))
 ;;;
 ;;; BELOW: OLD STATE-MACHINE INTERFACE. MAYBE USEFUL, LATER.
 ;;; 

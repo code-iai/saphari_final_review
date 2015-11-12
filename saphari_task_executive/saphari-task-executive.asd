@@ -38,7 +38,8 @@
                designators
                cram-language-designator-support
                saphari_tool_detector-srv
-               saphari_task_executive-srv)
+               saphari_task_executive-srv
+               visualization_msgs-msg)
   :components
   ((:module "src"
     :components
@@ -46,7 +47,7 @@
      (:file "lisp-utils" :depends-on ("package"))
      (:file "designator-utils" :depends-on ("package"))
      (:file "designator-reasoning" :depends-on ("package" "designator-utils"))
-     (:file "tool-perception" :depends-on ("package" "lisp-utils"))
+     (:file "tool-perception" :depends-on ("package" "lisp-utils" "designator-reasoning"))
      (:file "arm-control" :depends-on ("package" "lisp-utils"))
      (:file "plans" :depends-on ("package" "designator-utils" "designator-reasoning" "tool-perception" "arm-control"))
      (:file "main" :depends-on ("package" "tool-perception" "arm-control" "plans"))))))

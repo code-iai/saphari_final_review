@@ -121,3 +121,14 @@
     cram-wsg50:*wsg50-open-width*
     cram-wsg50:*default-speed*
     cram-wsg50:*default-force*)))
+
+(defun infer-object-pose (desig)
+  (and
+   (desig-prop-value-p desig :an :object)
+   (alexandria:when-let ((loc-desig (desig-prop-value desig :at)))
+     (desig-prop-value loc-desig :pose))))
+
+(defun infer-object-transform (desig)
+  (alexandria:when-let ((type-keyword (desig-prop-value desig :type))
+                        (pose-stamped (infer-object-pose desig)))
+    (pose-stamped->transform-stamped pose-stamped (symbol-name type-keyword))))

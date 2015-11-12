@@ -20,24 +20,6 @@
     <origin xyz="0 0 0.89" rpy="0 0 0"/>
   </saphari_table>
 
-  <link name="instrument_pad">
-    <visual>
-      <origin xyz="0.28 0.135 0.001" rpy="0 0 0" />
-      <geometry>
-        <box size="0.56 0.27 0.002" />
-      </geometry>
-      <material name="LightBlue">
-        <color rgba="${80/255} ${100/255} ${210/255} 1.0"/>
-      </material>
-    </visual>
-  </link>
-
-  <joint name="instrument_pad_to_table_offset" type="fixed">
-    <origin xyz="0 0.26 0" rpy="0 0 0"/>
-    <parent link="table_link"/>
-    <child link="instrument_pad"/>
-  </joint>
-
   <link name="sorting_basket">
     <visual>
       <origin xyz="0.2025 0.0 0.02" rpy="0 0 0" />

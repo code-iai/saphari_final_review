@@ -154,7 +154,8 @@
   (cpl-desig-supp:with-designators ((obj-desig (desig:object '((:type :surgical-instrument)))))
     (let* ((logging-id (on-prepare-perception-request obj-desig))
            (desigs (tool-perception-response->object-desigs
-                    (apply #'call-service (getf demo-handle :tool-perception)))))
+                    (apply #'call-service (getf demo-handle :tool-perception))
+                    '((:on :table)))))
       (on-finish-perception-request logging-id desigs)
       (apply #'publish-tool-markers demo-handle nil desigs)
       desigs)))

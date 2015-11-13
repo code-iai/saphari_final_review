@@ -32,30 +32,30 @@
 ;;; ROS MESSAGE AND DESIGNATOR CONVERSIONS
 ;;;
 
-(defun tool-perception-response->object-desigs (tool-perception-response)
+(defun tool-perception-response->object-desigs (tool-perception-response extra-descr)
   (declare (type saphari_tool_detector-srv:detecttools-response tool-perception-response))
   (with-fields (tools) tool-perception-response
-    (mapcar #'tool-percept->object-desig (coerce tools 'list))))
+    (mapcar (alexandria:rcurry #'tool-percept->object-desig extra-descr) (coerce tools 'list))))
              
-(defun tool-percept->object-desig (tool-percept)
+(defun tool-percept->object-desig (tool-percept extra-descr)
   (declare (type saphari_tool_detector-msg:tool tool-percept))
   (with-fields (name pose) tool-percept
     (type-and-pose-stamped->obj-desig
      (string->keyword name)
-     (transform-stamped-msg->pose-stamped-msg pose))))
+     (transform-stamped-msg->pose-stamped-msg pose)
+     extra-descr)))
 
-(defun type-and-pose-stamped->obj-desig (object-type pose-stamped)
+(defun type-and-pose-stamped->obj-desig (object-type pose-stamped extra-descr)
   (declare (type keyword object-type)
            (type geometry_msgs-msg:posestamped pose-stamped))
-  (desig:make-designator
-   'desig:object
+  (object-designator
    `((:an :object)
      (:type ,object-type)
-     (:at ,(pose-stamped->loc-desig pose-stamped)))))
+     (:at ,(pose-stamped->loc-desig pose-stamped extra-descr)))))
 
-(defun pose-stamped->loc-desig (pose-stamped)
+(defun pose-stamped->loc-desig (pose-stamped extra-descr)
   (declare (type geometry_msgs-msg:posestamped pose-stamped))
-  (desig:make-designator 'desig:location `((:pose ,pose-stamped))))
+  (location-designator (conc-lists `((:pose ,pose-stamped)) extra-descr)))
 
 ;;;
 ;;; ROS MESSAGE CONVERSIONS

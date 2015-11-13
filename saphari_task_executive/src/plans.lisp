@@ -62,6 +62,8 @@
      (perform-beasty-motion demo-handle desig)))
 
 (cpl:def-cram-function grasp-object (demo-handle object)
+  ;; TODO: check nothing in hand?
+  ;; TODO: object perceived?
   ;; TODO: failure handling
   (open-gripper demo-handle)
   (reach-object demo-handle object)
@@ -76,6 +78,7 @@
     (perform-gripper-motion demo-handle desig)))
 
 (cpl:def-cram-function clamp-object (demo-handle object)
+  ;; TODO: refactor desig to also hold object?
   (let ((desig (action-designator
                 `((:an :action)
                   (:to :close)
@@ -97,7 +100,6 @@
       (desig:equate object new-obj-desig)
       (publish-tool-markers demo-handle t new-obj-desig)
       new-obj-desig)))
-
     
 (cpl:def-cram-function reach-object (demo-handle object)
   (let ((desig (action-designator
@@ -109,15 +111,45 @@
     (perform-beasty-motion demo-handle desig)))
 
 (cpl:def-cram-function place-object (demo-handle object location)
-  ;; TODO: use with-designators
-  (let ((desig (action-designator
-                `((:an :action)
-                  (:to :place)
-                  (:obj ,object)
-                  (:at ,location)))))
-    ;; TODO: complete me
-    (perform-gripper-motion demo-handle desig)))
+  ;; TODO: verify object in hand?
+  ;; TODO: verify location to place this object?
+  ;; TODO: failure handling
+  (reach-location demo-handle location)
+  (release-object demo-handle object))
 
+(cpl:def-cram-function reach-location (demo-handle location)
+  (let ((desig
+          (action-designator
+           `((:an :action)
+             (:to :reach)
+             (:at ,location)
+             (:sim ,(getf demo-handle :sim-p))))))
+    ;; TODO: failure handling
+    (perform-beasty-motion demo-handle desig)))
+
+(cpl:def-cram-function release-object (demo-handle object)
+  (let ((desig
+          (action-designator
+           `((:an :action)
+             (:to :release)
+             (:obj ,object)))))
+    (perform-gripper-motion demo-handle desig)
+    (alexandria:when-let*
+        ((obj-in-gripper-pose
+          (transform->pose-stamped-msg
+           (infer-object-grasping-offset object)
+           "gripper_tool_frame"))
+         (new-obj-desig
+          (desig:copy-designator
+           object
+           :new-description
+           `((:at ,(location-designator
+                    `((:pose ,obj-in-gripper-pose))))))))
+      (desig:equate object new-obj-desig)
+      (publish-tool-markers demo-handle nil new-obj-desig)
+      new-obj-desig)))
+             
+             
 ;; TODO: turn me into a plan
 (defun perform-beasty-motion (demo-handle desig)
   (roslisp-beasty:move-beasty-and-wait

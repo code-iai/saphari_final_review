@@ -35,7 +35,7 @@
   (or
    (infer-lookat-motion-goal desig)
    (infer-grasp-motion-goal demo-handle desig)
-   (infer-pre-place-motion-goal desig)
+   (infer-place-motion-goal demo-handle desig)
    (cpl:fail "Could not resolve: ~a" desig)))
 
 (defun infer-lookat-motion-goal (desig)
@@ -85,19 +85,6 @@
                                 demo-handle goal-pose-stamped)))
      (roslisp-beasty:make-default-cartesian-goal beasty-cartesian-goal sim-p))))
 
-(defun test-pose-stamped ()
-  (make-message
-   "geometry_msgs/PoseStamped"
-   (:stamp :header) (ros-time)
-   (:frame_id :header) "blackfly_camera"
-   (:x :position :pose) 0.1
-   (:y :position :pose) -0.06
-   (:z :position :pose) 0.34
-   (:x :orientation :pose) 0.98464
-   (:y :orientation :pose) -0.17448
-   (:z :orientation :pose) 0.0
-   (:w :orientation :pose) 0.0))
-
 (defun infer-object-grasping-offset (desig)
   (declare (ignore desig))
   ;; TODO: make this smart
@@ -122,6 +109,29 @@
                (pose-msg->transform pose)
                obj-grasping-offset))))))
 
+(defun infer-slot-pose-stamped (slot-id)
+  (declare (ignore slot-id))
+  ;; TODO: make me smart
+  (make-msg
+   "geometry_msgs/PoseStamped"
+   (:frame_id :header) "sorting_basket"
+   (:x :position :pose) 0.25
+   (:z :position :pose) 0.02
+   (:w :orientation :pose) 1.0))
+  
+(defun infer-object-placing-pose-stamped (desig slot-id)
+  (alexandria:when-let*
+      ((slot-pose-stamped-msg (infer-slot-pose-stamped slot-id))
+       (obj-grasping-offset (infer-object-grasping-offset desig)))
+    (with-fields (header pose) slot-pose-stamped-msg
+      (make-msg
+       "geometry_msgs/PoseStamped"
+       :header header
+       :pose (transform->pose-msg
+              (cl-transforms:transform*
+               (pose-msg->transform pose)
+               obj-grasping-offset))))))  
+
 (defun gripper-at-pose-stamped-msg (demo-handle pose-stamped-msg)
   (alexandria:when-let*
       ((tf (getf demo-handle :tf-listener))
@@ -135,35 +145,37 @@
           tf "gripper_tool_frame" "arm_flange_link"))))
     (cl-transforms:transform* goal-in-base inverse-gripper-offset)))
 
-(defun infer-pre-place-motion-goal (desig)
+(defun infer-place-motion-goal (demo-handle desig)
   (and
    (desig-prop-value-p desig :an :action)
-   (desig-prop-value-p desig :to :move)
+   (desig-prop-value-p desig :to :reach)
    (alexandria:when-let ((sim-p (desig-prop-value desig :sim))
                          (loc (desig-prop-value desig :at)))
      (and
       (desig-prop-value-p loc :a :location)
-      (alexandria:when-let ((obj (desig-prop-value loc :above)))
-        (and
-         (desig-prop-value-p obj :an :object)
-         (desig-prop-value-p obj :type :surgical-basket))))
-     (roslisp-beasty:make-default-joint-goal
-      ;; TODO: move this into a default function
-      (list
-       0.5003623962402344
-       0.8569384217262268
-       0.08925693482160568
-       -1.1276057958602905
-       -0.0697876513004303
-       1.164320468902588
-       0.5868684649467468)
-      sim-p))))
+      (alexandria:when-let* ((slot-id (desig-prop-value loc :slot-id))
+                             (obj (desig-prop-value loc :target-obj))
+                             (goal-pose-stamped (infer-object-placing-pose-stamped obj slot-id))
+                             (beasty-cartesian-goal (gripper-at-pose-stamped-msg
+                                                     demo-handle goal-pose-stamped)))
+      ;; ;; TODO: move this into a default function
+      ;; (list
+      ;;  0.5003623962402344
+      ;;  0.8569384217262268
+      ;;  0.08925693482160568
+      ;;  -1.1276057958602905
+      ;;  -0.0697876513004303
+      ;;  1.164320468902588
+      ;;  0.5868684649467468)
+      ;; sim-p))))
+        (roslisp-beasty:make-default-cartesian-goal beasty-cartesian-goal sim-p))))))
                           
 
 (defun infer-gripper-goal (desig)
   (or
    (infer-gripper-open-goal desig)
    (infer-gripper-close-goal desig)
+   (infer-gripper-release-goal desig)
    (cpl:fail "Could not resolve: ~a" desig)))
 
 (defun infer-gripper-close-goal (desig)
@@ -182,6 +194,17 @@
    (desig-prop-value-p desig :an :action)
    (desig-prop-value-p desig :to :open)
    (desig-prop-value-p desig :body-part :gripper)
+   ;; TODO: more about objects?
+   (list
+    cram-wsg50:*wsg50-open-width*
+    cram-wsg50:*default-speed*
+    cram-wsg50:*default-force*)))
+
+(defun infer-gripper-release-goal (desig)
+  (and
+   (desig-prop-value-p desig :an :action)
+   (desig-prop-value-p desig :to :release)
+   (desig-prop-value desig :obj))
    ;; TODO: more about objects?
    (list
     cram-wsg50:*wsg50-open-width*

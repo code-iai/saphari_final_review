@@ -48,6 +48,16 @@
                   (:sim ,(getf demo-handle :sim-p))))))
     (perform-beasty-motion demo-handle desig)))
 
+(cpl:def-cram-function lookat-target-zone (demo-handle)
+  ;; TOOD: use with-designators
+  (let ((desig (action-designator
+                `((:an :action)
+                  (:to :see)
+                  (:obj ,(object-designator '((:an :object)
+                                              (:type :sorting-basket))))
+                  (:sim ,(getf demo-handle :sim-p))))))
+    (perform-beasty-motion demo-handle desig)))
+
 (cpl:def-cram-function move-above-target-zone (demo-handle)
   ;; TODO: use with-designators
   (let ((desig (action-designator
@@ -67,7 +77,9 @@
   ;; TODO: failure handling
   (open-gripper demo-handle)
   (reach-object demo-handle object)
-  (clamp-object demo-handle object))
+  (clamp-object demo-handle object)
+  (lookat-pickup-zone demo-handle)
+  object)
 
 (cpl:def-cram-function open-gripper (demo-handle)
   (let ((desig (action-designator
@@ -114,8 +126,11 @@
   ;; TODO: verify object in hand?
   ;; TODO: verify location to place this object?
   ;; TODO: failure handling
+  (lookat-target-zone demo-handle)
   (reach-location demo-handle location)
-  (release-object demo-handle object))
+  (let ((new-obj-desig (release-object demo-handle object)))
+    (lookat-target-zone demo-handle)
+    new-obj-desig))
 
 (cpl:def-cram-function reach-location (demo-handle location)
   (let ((desig

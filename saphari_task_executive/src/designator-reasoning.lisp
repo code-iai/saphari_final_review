@@ -62,16 +62,26 @@
   ;;; * binds any un-matched parts of the description to local variable 'rest'
   ;;; * if &rest is not specified, it will fail in case of un-matched parts in desig
   ;;;
-  (and
-   (desig-prop-value-p desig :an :action)
-   (desig-prop-value-p desig :to :see)
-   (desig-descr-equal
-    (desig-prop-value desig :obj)
-    (object-designator '((:an :object)(:type :pickup-zone))))
-   (alexandria:when-let ((distance (desig-prop-value desig :distance))
-                         (sim-p (desig-prop-value desig :sim)))
-     (roslisp-beasty:make-default-joint-goal
-      (lookat-pickup-config distance) sim-p))))
+  (or
+   (and
+    (desig-prop-value-p desig :an :action)
+    (desig-prop-value-p desig :to :see)
+    (desig-descr-equal
+     (desig-prop-value desig :obj)
+     (object-designator '((:an :object)(:type :sorting-basket))))
+    (alexandria:when-let ((sim-p (desig-prop-value desig :sim)))
+      (roslisp-beasty:make-default-joint-goal
+       (lookat-sorting-basket-config) sim-p)))
+   (and
+    (desig-prop-value-p desig :an :action)
+    (desig-prop-value-p desig :to :see)
+    (desig-descr-equal
+     (desig-prop-value desig :obj)
+     (object-designator '((:an :object)(:type :pickup-zone))))
+    (alexandria:when-let ((distance (desig-prop-value desig :distance))
+                          (sim-p (desig-prop-value desig :sim)))
+      (roslisp-beasty:make-default-joint-goal
+       (lookat-pickup-config distance) sim-p)))))
 
 (defun infer-grasp-motion-goal (demo-handle desig)
   (and

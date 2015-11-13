@@ -159,7 +159,19 @@
      :position (3d-vector->point-msg translation)
      :orientation (quaternion->quaterion-msg rotation))))
 
+(defun pose->pose-msg (pose)
+  (transform->pose-msg (cl-transforms:pose->transform pose)))
+
 (defun pose-stamped-msg->transform (msg)
   (declare (type geometry_msgs-msg:posestamped msg))
   (with-fields (pose) msg
     (pose-msg->transform pose)))
+
+(defun transform->pose-stamped-msg (transform frame-id)
+  (declare (type cl-transforms:transform transform)
+           (type string frame-id))
+  (make-message
+   "geometry_msgs/PoseStamped"
+   (:frame_id :header) frame-id
+   (:stamp :header) (ros-time)
+   :pose (transform->pose-msg transform)))

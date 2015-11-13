@@ -1,0 +1,142 @@
+;;; Copyright (c) 2015, Georg Bartels <georg.bartels@cs.uni-bremen.de>
+;;; All rights reserved.
+;;;
+;;; Redistribution and use in source and binary forms, with or without
+;;; modification, are permitted provided that the following conditions are met:
+;;;
+;;; * Redistributions of source code must retain the above copyright
+;;; notice, this list of conditions and the following disclaimer.
+;;; * Redistributions in binary form must reproduce the above copyright
+;;; notice, this list of conditions and the following disclaimer in the
+;;; documentation and/or other materials provided with the distribution.
+;;; * Neither the name of the Institute for Artificial Intelligence/
+;;; Universitaet Bremen nor the names of its contributors may be used to 
+;;; endorse or promote products derived from this software without specific 
+;;; prior written permission.
+;;;
+;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;;; ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+;;; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+;;; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+;;; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+;;; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+;;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+;;; POSSIBILITY OF SUCH DAMAGE.
+
+(in-package :saphari-task-executive)
+
+;;;
+;;; ROS MESSAGE AND DESIGNATOR CONVERSIONS
+;;;
+
+(defun tool-perception-response->object-desigs (tool-perception-response)
+  (declare (type saphari_tool_detector-srv:detecttools-response tool-perception-response))
+  (with-fields (tools) tool-perception-response
+    (mapcar #'tool-percept->object-desig (coerce tools 'list))))
+             
+(defun tool-percept->object-desig (tool-percept)
+  (declare (type saphari_tool_detector-msg:tool tool-percept))
+  (with-fields (name pose) tool-percept
+    (type-and-pose-stamped->obj-desig
+     (string->keyword name)
+     (transform-stamped->pose-stamped pose))))
+
+(defun type-and-pose-stamped->obj-desig (object-type pose-stamped)
+  (declare (type keyword object-type)
+           (type geometry_msgs-msg:posestamped pose-stamped))
+  (desig:make-designator
+   'desig:object
+   `((:an :object)
+     (:type ,object-type)
+     (:at ,(pose-stamped->loc-desig pose-stamped)))))
+
+(defun pose-stamped->loc-desig (pose-stamped)
+  (declare (type geometry_msgs-msg:posestamped pose-stamped))
+  (desig:make-designator 'desig:location `((:pose ,pose-stamped))))
+
+;;;
+;;; ROS MESSAGE CONVERSIONS
+;;;
+
+(defun vector3->point (vector3)
+  (declare (type geometry_msgs-msg:vector3 vector3))
+  (with-fields (x y z) vector3
+    (make-msg
+     "geometry_msgs/Point"
+     :x x :y y :z z)))
+
+(defun point->vector3 (point)
+  (declare (type geometry_msgs-msg:point point))
+  (with-fields (x y z) point
+    (make-msg
+     "geometry_msgs/Vector3"
+     :x x :y y :z z)))
+
+(defun transform->pose (transform)
+  "Converts `transform' of type geometry_msgs/Transform into an
+ instance of type geometry_msgs/Pose without changing `transform'."
+  (declare (type geometry_msgs-msg:transform transform))
+  (with-fields (translation rotation) transform
+    (make-msg
+     "geometry_msgs/Pose"
+     :position (vector3->point translation)
+     :orientation rotation)))
+
+(defun pose->transform (pose)
+  "Converts `pose' of type geometry_msgs/Pose into an instance
+ of type geometry_msgs/Transform without changing `pose'."
+  (declare (type geometry_msgs-msg:pose pose))
+  (with-fields (position orientation) pose
+    (make-message
+     "geometry_msgs/Transform"
+     :translation (point->vector3 position)
+     :rotation orientation)))
+                  
+(defun transform-stamped->pose-stamped (transform-stamped)
+  "Converts `transform-staped' of type geometry_msgs/TransformStamped
+ into an instance of type geometry_msgs/PoseStamped without changing
+`transform-stamped'."
+  (declare (type geometry_msgs-msg:transformstamped transform-stamped))
+  (with-fields (header transform) transform-stamped
+    (make-msg "geometry_msgs/PoseStamped"
+              :header header
+              :pose (transform->pose transform))))
+
+(defun pose-stamped->transform-stamped (pose-stamped child-frame-id)
+  "Converts `pose-staped' of type geometry_msgs/PoseStamped into
+ an instance of type geometry_msgs/TransformStamped using `child-frame-id'.
+ Note: Both inputs will remain unchanged."
+  (with-fields (header pose) pose-stamped
+    (make-msg "geometry_msgs/TransformStamped"
+              :header header
+              :child_frame_id child-frame-id
+              :transform (pose->transform pose))))
+
+;;;
+;;; ROS MESSAGE AND CL-TRANSFORMS CONVERSIONS
+;;;
+
+(defun point-msg->3d-vector (msg)
+  (declare (type geometry_msgs-msg:point msg))
+  (with-fields (x y z) msg
+    (cl-transforms:make-3d-vector x y z)))
+
+(defun quaternion-msg->quaternion (msg)
+  (declare (type geometry_msgs-msg:quaternion msg))
+  (with-fields (x y z w) msg
+    (cl-transforms:make-quaternion x y z w)))
+
+(defun pose-msg->transform (msg)
+  (declare (type geometry_msgs-msg:pose msg))
+  (with-fields (position orientation) msg
+    (cl-transforms:make-transform
+     (point-msg->3d-vector position)
+     (quaternion-msg->quaternion orientation))))
+
+(defun pose-stamped-msg->transform (msg)
+  (declare (type geometry_msgs-msg:posestamped msg))
+  (with-fields (pose) msg
+    (pose-msg->transform pose)))

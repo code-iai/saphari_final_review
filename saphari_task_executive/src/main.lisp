@@ -36,6 +36,7 @@
    :beasty (make-and-init-beasty-handle sim-p)
    :wsg50 (make-wsg-handle)
    :tf-broadcaster (advertise "/tf" "tf2_msgs/TFMessage")
+   :tf-listener (make-instance 'cl-tf2:buffer-client)
    :marker-pub (advertise "visualization_marker_array" "visualization_msgs/MarkerArray")
    ))
 
@@ -46,14 +47,12 @@
         ;; TODO: loop
         ;; TODO: human reactivity
         (lookat-pickup-zone demo-handle)
-        (let ((object-desigs (trigger-tool-perception demo-handle)))
-          (ros-info :saphari-task-executive "Perceived tools: ~a" object-desigs)
+        (alexandria:when-let ((object-desigs (trigger-tool-perception demo-handle)))
           ;; TODO: infer target-object and target-location
-          (when object-desigs
-            (grasp-object demo-handle (car object-desigs))
-            (move-above-target-zone demo-handle)
-            (place-object demo-handle nil nil)
-      ))))))
+          (grasp-object demo-handle (nth (random (length object-desigs)) object-desigs))
+          (move-above-target-zone demo-handle)
+          (place-object demo-handle nil nil)
+      )))))
 
 (defun bringup-scripting-environment ()
   (start-ros-node "cram")

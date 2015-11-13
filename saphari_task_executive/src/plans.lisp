@@ -63,12 +63,23 @@
 
 (cpl:def-cram-function grasp-object (demo-handle object)
   ;; TODO: use with-designators
-  (let ((desig (action-designator
-                `((:an :action)
-                  (:to :grasp)
-                  (:obj ,object)))))
-    ;; TODO: complete me
-    (perform-gripper-motion demo-handle desig)))
+  (let ((open-desig (action-designator
+                     `((:an :action)
+                       (:to :open)
+                       (:body-part :gripper))))
+        (move-desig (action-designator
+                     `((:an :action)
+                       (:to :grasp)
+                       (:obj ,object)
+                       (:sim ,(getf demo-handle :sim-p)))))
+        (close-desig (action-designator
+                      `((:an :action)
+                        (:to :close)
+                        (:body-part :gripper)))))
+    ;; TODO: failure handling
+    (perform-gripper-motion demo-handle open-desig)
+    (perform-beasty-motion demo-handle move-desig)
+    (perform-gripper-motion demo-handle close-desig)))
 
 (cpl:def-cram-function place-object (demo-handle object location)
   ;; TODO: use with-designators
@@ -84,7 +95,7 @@
 (defun perform-beasty-motion (demo-handle desig)
   (roslisp-beasty:move-beasty-and-wait
    (getf demo-handle :beasty)
-   (infer-motion-goal desig)))
+   (infer-motion-goal demo-handle desig)))
 
 (cpl:def-cram-function perform-gripper-motion (demo-handle desig)
   (destructuring-bind (width speed force) (infer-gripper-goal desig)

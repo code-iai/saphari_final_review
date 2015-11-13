@@ -28,11 +28,17 @@
 
 (in-package :saphari-task-executive)
 
-(defun infer-motion-goal (desig)
+(defun tf2-lookup (tf frame-id child-frame-id)
+  (handler-case (cl-tf2:transform (cl-tf2:lookup-transform tf frame-id child-frame-id))
+    (cl-tf2::tf2-server-error () (progn (sleep 0.1) (tf2-lookup tf frame-id child-frame-id)))))
+
+(defun infer-motion-goal (demo-handle desig)
   "Returns the motion goal described by 'desig'. If no matching motion
- goal exists. Throws a CRAM failure if no matching motion goal exists."
+ goal exists. Throws a CRAM failure if no matching motion goal exists.
+ Uses resources from 'demo-handle', e.g. tf listener."
   (or
    (infer-lookat-motion-goal desig)
+   (infer-grasp-motion-goal demo-handle desig)
    (infer-pre-place-motion-goal desig)
    (cpl:fail "Could not resolve: ~a" desig)))
 
@@ -71,6 +77,47 @@
      (roslisp-beasty:make-default-joint-goal
       (lookat-pickup-config distance) sim-p))))
 
+(defun infer-grasp-motion-goal (demo-handle desig)
+  (and
+   (desig-prop-value-p desig :an :action)
+   (desig-prop-value-p desig :to :grasp)
+   (alexandria:when-let* ((sim-p (desig-prop-value desig :sim))
+                          (obj (desig-prop-value desig :obj))
+                          (pose-stamped (infer-object-pose obj)))
+     (roslisp-beasty:make-default-cartesian-goal
+      (gripper-at-pose-stamped demo-handle pose-stamped)
+      sim-p))))
+
+(defun test-pose-stamped ()
+  (make-message
+   "geometry_msgs/PoseStamped"
+   (:stamp :header) (ros-time)
+   (:frame_id :header) "blackfly_camera"
+   (:x :position :pose) 0.1
+   (:y :position :pose) -0.06
+   (:z :position :pose) 0.34
+   (:x :orientation :pose) 0.98464
+   (:y :orientation :pose) -0.17448
+   (:z :orientation :pose) 0.0
+   (:w :orientation :pose) 0.0))
+   
+(defun gripper-at-pose-stamped (demo-handle pose-stamped)
+  (alexandria:when-let*
+      ((tf (getf demo-handle :tf-listener))
+       (T_base_cam (tf2-lookup tf "arm_base_link" "blackfly_camera"))
+       (T_gripper_goal
+        (cl-transforms:make-transform
+         (cl-transforms:make-identity-vector)
+         (cl-transforms:q*
+          (cl-transforms:axis-angle->quaternion
+           (cl-transforms:make-3d-vector 1 0 0) pi)
+          (cl-transforms:axis-angle->quaternion
+           (cl-transforms:make-3d-vector 0 0 1) (/ pi 2.0)))))
+       (T_gripper_wrist (tf2-lookup tf "gripper_tool_frame" "arm_flange_link"))
+       (T_cam_goal (pose-stamped-msg->transform pose-stamped)))
+    (cl-transforms:transform*
+     T_base_cam T_cam_goal T_gripper_goal T_gripper_wrist)))
+                                    
 (defun infer-pre-place-motion-goal (desig)
   (and
    (desig-prop-value-p desig :an :action)
@@ -98,24 +145,26 @@
 
 (defun infer-gripper-goal (desig)
   (or
-   (infer-gripper-grasp-goal desig)
-   (infer-gripper-place-goal desig)
+   (infer-gripper-open-goal desig)
+   (infer-gripper-close-goal desig)
    (cpl:fail "Could not resolve: ~a" desig)))
 
-(defun infer-gripper-grasp-goal (desig)
+(defun infer-gripper-close-goal (desig)
   (and
    (desig-prop-value-p desig :an :action)
-   (desig-prop-value-p desig :to :grasp)
+   (desig-prop-value-p desig :to :close)
+   (desig-prop-value-p desig :body-part :gripper)
    ;; TODO: more about objects?
    (list
     cram-wsg50:*wsg50-closed-width*
     cram-wsg50:*default-speed*
     cram-wsg50:*default-force*)))
 
-(defun infer-gripper-place-goal (desig)
+(defun infer-gripper-open-goal (desig)
   (and
    (desig-prop-value-p desig :an :action)
-   (desig-prop-value-p desig :to :place)
+   (desig-prop-value-p desig :to :open)
+   (desig-prop-value-p desig :body-part :gripper)
    ;; TODO: more about objects?
    (list
     cram-wsg50:*wsg50-open-width*

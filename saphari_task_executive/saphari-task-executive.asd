@@ -46,6 +46,7 @@
     ((:file "package")
      (:file "lisp-utils" :depends-on ("package"))
      (:file "designator-utils" :depends-on ("package"))
+     (:file "conversions" :depends-on ("package" "lisp-utils" "designator-utils"))
      (:file "designator-reasoning" :depends-on ("package" "designator-utils"))
      (:file "tool-perception" :depends-on ("package" "lisp-utils" "designator-reasoning"))
      (:file "arm-control" :depends-on ("package" "lisp-utils"))

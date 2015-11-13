@@ -156,7 +156,7 @@
            (desigs (tool-perception-response->object-desigs
                     (apply #'call-service (getf demo-handle :tool-perception)))))
       (on-finish-perception-request logging-id desigs)
-      (publish-tool-markers demo-handle desigs)
+      (apply #'publish-tool-markers demo-handle desigs)
       desigs)))
 
 (cpl-impl:def-cram-function query-tool-perception (demo-handle &rest desigs)
@@ -205,7 +205,18 @@
        :mesh_resource mesh-path
        :mesh_use_embedded_materials t))))
 
-(defun publish-tool-markers (demo-handle desigs)
+(defun delete-all-markers (demo-handle)
+  (alexandria:when-let ((pub (getf demo-handle :marker-pub)))
+    (publish pub 
+             (make-message
+              "visualization_msgs/MarkerArray"
+              :markers
+              (vector (make-message "visualization_msgs/Marker"
+                                    :ns "cram_instrument_visualization"
+                                    :action 3))))))
+
+(defun publish-tool-markers (demo-handle &rest desigs)
+  (delete-all-markers demo-handle)
   (alexandria:when-let ((markers
                          (remove-if-not #'identity
                                         (loop for desig in desigs
@@ -213,7 +224,8 @@
                                               collect (tool-desig->marker desig index))))
                         (pub (getf demo-handle :marker-pub)))
     (publish pub (make-msg "visualization_msgs/MarkerArray" :markers (coerce markers 'vector)))))
-       
+
+
 ;;;
 ;;; LOGGING INTERFACE
 ;;;
@@ -241,90 +253,3 @@
   (list
    "/tool_detector/detect_tools"
    "saphari_tool_detector/DetectTools"))
-
-;;;
-;;; ROS MESSAGE AND DESIGNATOR CONVERSIONS
-;;;
-
-(defun tool-perception-response->object-desigs (tool-perception-response)
-  (declare (type saphari_tool_detector-srv:detecttools-response tool-perception-response))
-  (with-fields (tools) tool-perception-response
-    (mapcar #'tool-percept->object-desig (coerce tools 'list))))
-             
-(defun tool-percept->object-desig (tool-percept)
-  (declare (type saphari_tool_detector-msg:tool tool-percept))
-  (with-fields (name pose) tool-percept
-    (type-and-pose-stamped->obj-desig
-     (string->keyword name)
-     (transform-stamped->pose-stamped pose))))
-
-(defun type-and-pose-stamped->obj-desig (object-type pose-stamped)
-  (declare (type keyword object-type)
-           (type geometry_msgs-msg:posestamped pose-stamped))
-  (desig:make-designator
-   'desig:object
-   `((:an :object)
-     (:type ,object-type)
-     (:at ,(pose-stamped->loc-desig pose-stamped)))))
-
-(defun pose-stamped->loc-desig (pose-stamped)
-  (declare (type geometry_msgs-msg:posestamped pose-stamped))
-  (desig:make-designator 'desig:location `((:pose ,pose-stamped))))
-
-;;;
-;;; ROS MESSAGE CONVERSIONS
-;;;
-
-(defun vector3->point (vector3)
-  (declare (type geometry_msgs-msg:vector3 vector3))
-  (with-fields (x y z) vector3
-    (make-msg
-     "geometry_msgs/Point"
-     :x x :y y :z z)))
-
-(defun point->vector3 (point)
-  (declare (type geometry_msgs-msg:point point))
-  (with-fields (x y z) point
-    (make-msg
-     "geometry_msgs/Vector3"
-     :x x :y y :z z)))
-
-(defun transform->pose (transform)
-  "Converts `transform' of type geometry_msgs/Transform into an
- instance of type geometry_msgs/Pose without changing `transform'."
-  (declare (type geometry_msgs-msg:transform transform))
-  (with-fields (translation rotation) transform
-    (make-msg
-     "geometry_msgs/Pose"
-     :position (vector3->point translation)
-     :orientation rotation)))
-
-(defun pose->transform (pose)
-  "Converts `pose' of type geometry_msgs/Pose into an instance
- of type geometry_msgs/Transform without changing `pose'."
-  (declare (type geometry_msgs-msg:pose pose))
-  (with-fields (position orientation) pose
-    (make-message
-     "geometry_msgs/Transform"
-     :translation (point->vector3 position)
-     :rotation orientation)))
-                  
-(defun transform-stamped->pose-stamped (transform-stamped)
-  "Converts `transform-staped' of type geometry_msgs/TransformStamped
- into an instance of type geometry_msgs/PoseStamped without changing
-`transform-stamped'."
-  (declare (type geometry_msgs-msg:transformstamped transform-stamped))
-  (with-fields (header transform) transform-stamped
-    (make-msg "geometry_msgs/PoseStamped"
-              :header header
-              :pose (transform->pose transform))))
-
-(defun pose-stamped->transform-stamped (pose-stamped child-frame-id)
-  "Converts `pose-staped' of type geometry_msgs/PoseStamped into
- an instance of type geometry_msgs/TransformStamped using `child-frame-id'.
- Note: Both inputs will remain unchanged."
-  (with-fields (header pose) pose-stamped
-    (make-msg "geometry_msgs/TransformStamped"
-              :header header
-              :child_frame_id child-frame-id
-              :transform (pose->transform pose))))

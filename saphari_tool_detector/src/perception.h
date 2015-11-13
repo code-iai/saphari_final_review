@@ -87,7 +87,7 @@ public:
   void setEstimateScale(const bool enable);
   void setEstimateRotation(const bool enable);
 
-  bool loadTemplates(const int thresholdHough);
+  bool loadTemplates(const int thresholdHough, const bool checkConfidence = true);
   void trainConfidences();
 
   void binarize(const cv::Mat &color, cv::Mat &bin, const uint32_t difference = 70);

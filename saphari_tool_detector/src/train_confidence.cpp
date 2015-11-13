@@ -33,14 +33,12 @@ int main(int argc, char **argv)
 
   ros::NodeHandle priv_nh("~");
   std::string dataPath;
-  int32_t thresholdHough;
 
   priv_nh.param("data_path", dataPath, std::string(DATA_PATH));
-  priv_nh.param("threshold_hough", thresholdHough, 50);
 
   Perception perception;
   perception.setDataPath(dataPath);
-  perception.loadTemplates(thresholdHough);
+  perception.loadTemplates(20, false);
   perception.trainConfidences();
 
   ros::shutdown();

@@ -53,7 +53,7 @@ void Perception::setEstimateRotation(const bool enable)
   this->estimateRotation = enable;
 }
 
-bool Perception::loadTemplates(const int thresholdHough)
+bool Perception::loadTemplates(const int thresholdHough, const bool checkConfidence)
 {
   std::vector<std::string> files;
 
@@ -91,6 +91,19 @@ bool Perception::loadTemplates(const int thresholdHough)
   for(size_t i = 0; i < files.size(); ++i)
   {
     loadTemplate(files[i], thresholdHough);
+  }
+
+  if(checkConfidence)
+  {
+    for(size_t i = 0; i < templates.size(); ++i)
+    {
+      const GHTTemplate &t = templates[i];
+      if(t.minVote == t.maxVote)
+      {
+        std::cerr << "invalid confidence data. Maybe train_confidence was not executed?" << std::endl;
+        return false;
+      }
+    }
   }
   return true;
 }
@@ -294,6 +307,8 @@ void Perception::storeTemplate(const std::string &name, const int32_t id, const 
   fs << "angle" << std::atan2(direction.y, direction.x) * 180.0 / M_PI;
   fs << "threshold_low" << thresholdLow;
   fs << "threshold_high" << thresholdHigh;
+  fs << "min_vote" << 0.0;
+  fs << "max_vote" << 0.0;
   fs << "mono" << fileMono;
   fs << "images" << files;
   fs.release();

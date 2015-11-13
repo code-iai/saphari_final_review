@@ -82,12 +82,21 @@
                   (:body-part :gripper)))))
     ;; TODO: failure handling
     (perform-gripper-motion demo-handle desig)
-;    (let ((new-obj-desig (desig:copy-designator object `((:at ,(location-designator '((:in :gripper)
- ;                                                                                     (:pose
-
-
-  
-    ))
+    (alexandria:when-let*
+        ((obj-in-gripper-pose
+          (transform->pose-stamped-msg
+           (infer-object-grasping-offset object)
+           "gripper_tool_frame"))
+         (new-obj-desig
+          (desig:copy-designator
+           object
+           :new-description
+           `((:at ,(location-designator
+                    `((:in :gripper)
+                      (:pose ,obj-in-gripper-pose))))))))
+      (desig:equate object new-obj-desig)
+      (publish-tool-markers demo-handle t new-obj-desig)
+      new-obj-desig)))
 
     
 (cpl:def-cram-function reach-object (demo-handle object)

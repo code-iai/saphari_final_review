@@ -156,7 +156,7 @@
            (desigs (tool-perception-response->object-desigs
                     (apply #'call-service (getf demo-handle :tool-perception)))))
       (on-finish-perception-request logging-id desigs)
-      (apply #'publish-tool-markers demo-handle desigs)
+      (apply #'publish-tool-markers demo-handle nil desigs)
       desigs)))
 
 (cpl-impl:def-cram-function query-tool-perception (demo-handle &rest desigs)
@@ -187,7 +187,7 @@
     (:rake "package://saphari_task_executive/models/hospital/surgical-instruments/Rake.dae")
     (t nil)))
 
-(defun tool-desig->marker (desig id)
+(defun tool-desig->marker (desig id frame-locked-p)
   (alexandria:when-let* ((type-keyword (desig-prop-value desig :type))
                          (mesh-path (instrument-type->mesh-path type-keyword))
                          (pose-stamped (infer-object-pose desig)))
@@ -202,6 +202,7 @@
        :pose pose
        (:x :scale) 1.0 (:y :scale) 1.0 (:z :scale) 1.0
        (:r :color) 0.7 (:g :color) 0.7 (:b :color) 0.7 (:a :color) 1.0
+       :frame_locked frame-locked-p
        :mesh_resource mesh-path
        :mesh_use_embedded_materials t))))
 
@@ -215,13 +216,13 @@
                                     :ns "cram_instrument_visualization"
                                     :action 3))))))
 
-(defun publish-tool-markers (demo-handle &rest desigs)
+(defun publish-tool-markers (demo-handle frame-locked-p &rest desigs)
   (delete-all-markers demo-handle)
   (alexandria:when-let ((markers
                          (remove-if-not #'identity
                                         (loop for desig in desigs
                                               counting t into index
-                                              collect (tool-desig->marker desig index))))
+                                              collect (tool-desig->marker desig index frame-locked-p))))
                         (pub (getf demo-handle :marker-pub)))
     (publish pub (make-msg "visualization_msgs/MarkerArray" :markers (coerce markers 'vector)))))
 

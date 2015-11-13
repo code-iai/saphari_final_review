@@ -1,1 +1,4 @@
 *.fasl
+saphari_task_executive/models/*
+*~
+*#

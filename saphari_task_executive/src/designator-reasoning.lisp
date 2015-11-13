@@ -123,26 +123,16 @@
                obj-grasping-offset))))))
 
 (defun gripper-at-pose-stamped-msg (demo-handle pose-stamped-msg)
-  ;; (alexandria:when-let*
-  ;;     ((tf (getf demo-handle :tf-listener))
-  ;;      ;; TODO: change this into a transform pose-stamped call on the input
-  ;;      (T_base_cam (tf2-lookup tf "arm_base_link" "blackfly_camera"))
-  ;;      ;; TODO: move this outside and merge it with pose-stamped
-  ;;      (T_gripper_goal
-  ;;       (infer-object-grasping-transform nil))
-  ;;      (T_gripper_wrist (tf2-lookup tf "gripper_tool_frame" "arm_flange_link"))
-  ;;      (T_cam_goal (pose-stamped-msg->transform pose-stamped)))
-  ;;   (cl-transforms:transform*
-  ;;    T_base_cam T_cam_goal T_gripper_goal T_gripper_wrist))
-  (alexandria:when-let* ((tf (getf demo-handle :tf-listener))
-                         (goal-in-base
-                          (cl-tf:pose->transform
-                           (tf2-transform-pose-stamped-msg
-                            tf pose-stamped-msg "arm_base_link")))
-                         (inverse-gripper-offset
-                          (cl-tf2:transform
-                           (tf2-lookup
-                            tf "gripper_tool_frame" "arm_flange_link"))))
+  (alexandria:when-let*
+      ((tf (getf demo-handle :tf-listener))
+       (goal-in-base
+        (cl-tf:pose->transform
+         (tf2-transform-pose-stamped-msg
+          tf pose-stamped-msg "arm_base_link")))
+       (inverse-gripper-offset
+        (cl-tf2:transform
+         (tf2-lookup
+          tf "gripper_tool_frame" "arm_flange_link"))))
     (cl-transforms:transform* goal-in-base inverse-gripper-offset)))
 
 (defun infer-pre-place-motion-goal (desig)

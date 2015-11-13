@@ -39,7 +39,7 @@ Use http://wiki.ros.org/camera_calibration for calibrating the camera. A tutoria
 
 For the training it is needed to move the camera/arm to the position from where it should perceive the objects. The position of the camera should be perpendicular / orthogonal to the image plane with a fixed distance.
 
-1. Launch the camera launch file `roslaunch saphari_tools camera.launch`.
+1. Launch the camera launch file `roslaunch saphari_tool_detector camera.launch`.
 
 2. Start the training for a tool with `rosrun saphari_tool_detector train_tool _id:=<tool_id> _name:=<tool_name>`. Replace `tool_id` and `tool_name` with the name and id of the tool.
 
@@ -66,9 +66,9 @@ For the training it is needed to move the camera/arm to the position from where 
 
 ## Usage
 
-1. Launch the camera launch file `roslaunch saphari_tools camera.launch`.
+1. Launch the camera launch file `roslaunch saphari_tool_detector camera.launch`.
 
-2. Launch the detector `roslaunch saphari_tools detector.launch`.
+2. Launch the detector `roslaunch saphari_tool_detector detector.launch`.
 
 3. Call the service with an empty request message: `rosservice call /tool_detector/detect_tools 0 0 0 0`. The 4 parameters are `x`, `y`, `width` and `height` of a region of interest for the detection, `0 0 0 0` will result in the full image being used.
 

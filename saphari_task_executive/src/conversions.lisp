@@ -42,7 +42,7 @@
   (with-fields (name pose) tool-percept
     (type-and-pose-stamped->obj-desig
      (string->keyword name)
-     (transform-stamped->pose-stamped pose))))
+     (transform-stamped-msg->pose-stamped-msg pose))))
 
 (defun type-and-pose-stamped->obj-desig (object-type pose-stamped)
   (declare (type keyword object-type)
@@ -75,7 +75,7 @@
      "geometry_msgs/Vector3"
      :x x :y y :z z)))
 
-(defun transform->pose (transform)
+(defun transform-msg->pose-msg (transform)
   "Converts `transform' of type geometry_msgs/Transform into an
  instance of type geometry_msgs/Pose without changing `transform'."
   (declare (type geometry_msgs-msg:transform transform))
@@ -85,7 +85,7 @@
      :position (vector3->point translation)
      :orientation rotation)))
 
-(defun pose->transform (pose)
+(defun pose-msg->transform-msg (pose)
   "Converts `pose' of type geometry_msgs/Pose into an instance
  of type geometry_msgs/Transform without changing `pose'."
   (declare (type geometry_msgs-msg:pose pose))
@@ -95,7 +95,7 @@
      :translation (point->vector3 position)
      :rotation orientation)))
                   
-(defun transform-stamped->pose-stamped (transform-stamped)
+(defun transform-stamped-msg->pose-stamped-msg (transform-stamped)
   "Converts `transform-staped' of type geometry_msgs/TransformStamped
  into an instance of type geometry_msgs/PoseStamped without changing
 `transform-stamped'."
@@ -103,9 +103,9 @@
   (with-fields (header transform) transform-stamped
     (make-msg "geometry_msgs/PoseStamped"
               :header header
-              :pose (transform->pose transform))))
+              :pose (transform-msg->pose-msg transform))))
 
-(defun pose-stamped->transform-stamped (pose-stamped child-frame-id)
+(defun pose-stamped-msg->transform-stamped-msg (pose-stamped child-frame-id)
   "Converts `pose-staped' of type geometry_msgs/PoseStamped into
  an instance of type geometry_msgs/TransformStamped using `child-frame-id'.
  Note: Both inputs will remain unchanged."
@@ -113,7 +113,7 @@
     (make-msg "geometry_msgs/TransformStamped"
               :header header
               :child_frame_id child-frame-id
-              :transform (pose->transform pose))))
+              :transform (pose-msg->transform-msg pose))))
 
 ;;;
 ;;; ROS MESSAGE AND CL-TRANSFORMS CONVERSIONS
@@ -124,10 +124,22 @@
   (with-fields (x y z) msg
     (cl-transforms:make-3d-vector x y z)))
 
+(defun 3d-vector->point-msg (3d-vector)
+  (declare (type cl-transforms:3d-vector 3d-vector))
+  (with-slots (x y z) 3d-vector
+    (make-msg "geometry_msgs/Point" :x x :y y :z z)))
+
 (defun quaternion-msg->quaternion (msg)
   (declare (type geometry_msgs-msg:quaternion msg))
   (with-fields (x y z w) msg
     (cl-transforms:make-quaternion x y z w)))
+
+(defun quaternion->quaterion-msg (quaternion)
+  (declare (type cl-transforms:quaternion))
+  (with-slots (x y z w) quaternion
+    (make-message
+     "geometry_msgs/Quaternion"
+     :x x :y y :z z :w w)))
 
 (defun pose-msg->transform (msg)
   (declare (type geometry_msgs-msg:pose msg))
@@ -135,6 +147,17 @@
     (cl-transforms:make-transform
      (point-msg->3d-vector position)
      (quaternion-msg->quaternion orientation))))
+
+(defun pose-msg->pose (msg)
+  (cl-transforms:transform->pose (pose-msg->transform msg)))
+
+(defun transform->pose-msg (transform)
+  (declare (type cl-transforms:transform))
+  (with-slots (translation rotation) transform
+    (make-message
+     "geometry_msgs/Pose"
+     :position (3d-vector->point-msg translation)
+     :orientation (quaternion->quaterion-msg rotation))))
 
 (defun pose-stamped-msg->transform (msg)
   (declare (type geometry_msgs-msg:posestamped msg))

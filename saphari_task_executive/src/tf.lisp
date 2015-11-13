@@ -26,30 +26,22 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(asdf:defsystem saphari-task-executive
-  :author "Georg Bartels <georg.bartels@cs.uni-bremen.de>"
-  :license "BSD"
-  :description "Task executive of the final review demo of the SAPHARI project."
-  :depends-on (roslisp
-               cram-json-prolog
-               cram-beliefstate
-               roslisp-beasty
-               cram-wsg50
-               designators
-               cram-language-designator-support
-               saphari_tool_detector-srv
-               saphari_task_executive-srv
-               visualization_msgs-msg)
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "lisp-utils" :depends-on ("package"))
-     (:file "designator-utils" :depends-on ("package"))
-     (:file "conversions" :depends-on ("package" "lisp-utils" "designator-utils"))
-     (:file "tf" :depends-on ("package" "conversions"))
-     (:file "designator-reasoning" :depends-on ("package" "designator-utils" "tf"))
-     (:file "tool-perception" :depends-on ("package" "lisp-utils" "designator-reasoning" "conversions"))
-     (:file "arm-control" :depends-on ("package" "lisp-utils" "conversions"))
-     (:file "plans" :depends-on ("package" "designator-utils" "designator-reasoning" "tool-perception" "arm-control"))
-     (:file "main" :depends-on ("package" "tool-perception" "arm-control" "plans"))))))
+(in-package :saphari-task-executive)
+
+(defun tf2-lookup (tf frame-id child-frame-id)
+  (handler-case (cl-tf2:lookup-transform tf frame-id child-frame-id)
+    (cl-tf2::tf2-server-error () (progn (sleep 0.1) (tf2-lookup tf frame-id child-frame-id)))))
+
+(defun tf2-transform-pose (tf pose frame-id target-frame)
+  (declare (type cl-tf2:buffer-client tf)
+           (type cl-transforms:pose pose)
+           (type string frame-id target-frame))
+  (alexandria:when-let*
+      ((transform-stamped (tf2-lookup tf target-frame frame-id))
+       (transform (cl-tf2:transform transform-stamped)))
+    (cl-transforms:transform-pose transform pose)))
+
+(defun tf2-transform-pose-stamped-msg (tf pose-stamped-msg target-frame)
+  (with-fields ((frame-id (frame_id header)) pose) pose-stamped-msg
+    (tf2-transform-pose tf (pose-msg->pose pose) frame-id target-frame)))
+  

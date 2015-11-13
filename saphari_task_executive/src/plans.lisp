@@ -62,24 +62,42 @@
      (perform-beasty-motion demo-handle desig)))
 
 (cpl:def-cram-function grasp-object (demo-handle object)
-  ;; TODO: use with-designators
-  (let ((open-desig (action-designator
-                     `((:an :action)
-                       (:to :open)
-                       (:body-part :gripper))))
-        (move-desig (action-designator
+  ;; TODO: failure handling
+  (open-gripper demo-handle)
+  (reach-object demo-handle object)
+  (clamp-object demo-handle object))
+
+(cpl:def-cram-function open-gripper (demo-handle)
+  (let ((desig (action-designator
+                `((:an :action)
+                  (:to :open)
+                  (:body-part :gripper)))))
+    ;; TODO: failure handling
+    (perform-gripper-motion demo-handle desig)))
+
+(cpl:def-cram-function clamp-object (demo-handle object)
+  (let ((desig (action-designator
+                `((:an :action)
+                  (:to :close)
+                  (:body-part :gripper)))))
+    ;; TODO: failure handling
+    (perform-gripper-motion demo-handle desig)
+;    (let ((new-obj-desig (desig:copy-designator object `((:at ,(location-designator '((:in :gripper)
+ ;                                                                                     (:pose
+
+
+  
+    ))
+
+    
+(cpl:def-cram-function reach-object (demo-handle object)
+  (let ((desig (action-designator
                      `((:an :action)
                        (:to :grasp)
                        (:obj ,object)
-                       (:sim ,(getf demo-handle :sim-p)))))
-        (close-desig (action-designator
-                      `((:an :action)
-                        (:to :close)
-                        (:body-part :gripper)))))
+                       (:sim ,(getf demo-handle :sim-p))))))
     ;; TODO: failure handling
-    (perform-gripper-motion demo-handle open-desig)
-    (perform-beasty-motion demo-handle move-desig)
-    (perform-gripper-motion demo-handle close-desig)))
+    (perform-beasty-motion demo-handle desig)))
 
 (cpl:def-cram-function place-object (demo-handle object location)
   ;; TODO: use with-designators

@@ -28,10 +28,6 @@
 
 (in-package :saphari-task-executive)
 
-(defun tf2-lookup (tf frame-id child-frame-id)
-  (handler-case (cl-tf2:transform (cl-tf2:lookup-transform tf frame-id child-frame-id))
-    (cl-tf2::tf2-server-error () (progn (sleep 0.1) (tf2-lookup tf frame-id child-frame-id)))))
-
 (defun infer-motion-goal (demo-handle desig)
   "Returns the motion goal described by 'desig'. If no matching motion
  goal exists. Throws a CRAM failure if no matching motion goal exists.
@@ -81,12 +77,13 @@
   (and
    (desig-prop-value-p desig :an :action)
    (desig-prop-value-p desig :to :grasp)
-   (alexandria:when-let* ((sim-p (desig-prop-value desig :sim))
-                          (obj (desig-prop-value desig :obj))
-                          (pose-stamped (infer-object-pose obj)))
-     (roslisp-beasty:make-default-cartesian-goal
-      (gripper-at-pose-stamped demo-handle pose-stamped)
-      sim-p))))
+   (alexandria:when-let*
+       ((sim-p (desig-prop-value desig :sim))
+        (obj (desig-prop-value desig :obj))
+        (goal-pose-stamped (infer-object-grasping-pose-stamped obj))
+        (beasty-cartesian-goal (gripper-at-pose-stamped-msg
+                                demo-handle goal-pose-stamped)))
+     (roslisp-beasty:make-default-cartesian-goal beasty-cartesian-goal sim-p))))
 
 (defun test-pose-stamped ()
   (make-message
@@ -100,24 +97,54 @@
    (:y :orientation :pose) -0.17448
    (:z :orientation :pose) 0.0
    (:w :orientation :pose) 0.0))
-   
-(defun gripper-at-pose-stamped (demo-handle pose-stamped)
+
+(defun infer-object-grasping-offset (desig)
+  (declare (ignore desig))
+  ;; TODO: make this smart
+  (cl-transforms:make-transform
+   (cl-transforms:make-identity-vector)
+   (cl-transforms:q*
+    (cl-transforms:axis-angle->quaternion
+     (cl-transforms:make-3d-vector 1 0 0) pi)
+    (cl-transforms:axis-angle->quaternion
+     (cl-transforms:make-3d-vector 0 0 1) (/ pi 2.0)))))
+
+(defun infer-object-grasping-pose-stamped (desig)
   (alexandria:when-let*
-      ((tf (getf demo-handle :tf-listener))
-       (T_base_cam (tf2-lookup tf "arm_base_link" "blackfly_camera"))
-       (T_gripper_goal
-        (cl-transforms:make-transform
-         (cl-transforms:make-identity-vector)
-         (cl-transforms:q*
-          (cl-transforms:axis-angle->quaternion
-           (cl-transforms:make-3d-vector 1 0 0) pi)
-          (cl-transforms:axis-angle->quaternion
-           (cl-transforms:make-3d-vector 0 0 1) (/ pi 2.0)))))
-       (T_gripper_wrist (tf2-lookup tf "gripper_tool_frame" "arm_flange_link"))
-       (T_cam_goal (pose-stamped-msg->transform pose-stamped)))
-    (cl-transforms:transform*
-     T_base_cam T_cam_goal T_gripper_goal T_gripper_wrist)))
-                                    
+      ((obj-pose-stamped-msg (infer-object-pose desig))
+       (obj-grasping-offset (infer-object-grasping-offset desig)))
+    (with-fields (header pose) obj-pose-stamped-msg
+      (make-msg
+       "geometry_msgs/PoseStamped"
+       :header header
+       :pose (transform->pose-msg
+              (cl-transforms:transform*
+               (pose-msg->transform pose)
+               obj-grasping-offset))))))
+
+(defun gripper-at-pose-stamped-msg (demo-handle pose-stamped-msg)
+  ;; (alexandria:when-let*
+  ;;     ((tf (getf demo-handle :tf-listener))
+  ;;      ;; TODO: change this into a transform pose-stamped call on the input
+  ;;      (T_base_cam (tf2-lookup tf "arm_base_link" "blackfly_camera"))
+  ;;      ;; TODO: move this outside and merge it with pose-stamped
+  ;;      (T_gripper_goal
+  ;;       (infer-object-grasping-transform nil))
+  ;;      (T_gripper_wrist (tf2-lookup tf "gripper_tool_frame" "arm_flange_link"))
+  ;;      (T_cam_goal (pose-stamped-msg->transform pose-stamped)))
+  ;;   (cl-transforms:transform*
+  ;;    T_base_cam T_cam_goal T_gripper_goal T_gripper_wrist))
+  (alexandria:when-let* ((tf (getf demo-handle :tf-listener))
+                         (goal-in-base
+                          (cl-tf:pose->transform
+                           (tf2-transform-pose-stamped-msg
+                            tf pose-stamped-msg "arm_base_link")))
+                         (inverse-gripper-offset
+                          (cl-tf2:transform
+                           (tf2-lookup
+                            tf "gripper_tool_frame" "arm_flange_link"))))
+    (cl-transforms:transform* goal-in-base inverse-gripper-offset)))
+
 (defun infer-pre-place-motion-goal (desig)
   (and
    (desig-prop-value-p desig :an :action)
@@ -180,4 +207,4 @@
 (defun infer-object-transform (desig)
   (alexandria:when-let ((type-keyword (desig-prop-value desig :type))
                         (pose-stamped (infer-object-pose desig)))
-    (pose-stamped->transform-stamped pose-stamped (symbol-name type-keyword))))
+    (pose-stamped-msg->transform-stamped-msg pose-stamped (symbol-name type-keyword))))

@@ -24,6 +24,10 @@
 
   <!-- Fake perception -->
   <arg name="fake_perception" default="false" />
+  <arg name="fake_min_conf"   default="$(arg min_confidence)" />
+  <arg name="fake_max_conf"   default="2.0" />
+  <arg name="fake_min_delay"  default="2.0" />
+  <arg name="fake_max_delay"  default="5.0" />
 
   <!-- Publish tf of detected tool -->
   <arg name="publish_tf"       default="true" />
@@ -44,6 +48,10 @@
     <param name="max_overlap"     type="double" value="$(arg max_overlap)" />
     <param name="min_confidence"  type="double" value="$(arg min_confidence)" />
     <param name="fake_perception" type="bool"   value="$(arg fake_perception)" />
+    <param name="fake_min_conf"   type="double" value="$(arg fake_min_conf)" />
+    <param name="fake_max_conf"   type="double" value="$(arg fake_max_conf)" />
+    <param name="fake_min_delay"  type="double" value="$(arg fake_min_delay)" />
+    <param name="fake_max_delay"  type="double" value="$(arg fake_max_delay)" />
     <param name="publish_tf"      type="bool"   value="$(arg publish_tf)" />
   </node>
 </launch>

@@ -18,6 +18,7 @@
 #include <string>
 #include <mutex>
 #include <thread>
+#include <random>
 
 #include <opencv2/opencv.hpp>
 
@@ -54,6 +55,8 @@ private:
   double thresholdLow, thresholdHigh, maxOverlap, minConfidence;
   int thresholdHough;
   bool fakePerception;
+  double fakeMinConfidence, fakeMaxConfidence, fakeMinDelay, fakeMaxDelay;
+  std::default_random_engine generator;
 
   Perception perception;
   Receiver receiver;
@@ -70,7 +73,7 @@ private:
   tf::Transform transform;
   tf::Vector3 normal;
   double distance;
-  std::vector<Tool> tools;
+  std::vector<Tool> tools, fakeTools;
 
   std::thread tfPublisher;
   std::mutex lock;
@@ -88,9 +91,13 @@ public:
     priv_nh.param("threshold_high", thresholdHigh, 100.0);
     priv_nh.param("threshold_hough", thresholdHough, 50);
     priv_nh.param("max_overlap", maxOverlap, 0.4);
-    priv_nh.param("min_confidence", minConfidence, 0.1);
+    priv_nh.param("min_confidence", minConfidence, 0.2);
 
     priv_nh.param("fake_perception", fakePerception, false);
+    priv_nh.param("fake_min_conf", fakeMinConfidence, minConfidence);
+    priv_nh.param("fake_max_conf", fakeMaxConfidence, 2.0);
+    priv_nh.param("fake_min_delay", fakeMinDelay, 2.0);
+    priv_nh.param("fake_max_delay", fakeMaxDelay, 5.0);
     priv_nh.param("publish_tf", publish_tf, false);
 
     perception.setDataPath(dataPath);
@@ -106,19 +113,16 @@ public:
       service = nh.advertiseService("detect_tools", &ToolDetection::fakeResults, this);
       lookupTransform();
 
-      tools.resize(3);
-      tools[0].pose = transform * tf::Transform(tf::Quaternion(0, 0, 0.67559, 0.73727), tf::Vector3(0.1, 0.35, 0));
-      tools[1].pose = transform * tf::Transform(tf::Quaternion(0, 0, -0.57357, 0.81915), tf::Vector3(0.25, 0.3, 0));
-      tools[2].pose = transform * tf::Transform(tf::Quaternion(0, 0, 0.17364, 0.9848), tf::Vector3(0.4, 0.4, 0));
-      tools[0].id = 0;
-      tools[0].name = "hook";
-      tools[0].confidence = 1.0;
-      tools[1].id = 1;
-      tools[1].name = "rake";
-      tools[1].confidence = 1.0;
-      tools[2].id = 2;
-      tools[2].name = "scissor";
-      tools[2].confidence = 1.0;
+      fakeTools.resize(3);
+      fakeTools[0].id = 0;
+      fakeTools[0].name = "hook";
+      fakeTools[0].pose = tf::Transform(tf::Quaternion(0, 0, 0.67559, 0.73727), tf::Vector3(0.1, 0.35, 0));
+      fakeTools[1].id = 1;
+      fakeTools[1].name = "rake";
+      fakeTools[1].pose = tf::Transform(tf::Quaternion(0, 0, -0.57357, 0.81915), tf::Vector3(0.25, 0.3, 0));
+      fakeTools[2].id = 2;
+      fakeTools[2].name = "scissor";
+      fakeTools[2].pose = tf::Transform(tf::Quaternion(0, 0, 0.17364, 0.9848), tf::Vector3(0.4, 0.4, 0));
     }
     else
     {
@@ -132,6 +136,8 @@ public:
       }
       receiver.start(topic);
     }
+
+    generator.seed(ros::Time::now().nsec);
   }
 
   bool detectTools(saphari_tool_detector::DetectToolsRequest &request, saphari_tool_detector::DetectToolsResponse &response)
@@ -211,20 +217,40 @@ public:
 
   bool fakeResults(saphari_tool_detector::DetectToolsRequest &request, saphari_tool_detector::DetectToolsResponse &response)
   {
+    std::chrono::high_resolution_clock::time_point start, end;
+    start = std::chrono::high_resolution_clock::now();
     ros::Time now = ros::Time::now();
     if(!lookupTransform())
     {
       return false;
     }
 
+    std::uniform_real_distribution<double> confidence(fakeMinConfidence, fakeMaxConfidence);
+    std::uniform_int_distribution<int64_t> delay((int64_t)(fakeMinDelay * 1000.0), (int64_t)(fakeMaxDelay * 1000.0));
+
     lock.lock();
-    tools[0].pose = transform * tf::Transform(tf::Quaternion(0, 0, 0.67559, 0.73727), tf::Vector3(0.1, 0.35, 0));
-    tools[1].pose = transform * tf::Transform(tf::Quaternion(0, 0, -0.57357, 0.81915), tf::Vector3(0.25, 0.3, 0));
-    tools[2].pose = transform * tf::Transform(tf::Quaternion(0, 0, 0.17364, 0.9848), tf::Vector3(0.4, 0.4, 0));
+
+    tools.resize(fakeTools.size());
+
+    for(size_t i = 0; i < fakeTools.size(); ++i)
+    {
+      const Tool &fake = fakeTools[i];
+      Tool &t = tools[i];
+
+      t.id = fake.id;
+      t.name = fake.name;
+      t.confidence = confidence(generator);
+      t.pose = transform * fake.pose;
+    }
+
+    std::sort(tools.begin(), tools.end(), [](const Tool & a, const Tool & b)
+    {
+      return a.confidence > b.confidence;
+    });
 
     for(size_t i = 0; i < tools.size(); ++i)
     {
-      Tool &t = tools[i];
+      const Tool &t = tools[i];
       saphari_tool_detector::Tool tool;
 
       std::ostringstream oss;
@@ -236,8 +262,12 @@ public:
       tf::transformStampedTFToMsg(tf::StampedTransform(t.pose, now, cameraFrame, oss.str()), tool.pose);
       response.tools.push_back(tool);
     }
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(delay(generator)));
     lock.unlock();
 
+    end = std::chrono::high_resolution_clock::now();
+    std::cout << FG_BLUE "service call done: " FG_YELLOW << (end - start).count() / 1000000.0 << " ms." NO_COLOR << std::endl;
     return true;
   }
 

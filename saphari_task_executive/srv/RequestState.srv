@@ -1,7 +1,0 @@
-# requested state to switch into
-State state
----
-# returns true if requested state was reached
-bool success
-# returns status_message, if available
-string status_message

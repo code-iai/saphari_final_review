@@ -3,14 +3,6 @@ project(saphari_task_executive)
 
 find_package(catkin REQUIRED message_generation)
 
-add_message_files(
-  FILES
-  State.msg)
-
-add_service_files(
-  FILES
-  RequestState.srv)
-
 generate_messages()
 
 catkin_package(

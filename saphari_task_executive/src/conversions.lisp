@@ -39,18 +39,20 @@
              
 (defun tool-percept->object-desig (tool-percept extra-descr)
   (declare (type saphari_tool_detector-msg:tool tool-percept))
-  (with-fields (name pose) tool-percept
-    (type-and-pose-stamped->obj-desig
+  (with-fields (name pose confidence) tool-percept
+    (properties->obj-desig
      (string->keyword name)
      (transform-stamped-msg->pose-stamped-msg pose)
+     confidence
      extra-descr)))
 
-(defun type-and-pose-stamped->obj-desig (object-type pose-stamped extra-descr)
+(defun properties->obj-desig (object-type pose-stamped confidence extra-descr)
   (declare (type keyword object-type)
            (type geometry_msgs-msg:posestamped pose-stamped))
   (object-designator
    `((:an :object)
      (:type ,object-type)
+     (:confidence ,confidence)
      (:at ,(pose-stamped->loc-desig pose-stamped extra-descr)))))
 
 (defun pose-stamped->loc-desig (pose-stamped extra-descr)

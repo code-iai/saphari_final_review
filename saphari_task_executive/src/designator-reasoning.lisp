@@ -214,7 +214,7 @@
   (and
    (desig-prop-value-p desig :an :action)
    (desig-prop-value-p desig :to :release)
-   (desig-prop-value desig :obj))
+   (desig-prop-value desig :obj)
    ;; TODO: more about objects?
    (list
     cram-wsg50:*wsg50-open-width*

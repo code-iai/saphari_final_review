@@ -82,8 +82,15 @@
     (:40cm (40cm-lookat-pickup-config))
     (:50cm (50cm-lookat-pickup-config))))
 
-
-  
+(defun lookat-sorting-basket-config ()
+  (list
+   0.5003623962402344
+   0.8569384217262268
+   0.08925693482160568
+   -1.1276057958602905
+   -0.0697876513004303
+   1.164320468902588
+   0.5868684649467468))
 ;;;
 ;;; KNOWROB UTILS
 ;;;

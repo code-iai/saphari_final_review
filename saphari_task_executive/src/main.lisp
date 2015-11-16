@@ -65,6 +65,8 @@
             (let ((updated-target-object (grasp-object demo-handle target-object)))
               (place-object demo-handle updated-target-object target-location))))))))
 
+(defparameter *dh* nil)
+
 (defun bringup-scripting-environment ()
   (start-ros-node "cram")
   (setf *dh* (make-demo-handle)))

@@ -19,7 +19,7 @@
 
     <node pkg="nodelet" type="nodelet" name="camera_nodelet"
           args="load pointgrey_camera_driver/PointGreyCameraNodelet camera_nodelet_manager" >
-      <param name="frame_id" value="camera" />
+      <param name="frame_id" value="optical_frame" />
       <param name="serial" value="$(arg camera_serial)" />
 
       <param name="frame_rate" value="2" />

@@ -138,7 +138,7 @@
                                           ?X ?Y ?Z
                                           ?TIMESTAMP ?FRAMEID
                                           ?DESIGTYPE) binding
-                  (type-and-pose-stamped->obj-desig
+                  (properties->obj-desig
                    (json-symbol->keyword ?DESIGTYPE)
                    (make-msg
                     "geometry_msgs/PoseStamped"
@@ -150,7 +150,13 @@
                     (:x :orientation :pose) ?QX
                     (:y :orientation :pose) ?QY
                     (:z :orientation :pose) ?QZ
-                    (:w :orientation :pose) ?QW))))
+                    (:w :orientation :pose) ?QW)
+                   ;; TODO: get confidence from KNOWROB
+                   0.2
+                   '((:on :table))
+                                      )
+                  
+                  ))
               bindings))))
 
 ;;;

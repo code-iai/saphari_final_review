@@ -38,7 +38,6 @@
                designators
                cram-language-designator-support
                saphari_tool_detector-srv
-               saphari_task_executive-srv
                visualization_msgs-msg)
   :components
   ((:module "src"

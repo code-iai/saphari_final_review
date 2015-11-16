@@ -45,3 +45,8 @@
   (with-fields ((frame-id (frame_id header)) pose) pose-stamped-msg
     (tf2-transform-pose tf (pose-msg->pose pose) frame-id target-frame)))
   
+(defun publish-tool-poses-to-tf (demo-handle desigs)
+  (alexandria:when-let ((transforms
+                         (remove-if-not #'identity (mapcar #'infer-object-transform desigs)))
+                        (broadcaster (getf demo-handle :tf-broadcaster)))
+    (publish broadcaster (make-message "tf2_msgs/TFMessage" :transforms (coerce transforms 'vector)))))

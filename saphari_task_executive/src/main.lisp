@@ -56,12 +56,6 @@
                                           (:in :sorting-basket)
                                           (:slot-id :middle-slot)
                                           (:target-obj ,target-object)))))
-                                          ;; ;; TODO: move pose inference somewhere else
-                                          ;; (:pose ,(make-msg
-                                          ;;          "geometry_msgs/PoseStamped"
-                                          ;;          (:frame_id :header) "sorting_basket"
-                                          ;;          (:x :position :pose) 0.25
-                                          ;;          (:w :orientation :pose) 1.0))))))
             (let ((updated-target-object (grasp-object demo-handle target-object)))
               (place-object demo-handle updated-target-object target-location))))))))
 

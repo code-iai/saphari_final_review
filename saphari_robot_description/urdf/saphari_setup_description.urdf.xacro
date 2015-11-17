@@ -136,21 +136,21 @@
 
   <!-- CAMERA CALIBRATION -->
   <!-- TO BE SIMPLIFIED INTO ONE LINK-JOINT COMBO -->
-  <link name="optical_frame_x" />
+  <link name="wrist_optical_frame_x" />
 
   <joint name="optical_joint_x" type="fixed">
     <origin xyz="0.041576 -0.037009 0.142994" 
             rpy="0.002172 6.277456 4.001921"/>
     <parent link="arm_7_link" />
-    <child link="optical_frame_x" />
+    <child link="wrist_optical_frame_x" />
   </joint>
 
-  <link name="optical_frame" />
+  <link name="wrist_optical_frame" />
 
   <joint name="optical_joint" type="fixed">
     <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 ${PI}" />
-    <parent link="optical_frame_x" />
-    <child link="optical_frame" />
+    <parent link="wrist_optical_frame_x" />
+    <child link="wrist_optical_frame" />
   </joint>
 
 </robot>

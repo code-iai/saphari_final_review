@@ -4,7 +4,7 @@
 
   <!-- Frames for table and camera -->
   <arg name="table_frame"     default="table_link" />
-  <arg name="camera_frame"    default="optical_frame" />
+  <arg name="camera_frame"    default="wrist_optical_frame" />
 
   <!-- Camera topic -->
   <arg name="data_path"       default="$(find saphari_tool_detector)/data/" />

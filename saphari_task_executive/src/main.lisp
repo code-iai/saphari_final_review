@@ -59,6 +59,34 @@
             (let ((updated-target-object (grasp-object demo-handle target-object)))
               (place-object demo-handle updated-target-object target-location))))))))
 
+(defun make-target-object (type-keyword slot-id pose)
+  (object-designator
+   `((:an :object)
+     (:type ,type-keyword)
+     (:at ,(location-designator
+            `((:slot-id ,slot-id)
+              (:pose ,(make-msg
+                       "geometry_msgs/PoseStamped"
+                       (:frame_id :header) "sorting_basket"
+                       :pose (pose->pose-msg pose)))))))))
+
+(defun visualize-goal-objects (goal-id demo-handle)
+  (apply #'publish-tool-markers demo-handle nil (target-objects goal-id)))
+
+(defun target-objects (goal-id)
+  (case goal-id
+    (1
+  (list
+   (make-target-object :scissors 0 (make-pose (make-3d-vector 0.28 0.07 0.02) (make-identity-rotation)))
+   (make-target-object :scalpel 1 (make-pose (make-3d-vector 0.34 -0.05 0.02) (make-quaternion 0 0 -0.707107 0.707107)))
+   (make-target-object :scalpel 2 (make-pose (make-3d-vector 0.29 -0.05 0.02) (make-quaternion 0 0 -0.707107 0.707107)))
+   (make-target-object :small-clamp  3 (make-pose (make-3d-vector 0.05 0.04 0.02) (make-quaternion 0 0 -0.707107 0.707107)))
+   (make-target-object :rake 4 (make-pose (make-3d-vector 0.14 -0.08 0.02) (make-identity-rotation)))
+   (make-target-object :big-clamp 5 (make-pose (make-3d-vector 0.16 -0.02 0.02) (make-identity-rotation)))
+   (make-target-object :pincers 6 (make-pose (make-3d-vector 0.13 0.03 0.02) (make-identity-rotation)))
+   (make-target-object :pincers 7 (make-pose (make-3d-vector 0.13 0.08 0.02) (make-identity-rotation)))))
+    (t nil)))
+    
 (defparameter *dh* nil)
 
 (defun bringup-scripting-environment ()

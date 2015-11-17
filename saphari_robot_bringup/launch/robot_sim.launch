@@ -1,6 +1,8 @@
 <launch>
   <include file="$(find saphari_robot_description)/launch/upload.launch" />
 
+  <include file="$(find saphari_robot_bringup)/launch/human_perception_sim.launch" />
+
   <include file="$(find dlr_action_bridge)/launch/single_arm_sim.launch">
     <arg name="joint_states_rate" value="100" />
   </include>
@@ -12,6 +14,7 @@
     <arg name="camera_frame" value="blackfly_camera" />
     <arg name="table_frame" value="table_link" />
     <arg name="static_tf" value="false" />
+    <arg name="publish_tf" value="false" />
   </include>
 
   <include file="$(find saphari_interactive_markers)/launch/saphari_interactive_markers.launch" />

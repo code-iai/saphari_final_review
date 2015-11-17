@@ -1,0 +1,8 @@
+<launch>
+  <node pkg="rosbag" type="play" name="fake_human_perception" 
+        args="$(find saphari_robot_bringup)/rosbags/2015-11-16-14-17-12.bag --loop --topics /kinect_traker/user_state" />
+
+  <node pkg="saphari_task_executive" type="humans_filter" name="humans_filter" />
+
+  <node pkg="saphari_task_executive" type="humans_visualization" name="humans_visualization" />
+</launch>

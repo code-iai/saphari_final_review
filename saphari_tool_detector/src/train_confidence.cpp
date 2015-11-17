@@ -38,8 +38,19 @@ int main(int argc, char **argv)
 
   Perception perception;
   perception.setDataPath(dataPath);
-  perception.loadTemplates(20, false);
+  perception.loadSettings();
+
+  priv_nh.param("threshold_low", perception.settings.thresholdLow, perception.settings.thresholdLow);
+  priv_nh.param("threshold_high", perception.settings.thresholdHigh, perception.settings.thresholdHigh);
+  priv_nh.param("threshold_hough", perception.settings.thresholdHough, perception.settings.thresholdHough);
+  priv_nh.param("scale", perception.settings.scale, perception.settings.scale);
+  priv_nh.param("dp", perception.settings.dp, perception.settings.dp);
+  priv_nh.param("angle_step", perception.settings.angleStep, perception.settings.angleStep);
+
+  perception.loadTemplates(false);
   perception.trainConfidences();
+
+  perception.storeSettings();
 
   ros::shutdown();
   return 0;

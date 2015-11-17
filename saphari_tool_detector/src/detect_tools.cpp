@@ -52,8 +52,7 @@ private:
   } mode;
 
   std::string topic, tableFrame, cameraFrame, dataPath;
-  double thresholdLow, thresholdHigh, maxOverlap, minConfidence;
-  int thresholdHough;
+  double maxOverlap, minConfidence;
   bool fakePerception;
   double fakeMinConfidence, fakeMaxConfidence, fakeMinDelay, fakeMaxDelay;
   std::default_random_engine generator;
@@ -62,7 +61,7 @@ private:
   Receiver receiver;
 
   cv::Mat cameraMatrix;
-  cv::Mat color, mono, bin, edges, dx, dy;
+  cv::Mat color, mono;
   cv::Rect roi;
 
   ros::NodeHandle nh, priv_nh;
@@ -74,6 +73,8 @@ private:
   tf::Vector3 normal;
   double distance;
   std::vector<Tool> tools, fakeTools;
+  std::vector<tf::Pose> fakePoses;
+  std::vector<tf::StampedTransform> poses;
 
   std::thread tfPublisher;
   std::mutex lock;
@@ -87,9 +88,6 @@ public:
     priv_nh.param("table_frame", tableFrame, std::string("/table_frame"));
     priv_nh.param("camera_frame", cameraFrame, std::string("/camera_frame"));
     priv_nh.param("data_path", dataPath, std::string(DATA_PATH));
-    priv_nh.param("threshold_low", thresholdLow, 50.0);
-    priv_nh.param("threshold_high", thresholdHigh, 100.0);
-    priv_nh.param("threshold_hough", thresholdHough, 50);
     priv_nh.param("max_overlap", maxOverlap, 0.4);
     priv_nh.param("min_confidence", minConfidence, 0.2);
 
@@ -101,6 +99,7 @@ public:
     priv_nh.param("publish_tf", publish_tf, false);
 
     perception.setDataPath(dataPath);
+    perception.loadSettings();
 
     if(publish_tf)
     {
@@ -114,22 +113,23 @@ public:
       lookupTransform();
 
       fakeTools.resize(3);
+      fakePoses.resize(3);
       fakeTools[0].id = 0;
       fakeTools[0].name = "hook";
-      fakeTools[0].pose = tf::Transform(tf::Quaternion(0, 0, 0.67559, 0.73727), tf::Vector3(0.1, 0.35, 0));
+      fakePoses[0] = tf::Transform(tf::Quaternion(0, 0, 0.67559, 0.73727), tf::Vector3(0.1, 0.35, 0));
       fakeTools[1].id = 1;
       fakeTools[1].name = "rake";
-      fakeTools[1].pose = tf::Transform(tf::Quaternion(0, 0, -0.57357, 0.81915), tf::Vector3(0.25, 0.3, 0));
+      fakePoses[1] = tf::Transform(tf::Quaternion(0, 0, -0.57357, 0.81915), tf::Vector3(0.25, 0.3, 0));
       fakeTools[2].id = 2;
       fakeTools[2].name = "scissor";
-      fakeTools[2].pose = tf::Transform(tf::Quaternion(0, 0, 0.17364, 0.9848), tf::Vector3(0.4, 0.4, 0));
+      fakePoses[2] = tf::Transform(tf::Quaternion(0, 0, 0.17364, 0.9848), tf::Vector3(0.4, 0.4, 0));
     }
     else
     {
       service = nh.advertiseService("detect_tools", &ToolDetection::detectTools, this);
 
       std::cout << "loading templates..." << std::endl;
-      if(!perception.loadTemplates(thresholdHough))
+      if(!perception.loadTemplates())
       {
         std::cerr << "could not load templates" << std::endl;
         return;
@@ -144,17 +144,21 @@ public:
   {
     std::chrono::high_resolution_clock::time_point start, end;
     start = std::chrono::high_resolution_clock::now();
-    if(!receiver.get(color, cameraMatrix, true))
+    if(!receiver.get(color, cameraMatrix, true) || !receiver.get(color, cameraMatrix, true))
     {
       return false;
     }
+
+    end = std::chrono::high_resolution_clock::now();
+    std::cout << std::endl << FG_RED "--------------------------------------------------------------------------------" << std::endl << std::endl;
+    std::cout << FG_BLUE "camera image received: " FG_YELLOW << (end - start).count() / 1000000.0 << " ms." NO_COLOR << std::endl;
+    start = std::chrono::high_resolution_clock::now();
+
     ros::Time now = ros::Time::now();
     if(!lookupTransform())
     {
       return false;
     }
-
-    std::cout << std::endl << FG_RED "--------------------------------------------------------------------------------" << std::endl << std::endl;
 
     if(request.width == 0 || request.height == 0)
     {
@@ -166,13 +170,12 @@ public:
     }
 
     cv::cvtColor(color, mono, CV_BGR2GRAY);
-    perception.detectEdges(mono, edges, dx, dy, thresholdLow, thresholdHigh);
-
     std::vector<Tool> tools;
-    perception.detectTools(tools, roi);
+    perception.detectTools(mono, tools, roi);
 
     lock.lock();
     this->tools.clear();
+    poses.clear();
     for(size_t i = 0; i < tools.size(); ++i)
     {
       Tool &t = tools[i];
@@ -191,18 +194,21 @@ public:
       else
       {
         std::cout << FG_GREEN << t.id << ": " << t.name << " [" << t.votesPosition << "](" << t.confidence << ") ok." NO_COLOR << std::endl;
-        computePose(t);
 
         std::ostringstream oss;
         oss << "/tool_" << i << '_' << t.name;
+
+        tf::Pose pose = computePose(t);
+        tf::StampedTransform stamped = tf::StampedTransform(pose, now, cameraFrame, oss.str());
 
         saphari_tool_detector::Tool tool;
         tool.id = t.id;
         tool.name = t.name;
         tool.confidence = t.confidence;
-        tf::transformStampedTFToMsg(tf::StampedTransform(t.pose, now, cameraFrame, oss.str()), tool.pose);
+        tf::transformStampedTFToMsg(stamped, tool.pose);
 
         response.tools.push_back(tool);
+        poses.push_back(stamped);
         this->tools.push_back(t);
       }
     }
@@ -230,6 +236,7 @@ public:
 
     lock.lock();
 
+    poses.clear();
     tools.resize(fakeTools.size());
 
     for(size_t i = 0; i < fakeTools.size(); ++i)
@@ -240,7 +247,6 @@ public:
       t.id = fake.id;
       t.name = fake.name;
       t.confidence = confidence(generator);
-      t.pose = transform * fake.pose;
     }
 
     std::sort(tools.begin(), tools.end(), [](const Tool & a, const Tool & b)
@@ -248,7 +254,7 @@ public:
       return a.confidence > b.confidence;
     });
 
-    for(size_t i = 0; i < tools.size(); ++i)
+    for(size_t i = 0; i < fakeTools.size(); ++i)
     {
       const Tool &t = tools[i];
       saphari_tool_detector::Tool tool;
@@ -256,11 +262,15 @@ public:
       std::ostringstream oss;
       oss << "/tool_" << i << '_' << t.name;
 
+      tf::Pose pose = transform * fakePoses[t.id];
+      tf::StampedTransform stamped = tf::StampedTransform(pose, now, cameraFrame, oss.str());
+
       tool.id = t.id;
       tool.name = t.name;
       tool.confidence = t.confidence;
-      tf::transformStampedTFToMsg(tf::StampedTransform(t.pose, now, cameraFrame, oss.str()), tool.pose);
+      tf::transformStampedTFToMsg(stamped, tool.pose);
       response.tools.push_back(tool);
+      poses.push_back(stamped);
     }
 
     std::this_thread::sleep_for(std::chrono::milliseconds(delay(generator)));
@@ -327,11 +337,8 @@ private:
       lock.lock();
       for(size_t i = 0; i < tools.size(); ++i)
       {
-        const Tool &t = tools[i];
-        std::ostringstream oss;
-        oss << "/tool_" << i << '_' << t.name;
-
-        tf::StampedTransform transform(t.pose, now, cameraFrame, oss.str());
+        tf::StampedTransform transform = poses[i];
+        transform.stamp_ = now;
         broadcaster.sendTransform(transform);
       }
       lock.unlock();
@@ -340,7 +347,7 @@ private:
     }
   }
 
-  void computePose(Tool &tool)
+  tf::Pose computePose(Tool &tool)
   {
     std::vector<cv::Point2f> points(2), undistorted(2);
     points[0] = tool.position;
@@ -363,8 +370,11 @@ private:
     rot[1] = axisY;
     rot[2] = axisZ;
 
-    tool.pose.setOrigin(center);
-    tool.pose.setBasis(rot);
+    tf::Pose pose;
+    pose.setOrigin(center);
+    pose.setBasis(rot);
+
+    return pose;
   }
 
   bool lookupTransform()

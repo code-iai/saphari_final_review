@@ -19,8 +19,8 @@
   <arg name="fake_perception" default="false" />
   <arg name="fake_min_conf"   default="$(arg min_confidence)" />
   <arg name="fake_max_conf"   default="2.0" />
-  <arg name="fake_min_delay"  default="2.0" />
-  <arg name="fake_max_delay"  default="5.0" />
+  <arg name="fake_min_delay"  default="1.0" />
+  <arg name="fake_max_delay"  default="2.5" />
 
   <!-- Publish tf of detected tool -->
   <arg name="publish_tf"      default="true" />

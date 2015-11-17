@@ -20,3 +20,7 @@ catkin_package(
 add_lisp_executable(humans_filter
   saphari-humans-processing
   saphari-humans-processing:main-humans-filter)
+
+add_lisp_executable(humans_visualization
+  saphari-humans-processing
+  saphari-humans-processing:main-humans-visualization)

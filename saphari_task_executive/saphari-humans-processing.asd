@@ -30,7 +30,7 @@
   :author "Georg Bartels <georg.bartels@cs.uni-bremen.de>"
   :license "BSD"
   :description "Aux scripts to post-process detect humans around robot."
-  :depends-on (roslisp alexandria saphari_msgs-msg)
+  :depends-on (roslisp alexandria saphari_msgs-msg visualization_msgs-msg)
   :components
   ((:module "src"
     :components

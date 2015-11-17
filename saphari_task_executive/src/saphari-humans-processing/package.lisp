@@ -30,4 +30,4 @@
 
 (defpackage saphari-humans-processing
   (:use :common-lisp :roslisp :alexandria)
-  (:export :main-humans-filter))
+  (:export :main-humans-filter :main-humans-visualization))

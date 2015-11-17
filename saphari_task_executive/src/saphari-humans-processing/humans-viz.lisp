@@ -27,3 +27,92 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
 (in-package :saphari-humans-processing)
+
+(defun bodypart-id->radius (id)
+  (case (code-symbol 'saphari_msgs-msg:bodypart id)
+    ((:lefthand :righthand) 0.13)
+    ((:neck :rightchest :leftchest :leftleg
+      :rightleg :leftknee :rightknee :leftthigh
+      :rightthigh :lefthip :righthip) 0.15)
+    ((:head :leftfoot :rightfoot)0.2)
+    (:torso 0.3)
+    (t 0.1)))
+
+(defun point32-msg->point-msg (msg)
+  (declare (type geometry_msgs-msg:point32 msg))
+  (with-fields (x y z) msg
+    (make-message
+     "geometry_msgs/Point"
+     :x x :y y :z z)))
+
+(defun radius->scale-msg (radius)
+  (make-message
+   "geometry_msgs/Vector3"
+   :x radius
+   :y radius
+   :z radius))
+
+(defun default-color-msg ()
+  (make-message
+   "std_msgs/ColorRGBA"
+   :r 0.5 :g 0.5 :b 0.5 :a 1.0))
+
+(defun bodypart-msg->marker-msg (msg user-id &optional (timestamp nil timestamp-supplied-p)
+                                           (color (default-color-msg)))
+  (declare (type saphari_msgs-msg:bodypart msg))
+  (with-fields ((frame-id (frame_id header tf))
+                (stamp (stamp header tf))
+                id centroid) msg
+  (make-message
+   "visualization_msgs/Marker"
+   (:frame_id :header) frame-id
+   (:stamp :header) (if timestamp-supplied-p timestamp stamp)
+   (:ns) (concatenate 'string "human" (write-to-string user-id))
+   (:id) id
+   (:type) (symbol-code 'visualization_msgs-msg:marker :sphere)
+   (:action) (symbol-code 'visualization_msgs-msg:marker :add)
+   (:position :pose) (point32-msg->point-msg centroid)
+   (:w :orientation :pose) 1.0
+   :lifetime 5.0
+   :scale (radius->scale-msg (bodypart-id->radius id))
+   :color color)))
+   
+(defun human-msg->marker-msg-vector (msg &optional (timestamp nil timestamp-supplied-p))
+  (declare (type saphari_msgs-msg:human msg))
+  (with-fields ((stamp (stamp header)) userid bodyparts) msg
+    (coerce
+     (loop for bodypart-msg across bodyparts
+           collect (bodypart-msg->marker-msg
+                    bodypart-msg userid
+                    (if timestamp-supplied-p timestamp stamp)))
+     'vector)))
+
+(defun humans-msg->marker-array-msg (msg restamp-p)
+  (declare (type saphari_msgs-msg:humans msg))
+  (with-fields (humans) msg
+    (let* ((stamp (ros-time))
+           (list-of-marker-vectors
+             (loop for human-msg across humans
+                   collect (if restamp-p
+                               (human-msg->marker-msg-vector human-msg stamp)
+                               (human-msg->marker-msg-vector human-msg))))
+           (markers (apply #'concatenate 'vector list-of-marker-vectors)))
+      (make-message "visualization_msgs/MarkerArray" :markers markers))))
+
+(defun main-humans-visualization ()
+  (with-ros-node ("human_visualization" :spin t)
+    (let ((publisher
+            (advertise
+             "visualization_marker_array"
+             "visualization_msgs/MarkerArray"))
+          ;; TODO: parameter server lookup
+          (restamp-p t))
+    (subscribe
+     "filtered_humans"
+     "saphari_msgs/Humans"
+     (lambda (msg)
+       (publish
+        publisher
+        (humans-msg->marker-array-msg msg restamp-p)))))))
+
+           

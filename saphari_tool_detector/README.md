@@ -76,15 +76,25 @@ The service will response with a list of results. Each result is a `Tool.msg` an
 
 ## Parameters of the detector
 
-- `topic`: Topic for the rectified colored camera image
-- `table_frame`: TF frame for the table
-- `camera_frame`: TF frame for the camera
-- `data_path`: Path to the data folder containing the trained models
-- `threshold_low`: Lower threshold for the edge detection
-- `threshold_high`: Higher threshold for the edge detection
-- `threshold_hough`: Minimum votes for an object to be detected
-- `max_overlap`: Maximum allowed overlap between bounding boxes of detected objects. Objects with less confidence will be discarded
+- `topic`: Topic for the rectified colored camera image.
+- `table_frame`: TF frame for the table.
+- `camera_frame`: TF frame for the camera.
+- `data_path`: Path to the data folder containing the trained models.
+- `max_overlap`: Maximum allowed overlap between bounding boxes of detected objects. Objects with less confidence will be discarded.
 - `min_confidence`: Minimum confidence of detected objects.
 - `fake_perception`: Instead of running the perception it will publish some static results.
+- `fake_min_conf`: Min random confidence for fake perception.
+- `fake_max_conf`: Max random confidence for fake perception.
+- `fake_min_delay`: Min delay for fake perception.
+- `fake_max_delay`: Max delay for fake perception.
 - `publish_tf`: Publish poses of the object in TF under `/tool_<id>_<name>`.
 - `static_tf`: Enable a static TF publisher for the camera and table frame.
+
+## Parameters of the train_confidence
+
+- `threshold_low`: Lower threshold for the edge detection.
+- `threshold_high`: Higher threshold for the edge detection.
+- `threshold_hough`: Minimum votes for an object to be detected.
+- `scale`: Scaling for input images.
+- `dp`: Minimum confidence of detected objects.
+- `angle_step`: Instead of running the perception it will publish some static results.

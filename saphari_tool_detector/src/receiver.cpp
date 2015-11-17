@@ -56,7 +56,7 @@ bool Receiver::get(cv::Mat &image, cv::Mat &cameraMatrix, const bool wait)
   {
     while(ros::ok() && !hasNewImage)
     {
-      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+      ros::spinOnce();
     }
     if(!ros::ok())
     {

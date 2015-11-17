@@ -22,7 +22,7 @@
       <param name="frame_id" value="optical_frame" />
       <param name="serial" value="$(arg camera_serial)" />
 
-      <param name="frame_rate" value="2" />
+      <param name="frame_rate" value="10" />
 
       <param name="camera_info_url" if="$(arg calibrated)"
              value="package://saphari_tool_detector/calib/calib_$(arg camera_serial).yaml" />
@@ -30,7 +30,7 @@
 
     <node pkg="nodelet" type="nodelet" name="image_proc_debayer"
           args="load image_proc/debayer camera_nodelet_manager">
-      <param name="debayer" value="3" />
+      <param name="debayer" value="2" />
     </node>
 
     <!-- Monochrome rectified image -->

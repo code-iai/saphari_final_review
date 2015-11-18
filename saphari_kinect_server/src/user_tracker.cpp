@@ -226,6 +226,7 @@ void userTracker::publishTransforms(std::string const& frame_id) {
     XnUserID user = 0;
 
     for (int i = 0; i < users_count; ++i) {
+        ROS_DEBUG("Processing user %d", i);
         user = users[i];
         if(!g_UserGenerator.GetSkeletonCap().IsTracking(user)) {
             // Remove user from human state message
@@ -248,6 +249,7 @@ void userTracker::publishTransforms(std::string const& frame_id) {
             // Publish a tf/tfMessage instead of tfBroadcast in order to avoid
             // 500 Hz publication rate
 
+            ROS_DEBUG("Reading out all transforms from OpenNI.");
             publishTransform(user, XN_SKEL_HEAD,  frame_id, "kinect/head_" + strNum, 0);
             publishTransform(user, XN_SKEL_NECK,  frame_id, "kinect/neck_" + strNum, 1);
             publishTransform(user, XN_SKEL_TORSO, frame_id, "kinect/torso_" + strNum, 2);
@@ -273,12 +275,16 @@ void userTracker::publishTransforms(std::string const& frame_id) {
             publishTransform(user, XN_SKEL_RIGHT_ANKLE, frame_id, "kinect/left_ankle_" + strNum, 18);
             publishTransform(user, XN_SKEL_RIGHT_FOOT, frame_id, "kinect/left_foot_" + strNum, 19);
 
+            ROS_DEBUG("Done with reading out transforms.");
+
             if(publishTf && user==closestUserId) {
+                ROS_DEBUG("Publishing tf.");
                 tf_pub_.publish(tf_msg_);
             }
 
             // Store all human data
             if(publishHumanState) {
+                ROS_DEBUG("Copying data into saphari_msgs.");
                 storeHumansData(user);
             }
         }
@@ -290,6 +296,7 @@ void userTracker::publishTransforms(std::string const& frame_id) {
     }
 
     if(publishHumanState) {
+        ROS_DEBUG("Publishing saphari_msgs.");
         humansPub.publish(humansMsg);
     }
 }
@@ -305,12 +312,14 @@ void copyTfTransformToBodyPartMsg(const geometry_msgs::TransformStamped& tf, sap
 
 void userTracker::storeHumansData(XnUserID user) {
     for(int i=0; i<humansMsg.observed_user_ids.size(); ++i) {
+        ROS_DEBUG("Copying over stuff for user %d", i);
         if(humansMsg.observed_user_ids[i] == user) {
             humansMsg.humans[i].header.stamp = ros::Time::now();
             humansMsg.humans[i].header.seq++;
             humansMsg.humans[i].userID = user;
 
             // Body Parts
+            ROS_DEBUG("Start copying bodyparts.");
             copyTfTransformToBodyPartMsg(tf_msg_.transforms[0], humansMsg.humans[i].bodyParts[BodyPart::HEAD]);
             copyTfTransformToBodyPartMsg(tf_msg_.transforms[1], humansMsg.humans[i].bodyParts[BodyPart::NECK]);
             copyTfTransformToBodyPartMsg(tf_msg_.transforms[2], humansMsg.humans[i].bodyParts[BodyPart::TORSO]);

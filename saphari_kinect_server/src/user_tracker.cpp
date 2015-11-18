@@ -294,6 +294,14 @@ void userTracker::publishTransforms(std::string const& frame_id) {
     }
 }
 
+void copyTfTransformToBodyPartMsg(const geometry_msgs::TransformStamped& tf, saphari_msgs::BodyPart& bodypart)
+{
+  bodypart.tf = tf;
+  bodypart.centroid.x = tf.transform.translation.x;
+  bodypart.centroid.y = tf.transform.translation.y;
+  bodypart.centroid.z = tf.transform.translation.z;
+
+}
 
 void userTracker::storeHumansData(XnUserID user) {
     for(int i=0; i<humansMsg.observed_user_ids.size(); ++i) {
@@ -303,111 +311,29 @@ void userTracker::storeHumansData(XnUserID user) {
             humansMsg.humans[i].userID = user;
 
             // Body Parts
-            int HEAD = 25;
-            humansMsg.humans[i].bodyParts[HEAD].tf = tf_msg_.transforms[0];
-            humansMsg.humans[i].bodyParts[HEAD].centroid.x = (float)tf_msg_.transforms[0].transform.translation.x;
-            humansMsg.humans[i].bodyParts[HEAD].centroid.z = (float)tf_msg_.transforms[0].transform.translation.y;
-            humansMsg.humans[i].bodyParts[HEAD].centroid.y = (float)tf_msg_.transforms[0].transform.translation.z;
+            copyTfTransformToBodyPartMsg(tf_msg_.transforms[0], humansMsg.humans[i].bodyParts[BodyPart::HEAD]);
+            copyTfTransformToBodyPartMsg(tf_msg_.transforms[1], humansMsg.humans[i].bodyParts[BodyPart::NECK]);
+            copyTfTransformToBodyPartMsg(tf_msg_.transforms[2], humansMsg.humans[i].bodyParts[BodyPart::TORSO]);
 
-            humansMsg.humans[i].bodyParts[BodyPart::NECK].tf = tf_msg_.transforms[1];
-            humansMsg.humans[i].bodyParts[BodyPart::NECK].centroid.x = (float)tf_msg_.transforms[1].transform.translation.x;
-            humansMsg.humans[i].bodyParts[BodyPart::NECK].centroid.z = (float)tf_msg_.transforms[1].transform.translation.y;
-            humansMsg.humans[i].bodyParts[BodyPart::NECK].centroid.y = (float)tf_msg_.transforms[1].transform.translation.z;
+            copyTfTransformToBodyPartMsg(tf_msg_.transforms[4], humansMsg.humans[i].bodyParts[BodyPart::RIGHTSHOULDER]);
+            copyTfTransformToBodyPartMsg(tf_msg_.transforms[5], humansMsg.humans[i].bodyParts[BodyPart::RIGHTELBOW]);
+            copyTfTransformToBodyPartMsg(tf_msg_.transforms[6], humansMsg.humans[i].bodyParts[BodyPart::RIGHTFOREARM]);
+            copyTfTransformToBodyPartMsg(tf_msg_.transforms[7], humansMsg.humans[i].bodyParts[BodyPart::RIGHTHAND]);
 
-            int TORSO = 26;
-            humansMsg.humans[i].bodyParts[TORSO].tf = tf_msg_.transforms[2];
-            humansMsg.humans[i].bodyParts[TORSO].centroid.x = (float)tf_msg_.transforms[2].transform.translation.x;
-            humansMsg.humans[i].bodyParts[TORSO].centroid.z = (float)tf_msg_.transforms[2].transform.translation.y;
-            humansMsg.humans[i].bodyParts[TORSO].centroid.y = (float)tf_msg_.transforms[2].transform.translation.z;
+            copyTfTransformToBodyPartMsg(tf_msg_.transforms[8], humansMsg.humans[i].bodyParts[BodyPart::LEFTSHOULDER]);
+            copyTfTransformToBodyPartMsg(tf_msg_.transforms[9], humansMsg.humans[i].bodyParts[BodyPart::LEFTELBOW]);
+            copyTfTransformToBodyPartMsg(tf_msg_.transforms[10], humansMsg.humans[i].bodyParts[BodyPart::LEFTFOREARM]);
+            copyTfTransformToBodyPartMsg(tf_msg_.transforms[11], humansMsg.humans[i].bodyParts[BodyPart::LEFTHAND]);
 
-            // WAIST (3) NOT IN BODYPARTS
+            copyTfTransformToBodyPartMsg(tf_msg_.transforms[12], humansMsg.humans[i].bodyParts[BodyPart::RIGHTHIP]);
+            copyTfTransformToBodyPartMsg(tf_msg_.transforms[13], humansMsg.humans[i].bodyParts[BodyPart::RIGHTKNEE]);
+            copyTfTransformToBodyPartMsg(tf_msg_.transforms[14], humansMsg.humans[i].bodyParts[BodyPart::RIGHTLEG]);
+            copyTfTransformToBodyPartMsg(tf_msg_.transforms[15], humansMsg.humans[i].bodyParts[BodyPart::RIGHTFOOT]);
 
-            int LEFTSHOULDER = 28;
-            humansMsg.humans[i].bodyParts[LEFTSHOULDER].tf = tf_msg_.transforms[4];
-            humansMsg.humans[i].bodyParts[LEFTSHOULDER].centroid.x = (float)tf_msg_.transforms[4].transform.translation.x;
-            humansMsg.humans[i].bodyParts[LEFTSHOULDER].centroid.z = (float)tf_msg_.transforms[4].transform.translation.y;
-            humansMsg.humans[i].bodyParts[LEFTSHOULDER].centroid.y = (float)tf_msg_.transforms[4].transform.translation.z;
-
-            humansMsg.humans[i].bodyParts[BodyPart::LEFTELBOW].tf = tf_msg_.transforms[5];
-            humansMsg.humans[i].bodyParts[BodyPart::LEFTELBOW].centroid.x = (float)tf_msg_.transforms[5].transform.translation.x;
-            humansMsg.humans[i].bodyParts[BodyPart::LEFTELBOW].centroid.z = (float)tf_msg_.transforms[5].transform.translation.y;
-            humansMsg.humans[i].bodyParts[BodyPart::LEFTELBOW].centroid.y = (float)tf_msg_.transforms[5].transform.translation.z;
-
-            // Considering XN_SKEL_LEFT_WRIST as BodyPart::LEFTFOREARM
-            /*humansMsg.humans[i].bodyParts[BodyPart::LEFTFOREARM].tf = tf_msg_.transforms[6];
-            humansMsg.humans[i].bodyParts[BodyPart::LEFTFOREARM].centroid.x = (float)tf_msg_.transforms[6].transform.translation.x;
-            humansMsg.humans[i].bodyParts[BodyPart::LEFTFOREARM].centroid.z = (float)tf_msg_.transforms[6].transform.translation.y;
-            humansMsg.humans[i].bodyParts[BodyPart::LEFTFOREARM].centroid.y = (float)tf_msg_.transforms[6].transform.translation.z;*/
-
-            humansMsg.humans[i].bodyParts[BodyPart::LEFTHAND].tf = tf_msg_.transforms[7];
-            humansMsg.humans[i].bodyParts[BodyPart::LEFTHAND].centroid.x = (float)tf_msg_.transforms[7].transform.translation.x;
-            humansMsg.humans[i].bodyParts[BodyPart::LEFTHAND].centroid.z = (float)tf_msg_.transforms[7].transform.translation.y;
-            humansMsg.humans[i].bodyParts[BodyPart::LEFTHAND].centroid.y = (float)tf_msg_.transforms[7].transform.translation.z;
-
-            int RIGHTSHOULDER = 27;
-            humansMsg.humans[i].bodyParts[RIGHTSHOULDER].tf = tf_msg_.transforms[8];
-            humansMsg.humans[i].bodyParts[RIGHTSHOULDER].centroid.x = (float)tf_msg_.transforms[8].transform.translation.x;
-            humansMsg.humans[i].bodyParts[RIGHTSHOULDER].centroid.z = (float)tf_msg_.transforms[8].transform.translation.y;
-            humansMsg.humans[i].bodyParts[RIGHTSHOULDER].centroid.y = (float)tf_msg_.transforms[8].transform.translation.z;
-
-            humansMsg.humans[i].bodyParts[BodyPart::RIGHTELBOW].tf = tf_msg_.transforms[9];
-            humansMsg.humans[i].bodyParts[BodyPart::RIGHTELBOW].centroid.x = (float)tf_msg_.transforms[9].transform.translation.x;
-            humansMsg.humans[i].bodyParts[BodyPart::RIGHTELBOW].centroid.z = (float)tf_msg_.transforms[9].transform.translation.y;
-            humansMsg.humans[i].bodyParts[BodyPart::RIGHTELBOW].centroid.y = (float)tf_msg_.transforms[9].transform.translation.z;
-
-            // Considering XN_SKEL_RIGHT_WRIST as BodyPart::RIGHTFOREARM
-           /* humansMsg.humans[i].bodyParts[BodyPart::RIGHTFOREARM].tf = tf_msg_.transforms[10];
-            humansMsg.humans[i].bodyParts[BodyPart::RIGHTFOREARM].centroid.x = (float)tf_msg_.transforms[10].transform.translation.x;
-            humansMsg.humans[i].bodyParts[BodyPart::RIGHTFOREARM].centroid.z = (float)tf_msg_.transforms[10].transform.translation.y;
-            humansMsg.humans[i].bodyParts[BodyPart::RIGHTFOREARM].centroid.y = (float)tf_msg_.transforms[10].transform.translation.z;*/
-
-            humansMsg.humans[i].bodyParts[BodyPart::RIGHTHAND].tf = tf_msg_.transforms[11];
-            humansMsg.humans[i].bodyParts[BodyPart::RIGHTHAND].centroid.x = (float)tf_msg_.transforms[11].transform.translation.x;
-            humansMsg.humans[i].bodyParts[BodyPart::RIGHTHAND].centroid.z = (float)tf_msg_.transforms[11].transform.translation.y;
-            humansMsg.humans[i].bodyParts[BodyPart::RIGHTHAND].centroid.y = (float)tf_msg_.transforms[11].transform.translation.z;
-
-            humansMsg.humans[i].bodyParts[BodyPart::LEFTHIP].tf = tf_msg_.transforms[12];
-            humansMsg.humans[i].bodyParts[BodyPart::LEFTHIP].centroid.x = (float)tf_msg_.transforms[12].transform.translation.x;
-            humansMsg.humans[i].bodyParts[BodyPart::LEFTHIP].centroid.z = (float)tf_msg_.transforms[12].transform.translation.y;
-            humansMsg.humans[i].bodyParts[BodyPart::LEFTHIP].centroid.y = (float)tf_msg_.transforms[12].transform.translation.z;
-
-            humansMsg.humans[i].bodyParts[BodyPart::LEFTKNEE].tf = tf_msg_.transforms[13];
-            humansMsg.humans[i].bodyParts[BodyPart::LEFTKNEE].centroid.x = (float)tf_msg_.transforms[13].transform.translation.x;
-            humansMsg.humans[i].bodyParts[BodyPart::LEFTKNEE].centroid.z = (float)tf_msg_.transforms[13].transform.translation.y;
-            humansMsg.humans[i].bodyParts[BodyPart::LEFTKNEE].centroid.y = (float)tf_msg_.transforms[13].transform.translation.z;
-
-            // Considering XN_SKEL_LEFT_ANKLE as BodyPart::LEFTLEG
-            /* humansMsg.humans[i].bodyParts[BodyPart::LEFTLEG].tf = tf_msg_.transforms[14];
-            humansMsg.humans[i].bodyParts[BodyPart::LEFTLEG].centroid.x = (float)tf_msg_.transforms[14].transform.translation.x;
-            humansMsg.humans[i].bodyParts[BodyPart::LEFTLEG].centroid.z = (float)tf_msg_.transforms[14].transform.translation.y;
-            humansMsg.humans[i].bodyParts[BodyPart::LEFTLEG].centroid.y = (float)tf_msg_.transforms[14].transform.translation.z;*/
-
-            humansMsg.humans[i].bodyParts[BodyPart::LEFTFOOT].tf = tf_msg_.transforms[15];
-            humansMsg.humans[i].bodyParts[BodyPart::LEFTFOOT].centroid.x = (float)tf_msg_.transforms[15].transform.translation.x;
-            humansMsg.humans[i].bodyParts[BodyPart::LEFTFOOT].centroid.z = (float)tf_msg_.transforms[15].transform.translation.y;
-            humansMsg.humans[i].bodyParts[BodyPart::LEFTFOOT].centroid.y = (float)tf_msg_.transforms[15].transform.translation.z;
-
-
-            humansMsg.humans[i].bodyParts[BodyPart::RIGHTHIP].tf = tf_msg_.transforms[16];
-            humansMsg.humans[i].bodyParts[BodyPart::RIGHTHIP].centroid.x = (float)tf_msg_.transforms[16].transform.translation.x;
-            humansMsg.humans[i].bodyParts[BodyPart::RIGHTHIP].centroid.z = (float)tf_msg_.transforms[16].transform.translation.y;
-            humansMsg.humans[i].bodyParts[BodyPart::RIGHTHIP].centroid.y = (float)tf_msg_.transforms[16].transform.translation.z;
-
-            humansMsg.humans[i].bodyParts[BodyPart::RIGHTKNEE].tf = tf_msg_.transforms[17];
-            humansMsg.humans[i].bodyParts[BodyPart::RIGHTKNEE].centroid.x = (float)tf_msg_.transforms[17].transform.translation.x;
-            humansMsg.humans[i].bodyParts[BodyPart::RIGHTKNEE].centroid.z = (float)tf_msg_.transforms[17].transform.translation.y;
-            humansMsg.humans[i].bodyParts[BodyPart::RIGHTKNEE].centroid.y = (float)tf_msg_.transforms[17].transform.translation.z;
-
-            // Considering XN_SKEL_RIGHT_ANKLE as BodyPart::RIGHTLEG
-            /* humansMsg.humans[i].bodyParts[BodyPart::RIGHTLEG].tf = tf_msg_.transforms[18];
-            humansMsg.humans[i].bodyParts[BodyPart::RIGHTLEG].centroid.x = (float)tf_msg_.transforms[18].transform.translation.x;
-            humansMsg.humans[i].bodyParts[BodyPart::RIGHTLEG].centroid.z = (float)tf_msg_.transforms[18].transform.translation.y;
-            humansMsg.humans[i].bodyParts[BodyPart::RIGHTLEG].centroid.y = (float)tf_msg_.transforms[18].transform.translation.z;*/
-
-            humansMsg.humans[i].bodyParts[BodyPart::RIGHTFOOT].tf = tf_msg_.transforms[19];
-            humansMsg.humans[i].bodyParts[BodyPart::RIGHTFOOT].centroid.x = (float)tf_msg_.transforms[19].transform.translation.x;
-            humansMsg.humans[i].bodyParts[BodyPart::RIGHTFOOT].centroid.z = (float)tf_msg_.transforms[19].transform.translation.y;
-            humansMsg.humans[i].bodyParts[BodyPart::RIGHTFOOT].centroid.y = (float)tf_msg_.transforms[19].transform.translation.z;
+            copyTfTransformToBodyPartMsg(tf_msg_.transforms[16], humansMsg.humans[i].bodyParts[BodyPart::LEFTHIP]);
+            copyTfTransformToBodyPartMsg(tf_msg_.transforms[17], humansMsg.humans[i].bodyParts[BodyPart::LEFTKNEE]);
+            copyTfTransformToBodyPartMsg(tf_msg_.transforms[18], humansMsg.humans[i].bodyParts[BodyPart::LEFTLEG]);
+            copyTfTransformToBodyPartMsg(tf_msg_.transforms[19], humansMsg.humans[i].bodyParts[BodyPart::LEFTFOOT]);
 
             break;
         }

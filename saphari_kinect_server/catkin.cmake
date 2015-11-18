@@ -35,11 +35,11 @@ if(OpenNI_FOUND AND Nite_FOUND)
     
     add_library (kinect_nodelet SHARED src/kinect_nodelet.cpp)
     target_link_libraries(kinect_nodelet
-      ${catkin_LIBRARIES} ${OpenNI_LIBRARIES} ${Nite_LIBRARIES})
+      ${catkin_LIBRARIES} ${OpenNI_LIBRARIES} ${Nite_LIBRARIES} kinect_driver)
 
     add_executable (kinect_driver_node src/kinect_node.cpp)
     target_link_libraries(kinect_driver_node
-      ${catkin_LIBRARIES} ${OpenNI_LIBRARIES} ${Nite_LIBRARIES} kinect_driver)
+      ${catkin_LIBRARIES} ${OpenNI_LIBRARIES} ${Nite_LIBRARIES} kinect_driver kinect_nodelet)
 
  
 elseif(Nite_FOUND)

@@ -17,6 +17,7 @@
   <run_depend>saphari_task_executive</run_depend>
   <run_depend>saphari_tool_detector</run_depend>
   <run_depend>saphari_interactive_markers</run_depend>
+  <run_depend>saphari_kinect_server</run_depend>
 
   <export>
     <metapackage/>

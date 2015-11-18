@@ -33,7 +33,7 @@ pkg_check_modules(OPENNI libopenni)
 include_directories(${OPENNI_INCLUDEDIR} /usr/include/nite)
 		    # /home/rmcpc0242/catkin_ws/devel/include)
 
-link_directories(/home/rmcpc0242/catkin_ws/src/dlr_beasty/dlr_ard/lib/)
+# link_directories(/home/rmcpc0242/catkin_ws/src/dlr_beasty/dlr_ard/lib/)
 
 rosbuild_add_library (kinect_driver src/driver.cpp src/user_tracker.cpp)
 target_link_libraries (kinect_driver OpenNI)

@@ -1,7 +1,7 @@
 <launch>
   <arg name="simulation" default="true" />
   <arg name="with_tool_perception" default="true" />
-  <arg name="with_human_perception" default="false" />
+  <arg name="with_human_perception" default="true" />
 
   <include file="$(find saphari_robot_description)/launch/upload.launch" />
 

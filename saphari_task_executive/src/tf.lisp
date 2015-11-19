@@ -47,6 +47,10 @@
   
 (defun publish-tool-poses-to-tf (demo-handle desigs)
   (alexandria:when-let ((transforms
-                         (remove-if-not #'identity (mapcar #'infer-object-transform desigs)))
+                         (remove-if-not
+                          #'identity
+                          (loop for desig in desigs
+                                counting t into index
+                                collect (infer-object-transform desig (write-to-string index)))))
                         (broadcaster (getf demo-handle :tf-broadcaster)))
     (publish broadcaster (make-message "tf2_msgs/TFMessage" :transforms (coerce transforms 'vector)))))

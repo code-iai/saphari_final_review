@@ -169,6 +169,7 @@
                     '((:on :table)))))
       (on-finish-perception-request logging-id desigs)
       (apply #'publish-tool-markers demo-handle nil desigs)
+      (publish-tool-poses-to-tf demo-handle desigs)
       desigs)))
 
 (cpl-impl:def-cram-function query-tool-perception (demo-handle &rest desigs)

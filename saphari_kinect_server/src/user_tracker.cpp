@@ -10,9 +10,9 @@ userTracker::userTracker(ros::NodeHandle &node):n(node) {
     g_strPose[0] = 0x0;
     //depthMD_cb.ReAdjust(640,480);
 
-    userIDpub = n.advertise<std_msgs::Int32>("/kinect_traker/active_user_id", 2);
+    userIDpub = n.advertise<std_msgs::Int32>("/kinect_tracker/active_user_id", 2);
     tf_pub_ = n.advertise<tf::tfMessage>("/tf", 2);
-    humansPub = n.advertise<saphari_msgs::Humans>("/kinect_traker/user_state",2);
+    humansPub = n.advertise<saphari_msgs::Humans>("/kinect_tracker/user_state",2);
 
     // Get parameters from launch file
     // tf

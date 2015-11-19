@@ -1,0 +1,17 @@
+<launch>
+  <arg name="simulation" default="true" />
+  <arg name="enabled" default="true" />
+
+  <group if="$(arg enabled)">
+    <group if="$(arg simulation)">
+      <include file="$(find saphari_tool_detector)/launch/detector.launch" >
+        <arg name="fake_perception" value="true" />
+        <arg name="camera_frame" value="blackfly_camera" />
+        <arg name="table_frame" value="table_link" />
+        <arg name="static_tf" value="false" />
+        <arg name="publish_tf" value="false" />
+      </include>
+    </group>
+  </group>
+
+</launch>

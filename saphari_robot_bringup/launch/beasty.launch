@@ -1,0 +1,15 @@
+<launch>
+  <arg name="simulation" default="true" />
+
+  <group if="$(arg simulation)" >
+    <include file="$(find dlr_action_bridge)/launch/single_arm_sim.launch">
+      <arg name="joint_states_rate" value="100" />
+    </include>
+  </group>
+
+  <group unless="$(arg simulation)" >
+    <include file="$(find dlr_action_bridge)/launch/dlr_saphari.launch">
+      <arg name="joint_states_rate" value="100" />
+    </include>
+  </group>
+</launch>

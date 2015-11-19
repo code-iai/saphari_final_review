@@ -1,0 +1,44 @@
+<launch>
+  <arg name="simulation" default="true" />
+  <arg name="with_tool_perception" default="true" />
+  <arg name="with_human_perception" default="false" />
+
+  <include file="$(find saphari_robot_description)/launch/upload.launch" />
+
+  <include file="$(find saphari_robot_bringup)/launch/human_perception.launch">
+    <arg name="simulation" value="$(arg simulation)" />
+    <arg name="enabled" value="$(arg with_human_perception)" />
+  </include>
+
+  <include file="$(find saphari_robot_bringup)/launch/tool_perception.launch">
+    <arg name="simulation" value="$(arg simulation)" />
+    <arg name="enabled" value="$(arg with_tool_perception)" />
+  </include>
+
+  <include file="$(find saphari_robot_bringup)/launch/beasty.launch">
+    <arg name="simulation" value="$(arg simulation)" />
+  </include>
+
+  <include file="$(find saphari_robot_bringup)/launch/gripper.launch">
+    <arg name="simulation" value="$(arg simulation)" />
+  </include>
+
+  <include file="$(find saphari_interactive_markers)/launch/saphari_interactive_markers.launch" />
+
+  <node name="robot_state_publisher" pkg="robot_state_publisher"
+        type="state_publisher" />
+
+  <node pkg="joint_state_publisher" type="joint_state_publisher"
+        name="joint_state_publisher">
+    <rosparam param="source_list">
+      - beasty/joint_states
+      - gripper/joint_states
+    </rosparam>
+    <param name="rate" value="50"/>
+  </node>
+
+  <node pkg="tf2_ros" type="buffer_server" name="buffer_server" />
+
+  <node name="rviz" pkg="rviz" type="rviz" 
+        args="-d $(find saphari_robot_bringup)/sim.rviz" />
+</launch>

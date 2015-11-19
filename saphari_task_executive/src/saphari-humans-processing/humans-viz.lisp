@@ -55,7 +55,7 @@
 (defun default-color-msg ()
   (make-message
    "std_msgs/ColorRGBA"
-   :r 0.5 :g 0.5 :b 0.5 :a 1.0))
+   :r 1.0 :g (/ 224.0 255.00) :b (/ 150.0 255.0) :a 1.0))
 
 (defun bodypart-msg->marker-msg (msg user-id &optional (timestamp nil timestamp-supplied-p)
                                            (color (default-color-msg)))

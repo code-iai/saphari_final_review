@@ -5,8 +5,9 @@ Configurations, launch files, and source code for the final SAPHARI review.
 
 This installation was tested for Ubuntu 14.04 with ROS Indigo.
 
-Please install the following debian deps:
-* ```sudo apt-get install libcdk5-dev libncurses5-dev automake autoconf```
+Please install MongoDB and the C++ client for MongoDB following these external instructions:
+* ```MongoDB```: https://docs.mongodb.org/manual/tutorial/install-mongodb-on-ubuntu/
+* ```MongoDB C++ Client``` (branch ```compat26```): https://github.com/mongodb/mongo-cxx-driver/wiki/Download-and-Compile-the-Legacy-Driver
 
 To speed-up development, you will need three workspaces which overlay sequently: First, there is a ```catkin``` workspace for ```knowrob```, then comes another ```catkin``` workspace for all other ```catkin``` packages, and finally there is a ```rosbuild``` workspace for the ```dlr_action_bridge```. For convenience, we have created several ```rosinstall``` files.
 
@@ -26,14 +27,15 @@ Then, initialize and build the knowrob workspace:
 * ```wstool merge https://raw.githubusercontent.com/code-iai/saphari_final_review/master/saphari_final_review/rosinstall/saphari_knowrob.rosinstall```
 * ```wstool update```
 * ```rosdep install --ignore-src --from-paths stacks/```
-* ```cd ~/ros/saphari_knowrob```
-* ```catkin_make```
+* ```cd ~/ros/saphari_knowrob && catkin_make```
 
-Afterwards, init and build the remaining catkin packages in the 2nd overlay. Unfortunately, you will need one of 'em precious ```CATKIN_IGNORE``` to make your everything compile:
+Afterwards, init and build the remaining catkin packages in the 2nd overlay. Unfortunately, you will need several of 'em precious ```CATKIN_IGNORE``` to make your everything compile:
 * ```cd ~/ros/saphari_catkin/src```
 * ```wstool merge https://raw.githubusercontent.com/code-iai/saphari_final_review/master/saphari_final_review/rosinstall/saphari_catkin.rosinstall```
 * ```wstool update```
+* TODO: add correct ```rosdep``` rule!
 * ```roscd iai_boxy_hw && touch CATKIN_IGNORE```
+* ```roscd robosherlock_process_module && touch CATKIN_IGNORE```
 * ```cd ~/ros/saphari_catkin && catkin_make```
 
 Finally, checkout and build the ```dlr_action_bridge``` in the ```rosbuild``` workspace:

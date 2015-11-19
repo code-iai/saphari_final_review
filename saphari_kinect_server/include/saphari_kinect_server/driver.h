@@ -56,6 +56,7 @@ namespace saphari_kinect_server
 		int depth_height_;
 		std::string serial_number;
 		std::string depth_frame_id_;
+        	std::string tfRefFrame;
 
 	  	// ROS stuff
 	  	ros::NodeHandle nh_;

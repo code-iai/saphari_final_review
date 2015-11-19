@@ -50,7 +50,7 @@ public:
   Receiver();
   ~Receiver();
 
-  void start(const std::string &topic, const uint32_t queueSize = 5, const bool useCompressed = true);
+  void start(const std::string &topic, const uint32_t queueSize = 5, const bool useCompressed = false);
   void stop();
 
   bool get(cv::Mat &image, cv::Mat &cameraMatrix, const bool wait = false);

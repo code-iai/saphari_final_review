@@ -31,6 +31,10 @@ namespace enc = sensor_msgs::image_encodings;
     int num_dev;
     nh_.getParam("num_dev",num_dev);
 
+    if(!nh_.getParam("tf_frame", tfRefFrame)) {
+        tfRefFrame = "/openni_depth_frame";
+    }
+
     do {
 	  driver.updateDeviceList ();
 
@@ -131,7 +135,7 @@ namespace enc = sensor_msgs::image_encodings;
   void OpenNINode::depthCb1(boost::shared_ptr<openni_wrapper::DepthImage> depth_image, void* cookie) {
     publishDepthImage(*depth_image, depth_pub_1);
 
-    userTr.userMainLoop("/camera_depth_frame");
+    userTr.userMainLoop(tfRefFrame);
   }
 
   void OpenNINode::depthCb2(boost::shared_ptr<openni_wrapper::DepthImage> depth_image, void* cookie) {

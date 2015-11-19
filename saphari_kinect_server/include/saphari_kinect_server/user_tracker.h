@@ -7,6 +7,7 @@
 #include <std_msgs/Int32.h>
 
 #include <tf/transform_broadcaster.h>
+#include <tf/transform_listener.h>
 #include <tf/tfMessage.h>
 
 #include <XnOpenNI.h>

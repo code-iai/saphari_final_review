@@ -34,15 +34,22 @@
                cram-json-prolog
                cram-beliefstate
                roslisp-beasty
+               cram-wsg50
                designators
                cram-language-designator-support
                saphari_tool_detector-srv
-               saphari_task_executive-srv)
+               visualization_msgs-msg)
   :components
   ((:module "src"
     :components
     ((:file "package")
      (:file "lisp-utils" :depends-on ("package"))
-     (:file "tool-perception" :depends-on ("package" "lisp-utils"))
-     (:file "plans" :depends-on ("package"))
-     (:file "main" :depends-on ("package" "tool-perception"))))))
+     (:file "designator-utils" :depends-on ("package"))
+     (:file "conversions" :depends-on ("package" "lisp-utils" "designator-utils"))
+     (:file "tf" :depends-on ("package" "conversions"))
+     (:file "designator-reasoning" :depends-on ("package" "designator-utils" "tf"))
+     (:file "marker-viz" :depends-on ("package" "designator-reasoning" "designator-utils"))
+     (:file "tool-perception" :depends-on ("package" "lisp-utils" "designator-reasoning" "conversions" "marker-viz"))
+     (:file "arm-control" :depends-on ("package" "lisp-utils" "conversions"))
+     (:file "plans" :depends-on ("package" "designator-utils" "designator-reasoning" "tool-perception" "arm-control" "marker-viz"))
+     (:file "main" :depends-on ("package" "tool-perception" "arm-control" "plans"))))))

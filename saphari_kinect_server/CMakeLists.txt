@@ -1,3 +1,10 @@
+# USE THE CATKIN CMAKELISTS FOR BUILDING WITH CATKIN
+# ELSE PROCEED WITH ROSBUILD BELOW
+if(NOT USE_ROSBUILD)
+  include(catkin.cmake)
+  return()
+endif()
+
 cmake_minimum_required(VERSION 2.4.6)
 include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 
@@ -33,7 +40,7 @@ pkg_check_modules(OPENNI libopenni)
 include_directories(${OPENNI_INCLUDEDIR} /usr/include/nite)
 		    # /home/rmcpc0242/catkin_ws/devel/include)
 
-link_directories(/home/rmcpc0242/catkin_ws/src/dlr_beasty/dlr_ard/lib/)
+# link_directories(/home/rmcpc0242/catkin_ws/src/dlr_beasty/dlr_ard/lib/)
 
 rosbuild_add_library (kinect_driver src/driver.cpp src/user_tracker.cpp)
 target_link_libraries (kinect_driver OpenNI)

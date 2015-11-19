@@ -28,69 +28,67 @@
 
 (in-package :saphari-task-executive)
 
-(defparameter *executive-state* nil)
+(defun make-demo-handle (&optional (sim-p t))
+  (list
+   :json-prolog nil
+   :sim-p sim-p
+   :tool-perception (ros-interface-tool-perception)
+   :beasty (make-and-init-beasty-handle sim-p)
+   :wsg50 (make-wsg-handle)
+   :tf-broadcaster (advertise "/tf" "tf2_msgs/TFMessage")
+   :tf-listener (make-instance 'cl-tf2:buffer-client)
+   :marker-pub (advertise "visualization_marker_array" "visualization_msgs/MarkerArray")
+   ))
 
-(defun main()
-  (setf *executive-state* nil)
-  (with-ros-node ("saphari_task_executive")
-    (when (init)
-      (loop-at-most-every 1 (publish-state)))))
+(defun main ()
+  (with-ros-node ("cram")
+    (let ((demo-handle (make-demo-handle)))
+      (cpl:top-level
+        ;; TODO: loop
+        ;; TODO: human reactivity
+        (lookat-pickup-zone demo-handle)
+        (alexandria:when-let ((object-desigs (trigger-tool-perception demo-handle)))
+          ;; TODO: infer target-object and target-location
+          (let* ((target-object
+                   (nth (random (length object-desigs)) object-desigs))
+                 (target-location
+                   (location-designator `((:a :location)
+                                          (:in :sorting-basket)
+                                          (:slot-id :middle-slot)
+                                          (:target-obj ,target-object)))))
+            (let ((updated-target-object (grasp-object demo-handle target-object)))
+              (place-object demo-handle updated-target-object target-location))))))))
 
-;;;
-;;; FUNCTIONS USED IN MAIN
-;;;
+(defun make-target-object (type-keyword slot-id pose)
+  (object-designator
+   `((:an :object)
+     (:type ,type-keyword)
+     (:at ,(location-designator
+            `((:slot-id ,slot-id)
+              (:pose ,(make-msg
+                       "geometry_msgs/PoseStamped"
+                       (:frame_id :header) "sorting_basket"
+                       :pose (pose->pose-msg pose)))))))))
 
-(defun init ()
-  (ros-info :saphari-task-executive "Initializing...")
-  (if (and
-       (register-service-fn "~request_state" #'request-state 'saphari_task_executive-srv:requeststate)
-       (advertise "~state" "saphari_task_executive/State"))
-    ;; TODO: advertise service
-      (progn
-        (ros-info :saphari-task-executive "Init successful.")
-        (setf *executive-state* :initialized))
-      (ros-info :saphari-task-executive "Init failed.")))
+(defun visualize-goal-objects (goal-id demo-handle)
+  (apply #'publish-tool-markers demo-handle nil (target-objects goal-id)))
 
-(defun publish-state ()
-  (publish
-   "~state"
-   (make-msg
-    "saphari_task_executive/State"
-    :state (symbol-code 'saphari_task_executive-msg:state *executive-state*))))
+(defun target-objects (goal-id)
+  (case goal-id
+    (1
+     (list
+      (make-target-object :bandage-scissors 0 (make-pose (make-3d-vector 0.28 0.07 0.02) (make-identity-rotation)))
+      (make-target-object :scalpel 1 (make-pose (make-3d-vector 0.34 -0.05 0.02) (make-quaternion 0 0 -0.707107 0.707107)))
+      (make-target-object :scalpel 2 (make-pose (make-3d-vector 0.29 -0.05 0.02) (make-quaternion 0 0 -0.707107 0.707107)))
+      (make-target-object :small-clamp  3 (make-pose (make-3d-vector 0.05 0.04 0.02) (make-quaternion 0 0 -0.707107 0.707107)))
+      (make-target-object :retractor 4 (make-pose (make-3d-vector 0.14 -0.08 0.02) (make-identity-rotation)))
+      (make-target-object :big-clamp 5 (make-pose (make-3d-vector 0.16 -0.02 0.02) (make-identity-rotation)))
+      (make-target-object :pincers 6 (make-pose (make-3d-vector 0.13 0.03 0.02) (make-identity-rotation)))
+      (make-target-object :pincers 7 (make-pose (make-3d-vector 0.13 0.08 0.02) (make-identity-rotation)))))
+    (t nil)))
+    
+(defparameter *dh* nil)
 
-(def-service-callback (request-state saphari_task_executive-srv:requeststate) (state)
-  (ros-info :saphari-task-executive "~%Requested to change to state: ~a~%" state)
-  (make-response :success t :status_message "All fine.")
-  )
-
-;;;
-;;; IMPLEMENTATION OF HIGH-LEVEL SERVICE INTERFACE
-;;;
-
-(defun configure ()
-  (ros-info :saphari-task-executive "Configuring...")
-  ;; TODO: implement me
-  (setf *executive-state* :stopped)
-  (ros-info :saphari-task-executive "Configure successful.")
-  t)
-
-(defun cleanup ()
-  (ros-info :saphari-task-executive "Cleaning up...")
-  ;; TODO: implement me
-  (setf *executive-state* :initialized)
-  (ros-info :saphari-task-executive "Cleanup successful.")
-  t)
-
-(defun start ()
-  (ros-info :saphari-task-executive "Starting...")
-  ;; TODO: implement me
-  (setf *executive-state* :running)
-  (ros-info :saphari-task-executive "Start successful.")
-  t)
-
-(defun stop ()
-  (ros-info :saphari-task-executive "Starting...")
-  ;; TODO: implement me
-  (setf *executive-state* :running)
-  (ros-info :saphari-task-executive "Start successful.")
-  t)
+(defun bringup-scripting-environment ()
+  (start-ros-node "cram")
+  (setf *dh* (make-demo-handle)))

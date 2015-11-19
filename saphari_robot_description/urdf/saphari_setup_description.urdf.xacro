@@ -11,49 +11,20 @@
 
   <!-- FURNITURE AND SCENE -->
 
-  <saphari_map map_frame="map"/>
+  <saphari_map map_frame="map" kinect_calib_parent_frame="arm_base_link" kinect_calib_frame="openni_depth_frame">
+    <origin xyz="0.286111 -1.14642 1.34476" rpy="-2.1339635300413633 -0.07999807283761096 0.9304591444760072"/>
+    <!-- ORIGINAL QUATERNION: 0.773385 0.409824 -0.185113 -0.446826 -->
+  </saphari_map>
 
   <saphari_table parent="map">
     <origin xyz="0 0 0.89" rpy="0 0 0"/>
   </saphari_table>
 
-
-
-
-  <!--link name="measurement_frame"/>
-
-  <joint name="measurement" type="fixed">
-    <origin xyz="0.6 0.75 0" rpy="0 0 0"/>
-    <parent link="table_link"/>
-    <child link="measurement_frame"/>
-  </joint-->
- 
-
-
-
-  <link name="instrument_pad">
-    <visual>
-      <origin xyz="0.28 0.135 0.001" rpy="0 0 0" />
-      <geometry>
-        <box size="0.56 0.27 0.002" />
-      </geometry>
-      <material name="LightBlue">
-        <color rgba="${80/255} ${100/255} ${210/255} 1.0"/>
-      </material>
-    </visual>
-  </link>
-
-  <joint name="instrument_pad_to_table_offset" type="fixed">
-    <origin xyz="0 0.26 0" rpy="0 0 0"/>
-    <parent link="table_link"/>
-    <child link="instrument_pad"/>
-  </joint>
-
   <link name="sorting_basket">
     <visual>
-      <origin xyz="0.2025 0.125 0.02" rpy="0 0 0" />
+      <origin xyz="0.2025 0.0 0.0" rpy="0 0 0" />
       <geometry>
-        <box size="0.405 0.25 0.04" />
+        <mesh filename="package://saphari_robot_description/meshes/saphari_basket.dae"/>
       </geometry>
       <material name="Silver">
         <color rgba="${160/255} ${160/255} ${190/255} 1.0"/>
@@ -68,6 +39,7 @@
   </joint>
 
   <!-- LWR AND GRIPPER -->
+
   <link name="arm_base_link"/>
 
   <joint name="table_arm_base_link_offset" type="fixed">
@@ -76,7 +48,7 @@
     <child link="arm_base_link"/>
   </joint>
 
-  <kuka_lwr_arm parent="arm_base_link" prefix="">
+  <kuka_lwr_arm parent="arm_base_link" prefix="" color_postfix="_blue">
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </kuka_lwr_arm>
 
@@ -85,26 +57,63 @@
   </fwk_fwa_050_xacro>
 
   <wsg_50_xacro name="gripper" parent="arm_fwk_fwa_050_frame_out">
-    <origin xyz="0 0 0" rpy="0 0 ${-1*PI*135/180}"/>
+    <origin xyz="0 0 0" rpy="0 0 ${PI*45/180}"/>
   </wsg_50_xacro>
 
   <!-- WRIST CAM WITH MOUNTING -->
-  <link name="blackfly_adaptor_link">
+
+  <link name="gripper_top_protector">
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://saphari_robot_description/meshes/blackfly_adaptor.stl"/>
+        <mesh filename="package://saphari_robot_description/meshes/top_protector.stl" scale="0.001 0.001 0.001"/>
       </geometry>
-      <material name="Yellow">
-        <color rgba="1.0 0.93 0.7 1.0"/>
+      <material name="Blue">
+        <color rgba="0.0 0.0 1.0 1.0"/>
       </material>
     </visual>
   </link>
 
-  <joint name="blackfly_adaptor_mounting" type="fixed">
-    <origin xyz="0 0 0" rpy="0 0 0"/>
+  <link name="gripper_bottom_protector">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://saphari_robot_description/meshes/bottom_protector.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="Blue">
+        <color rgba="0.0 0.0 1.0 1.0"/>
+      </material>
+    </visual>
+  </link>
+
+  <link name="blackfly_holder">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://saphari_robot_description/meshes/camera_mount_blackfly.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="Blue">
+        <color rgba="0.0 0.0 1.0 1.0"/>
+      </material>
+    </visual>
+  </link>
+
+  <joint name="gripper_top_protector_mounting" type="fixed">
+    <origin xyz="0 0 0" rpy="${-90*PI/180} 0 ${PI}"/>
     <parent link="gripper_base_link"/>
-    <child link="blackfly_adaptor_link"/>
+    <child link="gripper_top_protector"/>
+  </joint>
+
+  <joint name="gripper_bottom_protector_mounting" type="fixed">
+    <origin xyz="0 0 0.07" rpy="${90*PI/180} 0 0"/>
+    <parent link="gripper_base_link"/>
+    <child link="gripper_bottom_protector"/>
+  </joint>
+
+  <joint name="blackfly_holder_mounting" type="fixed">
+    <origin xyz="0 0 0" rpy="${-90*PI/180} 0 0"/>
+    <parent link="gripper_base_link"/>
+    <child link="blackfly_holder"/>
   </joint>
 
   <link name="blackfly_camera">
@@ -127,20 +136,21 @@
 
   <!-- CAMERA CALIBRATION -->
   <!-- TO BE SIMPLIFIED INTO ONE LINK-JOINT COMBO -->
-  <link name="optical_frame_x" />
+  <link name="wrist_optical_frame_x" />
 
   <joint name="optical_joint_x" type="fixed">
-    <origin xyz="0.000836 -0.053028 0.073603" rpy="0.007552 6.274592 3.141201"/>
-    <parent link="gripper_base_link" />
-    <child link="optical_frame_x" />
+    <origin xyz="0.041576 -0.037009 0.142994" 
+            rpy="0.002172 6.277456 4.001921"/>
+    <parent link="arm_7_link" />
+    <child link="wrist_optical_frame_x" />
   </joint>
 
-  <link name="optical_frame" />
+  <link name="wrist_optical_frame" />
 
   <joint name="optical_joint" type="fixed">
     <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 ${PI}" />
-    <parent link="optical_frame_x" />
-    <child link="optical_frame" />
+    <parent link="wrist_optical_frame_x" />
+    <child link="wrist_optical_frame" />
   </joint>
 
 </robot>

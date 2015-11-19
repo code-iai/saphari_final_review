@@ -29,4 +29,4 @@
 (in-package :cl-user)
 
 (defpackage saphari-task-executive
-  (:use :common-lisp :roslisp :json-prolog))
+  (:use :common-lisp :roslisp :json-prolog :cl-transforms))

@@ -113,12 +113,12 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        blackfly_adaptor_link:
+        blackfly_camera:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        blackfly_camera:
+        blackfly_holder:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -129,6 +129,11 @@ Visualization Manager:
           Show Trail: false
           Value: true
         gripper_base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        gripper_bottom_protector:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -157,6 +162,11 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
+        gripper_top_protector:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
         instrument_pad:
           Alpha: 1
           Show Axes: false
@@ -267,155 +277,19 @@ Visualization Manager:
       Value: true
       Visual Enabled: true
     - Class: rviz/TF
-      Enabled: true
+      Enabled: false
       Frame Timeout: 15
       Frames:
         All Enabled: false
-        arm_1_link:
-          Value: true
-        arm_2_link:
-          Value: true
-        arm_3_link:
-          Value: true
-        arm_4_link:
-          Value: true
-        arm_5_link:
-          Value: true
-        arm_6_link:
-          Value: true
-        arm_7_link:
-          Value: true
-        arm_base_link:
-          Value: true
-        arm_flange_link:
-          Value: true
-        arm_fwk_fwa_050_frame_in:
-          Value: true
-        arm_fwk_fwa_050_frame_out:
-          Value: true
-        blackfly_adaptor_link:
-          Value: true
-        blackfly_camera:
-          Value: true
-        calib_arm_base_link:
-          Value: true
-        gripper_base_link:
-          Value: true
-        gripper_finger_left_link:
-          Value: true
-        gripper_finger_right_link:
-          Value: true
-        gripper_gripper_left_link:
-          Value: true
-        gripper_gripper_right_link:
-          Value: true
-        gripper_tool_frame:
-          Value: true
-        instrument_pad:
-          Value: true
-        kinect_depth_frame:
-          Value: true
-        kinect_depth_optical_frame:
-          Value: true
-        kinect_link:
-          Value: true
-        kinect_mounting_1_link:
-          Value: true
-        kinect_mounting_2_link:
-          Value: true
-        kinect_mounting_3_link:
-          Value: true
-        kinect_mounting_4_link:
-          Value: true
-        kinect_mounting_5_link:
-          Value: true
-        kinect_rgb_frame:
-          Value: true
-        kinect_rgb_optical_frame:
-          Value: true
-        map:
-          Value: true
-        optical_frame:
-          Value: true
-        optical_frame_x:
-          Value: true
-        screen:
-          Value: true
-        screenholder_1_link:
-          Value: true
-        screenholder_2_link:
-          Value: true
-        screenholder_3_link:
-          Value: true
-        screenholder_4_link:
-          Value: true
-        sorting_basket:
-          Value: true
-        table_link:
-          Value: true
-        wall:
-          Value: true
       Marker Scale: 0.5
       Name: TF
       Show Arrows: true
       Show Axes: true
       Show Names: false
       Tree:
-        map:
-          table_link:
-            arm_base_link:
-              calib_arm_base_link:
-                arm_1_link:
-                  arm_2_link:
-                    arm_3_link:
-                      arm_4_link:
-                        arm_5_link:
-                          arm_6_link:
-                            arm_7_link:
-                              arm_flange_link:
-                                arm_fwk_fwa_050_frame_in:
-                                  arm_fwk_fwa_050_frame_out:
-                                    gripper_base_link:
-                                      blackfly_adaptor_link:
-                                        {}
-                                      blackfly_camera:
-                                        {}
-                                      gripper_gripper_left_link:
-                                        gripper_finger_left_link:
-                                          {}
-                                      gripper_gripper_right_link:
-                                        gripper_finger_right_link:
-                                          {}
-                                      gripper_tool_frame:
-                                        {}
-                                      optical_frame_x:
-                                        optical_frame:
-                                          {}
-            instrument_pad:
-              {}
-            screenholder_1_link:
-              screenholder_2_link:
-                screenholder_3_link:
-                  screenholder_4_link:
-                    screen:
-                      {}
-            sorting_basket:
-              {}
-          wall:
-            kinect_mounting_1_link:
-              kinect_mounting_2_link:
-                kinect_mounting_3_link:
-                  kinect_mounting_4_link:
-                    kinect_mounting_5_link:
-                      kinect_link:
-                        kinect_depth_frame:
-                          kinect_depth_optical_frame:
-                            {}
-                        kinect_rgb_frame:
-                          kinect_rgb_optical_frame:
-                            {}
+        {}
       Update Interval: 0
-      Value: true
+      Value: false
   Enabled: true
   Global Options:
     Background Color: 193; 193; 193
@@ -440,22 +314,22 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 3.24475
+      Distance: 1.07651
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 1.19999
-        Y: 0.513734
-        Z: 1.18521
+        X: 0.695903
+        Y: 1.07407
+        Z: 1.80767
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.334798
+      Pitch: 0.634797
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 4.8587
+      Yaw: 4.7005
     Saved: ~
 Window Geometry:
   Displays:

@@ -19,23 +19,26 @@
 #define __PERCEPTION_H__
 
 #include <string>
-#include <mutex>
-#include <thread>
 
 #include <opencv2/opencv.hpp>
 
-#include <ros/ros.h>
-#include <tf/tf.h>
+#define NO_COLOR        "\033[0m"
+#define FG_BLACK        "\033[30m"
+#define FG_RED          "\033[31m"
+#define FG_GREEN        "\033[32m"
+#define FG_YELLOW       "\033[33m"
+#define FG_BLUE         "\033[34m"
+#define FG_MAGENTA      "\033[35m"
+#define FG_CYAN         "\033[36m"
 
 struct Tool
 {
-  uint32_t id;
+  int32_t id;
   std::string name;
   cv::Point2f position, direction;
-  float scale, angle;
+  float scale, angle, confidence;
   int32_t votesPosition, votesScale, votesRotation;
   cv::RotatedRect rect;
-  tf::Pose pose;
 };
 
 class Perception
@@ -44,46 +47,58 @@ private:
   struct GHTTemplate
   {
     int32_t id;
-    std::string name;
+    std::string name, path;
     cv::Point2f center;
     cv::Point origin, direction;
-    double angle, thresholdLow, thresholdHigh;
-    cv::Mat mono, edges, dx, dy;
+    double angle, maxVote, minVote;
+    int32_t width, height;
+    cv::Mat edges, dx, dy;
+    std::string fileMono;
+    std::vector<std::string> files;
+
+    std::vector<cv::Mat> imagesEdges;
+    std::vector<cv::Mat> imagesDx;
+    std::vector<cv::Mat> imagesDy;
     cv::Ptr<cv::GeneralizedHough> ght;
+  };
+
+  struct Settings
+  {
+    int32_t thresholdHough, levels;
+    double thresholdLow, thresholdHigh, scale, minDist, dp, angleStep;
+    bool estimateScale, estimateRotation;
   };
 
   std::vector<GHTTemplate> templates;
 
   std::string dataPath;
-  cv::Rect roi;
   cv::Mat cameraMatrix;
-  tf::Transform transform;
-
-  cv::Mat mono, edges, dx, dy;
-  double thresholdLow, thresholdHigh;
-  bool estimateScale, estimateRotation;
 
 public:
+  Settings settings;
+
   Perception();
   ~Perception();
 
   void setDataPath(const std::string &dataPath);
-  void setROI(const cv::Rect &roi);
   void setCameraMatrix(const cv::Mat &cameraMatrix);
-  void setTransform(const tf::Transform &transform);
-  void setEstimateScale(const bool enable);
-  void setEstimateRotation(const bool enable);
 
-  bool loadTemplates(const int thresholdHough);
+  void loadSettings();
+  void storeSettings();
 
-  void binarize(const cv::Mat &color, cv::Mat &bin, const uint32_t difference = 70);
-  void detectEdges(const cv::Mat &mono, cv::Mat &edges, cv::Mat &dx, cv::Mat &dy, const double thresholdLow = 50, const double thresholdHigh = 100);
-  void detectTools(std::vector<Tool> &tools);
+  bool loadTemplates(const bool checkConfidence = true);
+  void trainConfidences();
 
-  void storeTemplate(const std::string &name, const int32_t id, const cv::Rect &roi, const cv::Point &origin, const cv::Point &direction);
+  void detectEdges(const cv::Mat &mono, cv::Mat &edges, cv::Mat &dx, cv::Mat &dy);
+  void detectTools(const cv::Mat &mono, std::vector<Tool> &tools, const cv::Rect &roi);
+
+  void storeTemplate(const std::string &name, const int32_t id, const cv::Mat &mono, const cv::Rect &roi, const cv::Point &origin, const cv::Point &direction, const std::vector<cv::Mat> &images);
 
 private:
-  void loadTemplate(const std::string &filepath, const int thresholdHough);
+  void resize(const cv::Mat &in, cv::Mat &out) const;
+  void updateTemplates();
+  void loadTemplate(const std::string &filepath);
+  void loadTemplateImages();
 };
 
 #endif // __PERCEPTION_H__

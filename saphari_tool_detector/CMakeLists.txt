@@ -97,3 +97,7 @@ add_dependencies(detect_tools ${catkin_EXPORTED_TARGETS})
 ## Saphari training node
 add_executable(train_tool src/train_tool.cpp)
 target_link_libraries(train_tool saphari_tool_detection)
+
+## Saphari training node
+add_executable(train_confidence src/train_confidence.cpp)
+target_link_libraries(train_confidence saphari_tool_detection)

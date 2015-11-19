@@ -1,0 +1,18 @@
+<launch>
+  <arg name="simulation" default="true" />
+  <arg name="enabled" default="true" />
+
+  <group if="$(arg enabled)">
+    <group if="$(arg simulation)" >
+      <node pkg="rosbag" type="play" name="fake_human_perception" 
+            args="$(find saphari_robot_bringup)/rosbags/2015-11-19-10-10-46.bag --loop --topics /kinect_traker/user_state" />
+    
+      <node pkg="saphari_task_executive" type="humans_filter" name="humans_filter" />
+    
+      <node pkg="saphari_task_executive" type="humans_visualization" name="humans_visualization" />
+    </group>
+  
+    <group unless="$(arg simulation)" >
+    </group>
+  </group>
+</launch>

@@ -3,53 +3,45 @@
   <arg name="topic"           default="/camera/image_rect_color" />
 
   <!-- Frames for table and camera -->
-  <arg name="table_frame"     default="/table_link" />
-  <arg name="camera_frame"    default="/blackfly_camera_link" />
+  <arg name="table_frame"     default="table_link" />
+  <arg name="camera_frame"    default="wrist_optical_frame" />
 
   <!-- Camera topic -->
   <arg name="data_path"       default="$(find saphari_tool_detector)/data/" />
 
-  <!-- Threshold for edge detection -->
-  <arg name="threshold_low"   default="50.0" />
-  <arg name="threshold_high"  default="100.0" />
-
-  <!-- Threshold for hough tool detection -->
-  <arg name="threshold_hough" default="50" />
-
   <!-- Maximum allowed overlap -->
   <arg name="max_overlap"     default="0.4" />
 
-  <!-- Bounding box for tool detection area -->
-  <arg name="x"               default="200" />
-  <arg name="y"               default="0" />
-  <arg name="width"           default="1600" />
-  <arg name="height"          default="1199" />
+  <!-- Minimum confidence -->
+  <arg name="min_confidence"  default="0.2" />
 
   <!-- Fake perception -->
   <arg name="fake_perception" default="false" />
+  <arg name="fake_min_conf"   default="$(arg min_confidence)" />
+  <arg name="fake_max_conf"   default="2.0" />
+  <arg name="fake_min_delay"  default="1.0" />
+  <arg name="fake_max_delay"  default="2.5" />
 
   <!-- Publish tf of detected tool -->
-  <arg name="publish_tf"       default="false" />
+  <arg name="publish_tf"      default="true" />
 
   <!-- Publish static tf for camera and table -->
-  <arg name="static_tf"       default="false" />
+  <arg name="static_tf"       default="true" />
 
-  <node if="$(arg static_tf)" pkg="tf" type="static_transform_publisher" name="static_camera_table_tf" args="0 0 0.75 0 0 3.14159265358979323846 (arg table_frame) (arg camera_frame) 100" />
+  <node if="$(arg static_tf)" pkg="tf" type="static_transform_publisher" name="static_camera_table_tf" args="0 0 0.75 0 0 3.14159265358979323846 $(arg table_frame) $(arg camera_frame) 100" />
 
   <node pkg="saphari_tool_detector" type="detect_tools" name="tool_detector" ns="tool_detector" output="screen" >
     <param name="topic"           type="str"    value="$(arg topic)" />
     <param name="table_frame"     type="str"    value="$(arg table_frame)" />
     <param name="camera_frame"    type="str"    value="$(arg camera_frame)" />
     <param name="data_path"       type="str"    value="$(arg data_path)" />
-    <param name="threshold_low"   type="double" value="$(arg threshold_low)" />
-    <param name="threshold_high"  type="double" value="$(arg threshold_high)" />
-    <param name="threshold_hough" type="int"    value="$(arg threshold_hough)" />
     <param name="max_overlap"     type="double" value="$(arg max_overlap)" />
-    <param name="x"               type="int"    value="$(arg x)" />
-    <param name="y"               type="int"    value="$(arg y)" />
-    <param name="width"           type="int"    value="$(arg width)" />
-    <param name="height"          type="int"    value="$(arg height)" />
+    <param name="min_confidence"  type="double" value="$(arg min_confidence)" />
     <param name="fake_perception" type="bool"   value="$(arg fake_perception)" />
+    <param name="fake_min_conf"   type="double" value="$(arg fake_min_conf)" />
+    <param name="fake_max_conf"   type="double" value="$(arg fake_max_conf)" />
+    <param name="fake_min_delay"  type="double" value="$(arg fake_min_delay)" />
+    <param name="fake_max_delay"  type="double" value="$(arg fake_max_delay)" />
     <param name="publish_tf"      type="bool"   value="$(arg publish_tf)" />
   </node>
 </launch>

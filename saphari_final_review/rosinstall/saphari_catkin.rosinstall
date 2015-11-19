@@ -55,3 +55,7 @@
     local-name: roslisp_common
     uri: https://github.com/ros/roslisp_common.git
     version: master
+- git: 
+    local-name: iai_robot_drivers
+    uri: https://github.com/code-iai/iai_robot_drivers.git
+    version: master

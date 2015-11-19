@@ -76,7 +76,28 @@
    :lifetime 5.0
    :scale (radius->scale-msg (bodypart-id->radius id))
    :color color)))
-   
+
+(defun bodypart-msg->text-marker-msg (msg user-id &optional (timestamp nil timestamp-supplied-p)
+                                           (color (default-color-msg)))
+  (declare (type saphari_msgs-msg:bodypart msg))
+  (with-fields ((frame-id (frame_id header tf))
+                (stamp (stamp header tf))
+                id centroid) msg
+  (make-message
+   "visualization_msgs/Marker"
+   (:frame_id :header) frame-id
+   (:stamp :header) (if timestamp-supplied-p timestamp stamp)
+   (:ns) (concatenate 'string "human" (write-to-string user-id))
+   (:id) (+ id 100)
+   (:type) (symbol-code 'visualization_msgs-msg:marker :text_view_facing)
+   (:action) (symbol-code 'visualization_msgs-msg:marker :add)
+   (:position :pose) (point32-msg->point-msg centroid)
+   (:w :orientation :pose) 1.0
+   :lifetime 5.0
+   :scale (radius->scale-msg 0.1)
+   :color color
+   :text (symbol-name (code-symbol 'saphari_msgs-msg:bodypart id)))))
+
 (defun human-msg->marker-msg-vector (msg &optional (timestamp nil timestamp-supplied-p))
   (declare (type saphari_msgs-msg:human msg))
   (with-fields ((stamp (stamp header)) userid bodyparts) msg
@@ -85,7 +106,7 @@
            collect (bodypart-msg->marker-msg
                     bodypart-msg userid
                     (if timestamp-supplied-p timestamp stamp)))
-     'vector)))
+      'vector)))
 
 (defun humans-msg->marker-array-msg (msg restamp-p)
   (declare (type saphari_msgs-msg:humans msg))

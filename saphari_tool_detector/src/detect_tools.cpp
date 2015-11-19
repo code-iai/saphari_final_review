@@ -115,13 +115,13 @@ public:
       fakeTools.resize(3);
       fakePoses.resize(3);
       fakeTools[0].id = 0;
-      fakeTools[0].name = "hook";
+      fakeTools[0].name = "retractor";
       fakePoses[0] = tf::Transform(tf::Quaternion(0, 0, 0.67559, 0.73727), tf::Vector3(0.1, 0.35, 0));
       fakeTools[1].id = 1;
-      fakeTools[1].name = "rake";
+      fakeTools[1].name = "blunt-retractor";
       fakePoses[1] = tf::Transform(tf::Quaternion(0, 0, -0.57357, 0.81915), tf::Vector3(0.25, 0.3, 0));
       fakeTools[2].id = 2;
-      fakeTools[2].name = "scissor";
+      fakeTools[2].name = "bandage-scissors";
       fakePoses[2] = tf::Transform(tf::Quaternion(0, 0, 0.17364, 0.9848), tf::Vector3(0.4, 0.4, 0));
     }
     else

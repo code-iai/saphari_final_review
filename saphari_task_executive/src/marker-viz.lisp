@@ -30,9 +30,9 @@
 
 (defun instrument-type->mesh-path (type-keyword)
   (case type-keyword
-    (:hook "package://saphari_task_executive/models/hospital/surgical-instruments/Hook.dae")
-    (:scissors "package://saphari_task_executive/models/hospital/surgical-instruments/Scissors.dae")
-    (:rake "package://saphari_task_executive/models/hospital/surgical-instruments/Rake.dae")
+    (:retractor "package://saphari_task_executive/models/hospital/surgical-instruments/Hook.dae")
+    (:bandage-scissors "package://saphari_task_executive/models/hospital/surgical-instruments/Scissors.dae")
+    (:blunt-retractor "package://saphari_task_executive/models/hospital/surgical-instruments/Rake.dae")
     (:scalpel-handle "package://saphari_task_executive/models/hospital/surgical-instruments/ScalpelHandle.dae")
     (:scalpel "package://saphari_task_executive/models/hospital/surgical-instruments/Scalpel.dae")
     (:small-clamp "package://saphari_task_executive/models/hospital/surgical-instruments/SmallClamp.dae")

@@ -112,17 +112,35 @@ public:
       service = nh.advertiseService("detect_tools", &ToolDetection::fakeResults, this);
       lookupTransform();
 
-      fakeTools.resize(3);
-      fakePoses.resize(3);
+      fakeTools.resize(9);
+      fakePoses.resize(9);
       fakeTools[0].id = 0;
       fakeTools[0].name = "retractor";
-      fakePoses[0] = tf::Transform(tf::Quaternion(0, 0, 0.67559, 0.73727), tf::Vector3(0.1, 0.35, 0));
+      fakePoses[0] = tf::Transform(tf::Quaternion(0, 0, 0.67559, 0.73727), tf::Vector3(0.1, 0.35, 0.005));
       fakeTools[1].id = 1;
       fakeTools[1].name = "blunt-retractor";
-      fakePoses[1] = tf::Transform(tf::Quaternion(0, 0, -0.57357, 0.81915), tf::Vector3(0.25, 0.3, 0));
+      fakePoses[1] = tf::Transform(tf::Quaternion(0, 0, -0.57357, 0.81915), tf::Vector3(0.25, 0.3, 0.005));
       fakeTools[2].id = 2;
       fakeTools[2].name = "bandage-scissors";
-      fakePoses[2] = tf::Transform(tf::Quaternion(0, 0, 0.17364, 0.9848), tf::Vector3(0.4, 0.4, 0));
+      fakePoses[2] = tf::Transform(tf::Quaternion(0, 0, 0.17364, 0.9848), tf::Vector3(0.4, 0.4, 0.005));
+      fakeTools[3].id = 3;
+      fakeTools[3].name = "scalpel";
+      fakePoses[3] = tf::Transform(tf::Quaternion(0, 0, -0.08716, 0.99619), tf::Vector3(0.25, 0.45, 0.005));
+      fakeTools[4].id = 4;
+      fakeTools[4].name = "scalpel";
+      fakePoses[4] = tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0.4, 0.48, 0.005));
+      fakeTools[5].id = 5;
+      fakeTools[5].name = "pincers";
+      fakePoses[5] = tf::Transform(tf::Quaternion(0, 0, -0.57357, 0.81915), tf::Vector3(0.15, 0.33, 0.005));
+      fakeTools[6].id = 6;
+      fakeTools[6].name = "small-clamp";
+      fakePoses[6] = tf::Transform(tf::Quaternion(0, 0, 0.38268, 0.92388), tf::Vector3(0.4, 0.3, 0.005));
+      fakeTools[7].id = 7;
+      fakeTools[7].name = "big-clamp";
+      fakePoses[7] = tf::Transform(tf::Quaternion(0, 0, 0.25882, 0.96593), tf::Vector3(0.1, 0.5, 0.005));
+      fakeTools[8].id = 8;
+      fakeTools[8].name = "small-clamp";
+      fakePoses[8] = tf::Transform(tf::Quaternion(0, 0, -0.57358, 0.81915), tf::Vector3(0.3, 0.55, 0.005));
     }
     else
     {

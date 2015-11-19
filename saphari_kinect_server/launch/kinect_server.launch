@@ -16,10 +16,10 @@
 
 
 	<node if="$(arg nodelet)" pkg="nodelet" type="nodelet" name="KinectServerNodelet" args="load saphari_kinect_server/KinectServerNodelet kinect_nodelet_manager" output="screen">
-	    	<remap from="~depth_output1" to="/camera/depth/image" />
+	    	<remap from="~depth_output1" to="/camera1/depth/image" />
 	    	<remap from="~depth_output2" to="/camera2/depth/image" />
 
-		<remap from="~rgb_output1" to="/camera/rgb/image" />
+		<remap from="~rgb_output1" to="/camera1/rgb/image" />
 	    	<remap from="~rgb_output2" to="/camera2/rgb/image" />  
 
 		<!-- RGB-D sensor parameters -->
@@ -41,10 +41,10 @@
 
     <!-- Node vesion 
 	<node unless="$(arg nodelet)" pkg="saphari_kinect_server" type="kinect_driver_node" name="kinect_driver_node" output="screen"> 
-    	<remap from="~depth_output1" to="/camera/depth/image" />
+    	<remap from="~depth_output1" to="/camera1/depth/image" />
     	<remap from="~depth_output2" to="/camera2/depth/image" />
 
-        <remap from="~rgb_output1" to="/camera/rgb/image" />
+        <remap from="~rgb_output1" to="/camera1/rgb/image" />
     	<remap from="~rgb_output2" to="/camera2/rgb/image" />  
 
 		<param name="device_id1" value="$(arg device_id1)" />

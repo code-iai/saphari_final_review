@@ -2,7 +2,7 @@
     
 
 	<node pkg="nodelet" type="nodelet" name="HumanTrackerNodelet" args="load human_tracker/HumanTrackerNodelet kinect_nodelet_manager" output="screen">
-	<remap from="~input" to="camera/depth/image_filt" />
+	<remap from="~input" to="camera1/depth/image_filt" />
 	<remap from="~trans_left_force_input" to="trans_left_force_state" />
 	<remap from="~trans_right_force_input" to="trans_right_force_state" />
 	<remap from="~contact_input" to="cooperation_points" />
@@ -14,8 +14,8 @@
 
 
 	<node pkg="nodelet" type="nodelet" name="realtime_urtf_filter_nodelet" args="load realtime_urdf_filter/RealtimeURDFFilterNodelet kinect_nodelet_manager" output="screen">
-    	<remap from="~input_depth" to="camera/depth/image"/>
-    	<remap from="~output_depth" to="camera/depth/image_filt" />
+    	<remap from="~input_depth" to="camera1/depth/image"/>
+    	<remap from="~output_depth" to="camera1/depth/image_filt" />
 	<remap from="~hands_positions" to="hands_positions" />
 	<remap from="~left_hand_out" to="left_hand_contact" />
 	<remap from="~right_hand_out" to="right_hand_contact" />

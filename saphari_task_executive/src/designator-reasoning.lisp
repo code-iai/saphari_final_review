@@ -227,7 +227,8 @@
    (alexandria:when-let ((loc-desig (desig-prop-value desig :at)))
      (desig-prop-value loc-desig :pose))))
 
-(defun infer-object-transform (desig)
+(defun infer-object-transform (desig &optional (postfix ""))
+  (declare (type string postfix))
   (alexandria:when-let ((type-keyword (desig-prop-value desig :type))
                         (pose-stamped (infer-object-pose desig)))
-    (pose-stamped-msg->transform-stamped-msg pose-stamped (symbol-name type-keyword))))
+    (pose-stamped-msg->transform-stamped-msg pose-stamped (concatenate 'string (symbol-name type-keyword) postfix))))

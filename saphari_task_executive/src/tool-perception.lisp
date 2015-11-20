@@ -91,29 +91,10 @@
    -0.0697876513004303
    1.164320468902588
    0.5868684649467468))
-;;;
-;;; KNOWROB UTILS
-;;;
-
-(defun json-symbol->keyword (json-symbol)
-  (declare (type symbol json-symbol))
-  (string->keyword (json-symbol->string json-symbol)))
-
-(defun json-symbol->string (json-symbol)
-  (declare (type symbol json-symbol))
-  (remove #\' (symbol-name json-symbol)))
 
 ;;;
 ;;; QUERY KNOWROB
 ;;;
-
-(defun keywords->knowrob-string-list (&rest keywords)
-  (let* ((strings (mapcar #'symbol-name keywords))
-         (quoted-strings (mapcar (lambda (s) (conc-strings "'" s "'")) strings))
-         (comma-strings
-           (apply #'conc-strings
-                  (mapcar (lambda (s) (conc-strings s ",")) quoted-strings))))
-    (conc-strings "[" (remove #\, comma-strings :from-end t :count 1) "]")))
 
 (defun query-knowrob-tool-perception (&rest class-keywords)
   (let ((query-string

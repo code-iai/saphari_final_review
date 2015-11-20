@@ -26,31 +26,20 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(asdf:defsystem saphari-task-executive
-  :author "Georg Bartels <georg.bartels@cs.uni-bremen.de>"
-  :license "BSD"
-  :description "Task executive of the final review demo of the SAPHARI project."
-  :depends-on (roslisp
-               cram-json-prolog
-               cram-beliefstate
-               roslisp-beasty
-               cram-wsg50
-               designators
-               cram-language-designator-support
-               saphari_tool_detector-srv
-               visualization_msgs-msg)
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "lisp-utils" :depends-on ("package"))
-     (:file "knowrob-utils" :depends-on ("package"))
-     (:file "designator-utils" :depends-on ("package"))
-     (:file "conversions" :depends-on ("package" "lisp-utils" "designator-utils"))
-     (:file "tf" :depends-on ("package" "conversions"))
-     (:file "designator-reasoning" :depends-on ("package" "designator-utils" "tf"))
-     (:file "marker-viz" :depends-on ("package" "designator-reasoning" "designator-utils"))
-     (:file "tool-perception" :depends-on ("package" "lisp-utils" "knowrob-utils" "designator-reasoning" "conversions" "marker-viz"))
-     (:file "arm-control" :depends-on ("package" "lisp-utils" "conversions"))
-     (:file "plans" :depends-on ("package" "designator-utils" "designator-reasoning" "tool-perception" "arm-control" "marker-viz"))
-     (:file "main" :depends-on ("package" "tool-perception" "arm-control" "plans"))))))
+(in-package :saphari-task-executive)
+
+(defun json-symbol->keyword (json-symbol)
+  (declare (type symbol json-symbol))
+  (string->keyword (json-symbol->string json-symbol)))
+
+(defun json-symbol->string (json-symbol)
+  (declare (type symbol json-symbol))
+  (remove #\' (symbol-name json-symbol)))
+
+(defun keywords->knowrob-string-list (&rest keywords)
+  (let* ((strings (mapcar #'symbol-name keywords))
+         (quoted-strings (mapcar (lambda (s) (conc-strings "'" s "'")) strings))
+         (comma-strings
+           (apply #'conc-strings
+                  (mapcar (lambda (s) (conc-strings s ",")) quoted-strings))))
+    (conc-strings "[" (remove #\, comma-strings :from-end t :count 1) "]")))

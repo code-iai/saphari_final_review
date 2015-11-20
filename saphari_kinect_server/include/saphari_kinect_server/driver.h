@@ -26,16 +26,16 @@
 
 namespace saphari_kinect_server
 {
-	class OpenNINode
-	{
-		public:
+    class OpenNINode
+    {
+        public:
 
-		OpenNINode (ros::NodeHandle &nh);
-	  	~OpenNINode ();
+        OpenNINode (ros::NodeHandle &nh);
+        ~OpenNINode ();
 
-		void runLoop ();
-		void init ();
-		void setupDevice();
+        void runLoop ();
+        void init ();
+        void setupDevice();
         void depthCb1(boost::shared_ptr<openni_wrapper::DepthImage> depth_image, void* cookie);
         void depthCb2(boost::shared_ptr<openni_wrapper::DepthImage> depth_image, void* cookie);
         void publishDepthImage(const openni_wrapper::DepthImage& depth, image_transport::CameraPublisher depth_pub) const;
@@ -47,20 +47,20 @@ namespace saphari_kinect_server
         void publishRgbImage(const openni_wrapper::Image& depth, image_transport::CameraPublisher img_pub) const;
 
 
-		sensor_msgs::CameraInfoPtr getDefaultCameraInfo(int width, int height, double f) const;
+        sensor_msgs::CameraInfoPtr getDefaultCameraInfo(int width, int height, double f) const;
         sensor_msgs::CameraInfoPtr getDepthCameraInfo(int width, int height, ros::Time time, int camera_id) const;
 
-		protected:
-	
-		int depth_width_;
-		int depth_height_;
-		std::string serial_number;
-		std::string depth_frame_id_;
+        protected:
+    
+        int depth_width_;
+        int depth_height_;
+        std::string serial_number;
+        std::string depth_frame_id_;
         std::string tfRefFrame;
 
-	  	// ROS stuff
-	  	ros::NodeHandle nh_;
-	  	ros::Publisher pub;
+        // ROS stuff
+        ros::NodeHandle nh_;
+        ros::Publisher pub;
         sensor_msgs::CameraInfoPtr camera_info_1;
         sensor_msgs::CameraInfoPtr camera_info_2;
 
@@ -78,6 +78,6 @@ namespace saphari_kinect_server
 
         userTracker userTr;
 
-	};
+    };
 
 }

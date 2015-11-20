@@ -10,9 +10,9 @@ userTracker::userTracker(ros::NodeHandle &node):n(node) {
     g_strPose[0] = 0x0;
     //depthMD_cb.ReAdjust(640,480);
 
-    userIDpub = n.advertise<std_msgs::Int32>("/kinect_traker/active_user_id", 2);
+    userIDpub = n.advertise<std_msgs::Int32>("/kinect_tracker/active_user_id", 2);
     tf_pub_ = n.advertise<tf::tfMessage>("/tf", 2);
-    humansPub = n.advertise<saphari_msgs::Humans>("/kinect_traker/user_state",2);
+    humansPub = n.advertise<saphari_msgs::Humans>("/kinect_tracker/user_state",2);
 
     // Get parameters from launch file
     // tf
@@ -226,7 +226,7 @@ void userTracker::publishTransforms(std::string const& frame_id) {
     XnUserID user = 0;
 
     for (int i = 0; i < users_count; ++i) {
-        ROS_DEBUG("Processing user %d", i);
+        //ROS_DEBUG("Processing user %d", i);
         user = users[i];
         if(!g_UserGenerator.GetSkeletonCap().IsTracking(user)) {
             // Remove user from human state message
@@ -249,42 +249,40 @@ void userTracker::publishTransforms(std::string const& frame_id) {
             // Publish a tf/tfMessage instead of tfBroadcast in order to avoid
             // 500 Hz publication rate
 
-            ROS_DEBUG("Reading out all transforms from OpenNI.");
+            //ROS_DEBUG("Reading out all transforms from OpenNI.");
             publishTransform(user, XN_SKEL_HEAD,  frame_id, "kinect/head_" + strNum, 0);
             publishTransform(user, XN_SKEL_NECK,  frame_id, "kinect/neck_" + strNum, 1);
             publishTransform(user, XN_SKEL_TORSO, frame_id, "kinect/torso_" + strNum, 2);
-            publishTransform(user, XN_SKEL_WAIST, frame_id, "kinect/waist_" + strNum, 3);
+            //publishTransform(user, XN_SKEL_WAIST, frame_id, "kinect/waist_" + strNum, 3);
 
             publishTransform(user, XN_SKEL_LEFT_SHOULDER, frame_id, "kinect/right_shoulder_" + strNum, 4);
             publishTransform(user, XN_SKEL_LEFT_ELBOW,    frame_id, "kinect/right_elbow_" + strNum, 5);
-            publishTransform(user, XN_SKEL_LEFT_WRIST,    frame_id, "kinect/right_wrist_" + strNum, 6);
+            //publishTransform(user, XN_SKEL_LEFT_WRIST,    frame_id, "kinect/right_wrist_" + strNum, 6);
             publishTransform(user, XN_SKEL_LEFT_HAND,     frame_id, "kinect/right_hand_" + strNum, 7);
 
             publishTransform(user, XN_SKEL_RIGHT_SHOULDER, frame_id, "kinect/left_shoulder_" + strNum, 8);
             publishTransform(user, XN_SKEL_RIGHT_ELBOW,    frame_id, "kinect/left_elbow_" + strNum, 9);
-            publishTransform(user, XN_SKEL_RIGHT_WRIST,    frame_id, "kinect/left_wrist_" + strNum, 10);
+            //publishTransform(user, XN_SKEL_RIGHT_WRIST,    frame_id, "kinect/left_wrist_" + strNum, 10);
             publishTransform(user, XN_SKEL_RIGHT_HAND,     frame_id, "kinect/left_hand_" + strNum, 11);
 
             publishTransform(user, XN_SKEL_LEFT_HIP,  frame_id, "kinect/right_hip_" + strNum, 12);
             publishTransform(user, XN_SKEL_LEFT_KNEE, frame_id, "kinect/right_knee_" + strNum, 13);
-            publishTransform(user, XN_SKEL_LEFT_ANKLE, frame_id, "kinect/right_ankle_" + strNum, 14);
+            //publishTransform(user, XN_SKEL_LEFT_ANKLE, frame_id, "kinect/right_ankle_" + strNum, 14);
             publishTransform(user, XN_SKEL_LEFT_FOOT, frame_id, "kinect/right_foot_" + strNum, 15);
 
             publishTransform(user, XN_SKEL_RIGHT_HIP,  frame_id, "kinect/left_hip_" + strNum, 16);
             publishTransform(user, XN_SKEL_RIGHT_KNEE, frame_id, "kinect/left_knee_" + strNum, 17);
-            publishTransform(user, XN_SKEL_RIGHT_ANKLE, frame_id, "kinect/left_ankle_" + strNum, 18);
+            //publishTransform(user, XN_SKEL_RIGHT_ANKLE, frame_id, "kinect/left_ankle_" + strNum, 18);
             publishTransform(user, XN_SKEL_RIGHT_FOOT, frame_id, "kinect/left_foot_" + strNum, 19);
 
-            ROS_DEBUG("Done with reading out transforms.");
-
             if(publishTf && user==closestUserId) {
-                ROS_DEBUG("Publishing tf.");
+                // ROS_DEBUG("Publishing tf.");
                 tf_pub_.publish(tf_msg_);
             }
 
             // Store all human data
             if(publishHumanState) {
-                ROS_DEBUG("Copying data into saphari_msgs.");
+                // ROS_DEBUG("Copying data into saphari_msgs.");
                 storeHumansData(user);
             }
         }
@@ -296,17 +294,20 @@ void userTracker::publishTransforms(std::string const& frame_id) {
     }
 
     if(publishHumanState) {
-        ROS_DEBUG("Publishing saphari_msgs.");
+        // ROS_DEBUG("Publishing saphari_msgs.");
         humansPub.publish(humansMsg);
     }
 }
 
-void copyTfTransformToBodyPartMsg(const geometry_msgs::TransformStamped& tf, saphari_msgs::BodyPart& bodypart)
+void userTracker::copyTfTransformToBodyPartMsg(const geometry_msgs::TransformStamped& tf, int human_idx, int bodypart_id)
 {
+  BodyPart bodypart;
+  bodypart.id = bodypart_id;
   bodypart.tf = tf;
   bodypart.centroid.x = tf.transform.translation.x;
   bodypart.centroid.y = tf.transform.translation.y;
   bodypart.centroid.z = tf.transform.translation.z;
+  humansMsg.humans[human_idx].bodyParts.push_back(bodypart);
 
 }
 
@@ -319,31 +320,33 @@ void userTracker::storeHumansData(XnUserID user) {
             humansMsg.humans[i].userID = user;
 
             // Body Parts
-            ROS_DEBUG("Start copying bodyparts.");
-            copyTfTransformToBodyPartMsg(tf_msg_.transforms[0], humansMsg.humans[i].bodyParts[BodyPart::HEAD]);
-            copyTfTransformToBodyPartMsg(tf_msg_.transforms[1], humansMsg.humans[i].bodyParts[BodyPart::NECK]);
-            copyTfTransformToBodyPartMsg(tf_msg_.transforms[2], humansMsg.humans[i].bodyParts[BodyPart::TORSO]);
+            humansMsg.humans[i].bodyParts.clear();
+            copyTfTransformToBodyPartMsg(tf_msg_.transforms[0], i, BodyPart::HEAD);
 
-            copyTfTransformToBodyPartMsg(tf_msg_.transforms[4], humansMsg.humans[i].bodyParts[BodyPart::RIGHTSHOULDER]);
-            copyTfTransformToBodyPartMsg(tf_msg_.transforms[5], humansMsg.humans[i].bodyParts[BodyPart::RIGHTELBOW]);
-            copyTfTransformToBodyPartMsg(tf_msg_.transforms[6], humansMsg.humans[i].bodyParts[BodyPart::RIGHTFOREARM]);
-            copyTfTransformToBodyPartMsg(tf_msg_.transforms[7], humansMsg.humans[i].bodyParts[BodyPart::RIGHTHAND]);
+            copyTfTransformToBodyPartMsg(tf_msg_.transforms[1], i, BodyPart::NECK);
+            copyTfTransformToBodyPartMsg(tf_msg_.transforms[2], i, BodyPart::TORSO);
 
-            copyTfTransformToBodyPartMsg(tf_msg_.transforms[8], humansMsg.humans[i].bodyParts[BodyPart::LEFTSHOULDER]);
-            copyTfTransformToBodyPartMsg(tf_msg_.transforms[9], humansMsg.humans[i].bodyParts[BodyPart::LEFTELBOW]);
-            copyTfTransformToBodyPartMsg(tf_msg_.transforms[10], humansMsg.humans[i].bodyParts[BodyPart::LEFTFOREARM]);
-            copyTfTransformToBodyPartMsg(tf_msg_.transforms[11], humansMsg.humans[i].bodyParts[BodyPart::LEFTHAND]);
+            copyTfTransformToBodyPartMsg(tf_msg_.transforms[4], i, BodyPart::RIGHTSHOULDER);
+            copyTfTransformToBodyPartMsg(tf_msg_.transforms[5], i, BodyPart::RIGHTELBOW);
+            //copyTfTransformToBodyPartMsg(tf_msg_.transforms[6], i, BodyPart::RIGHTFOREARM);
+            copyTfTransformToBodyPartMsg(tf_msg_.transforms[7], i, BodyPart::RIGHTHAND);
 
-            copyTfTransformToBodyPartMsg(tf_msg_.transforms[12], humansMsg.humans[i].bodyParts[BodyPart::RIGHTHIP]);
-            copyTfTransformToBodyPartMsg(tf_msg_.transforms[13], humansMsg.humans[i].bodyParts[BodyPart::RIGHTKNEE]);
-            copyTfTransformToBodyPartMsg(tf_msg_.transforms[14], humansMsg.humans[i].bodyParts[BodyPart::RIGHTLEG]);
-            copyTfTransformToBodyPartMsg(tf_msg_.transforms[15], humansMsg.humans[i].bodyParts[BodyPart::RIGHTFOOT]);
+            copyTfTransformToBodyPartMsg(tf_msg_.transforms[8], i, BodyPart::LEFTSHOULDER);
+            copyTfTransformToBodyPartMsg(tf_msg_.transforms[9], i, BodyPart::LEFTELBOW);
+            //copyTfTransformToBodyPartMsg(tf_msg_.transforms[10],i, BodyPart::LEFTFOREARM);
+            copyTfTransformToBodyPartMsg(tf_msg_.transforms[11],i, BodyPart::LEFTHAND);
 
-            copyTfTransformToBodyPartMsg(tf_msg_.transforms[16], humansMsg.humans[i].bodyParts[BodyPart::LEFTHIP]);
-            copyTfTransformToBodyPartMsg(tf_msg_.transforms[17], humansMsg.humans[i].bodyParts[BodyPart::LEFTKNEE]);
-            copyTfTransformToBodyPartMsg(tf_msg_.transforms[18], humansMsg.humans[i].bodyParts[BodyPart::LEFTLEG]);
-            copyTfTransformToBodyPartMsg(tf_msg_.transforms[19], humansMsg.humans[i].bodyParts[BodyPart::LEFTFOOT]);
+            copyTfTransformToBodyPartMsg(tf_msg_.transforms[12], i, BodyPart::RIGHTHIP);
+            copyTfTransformToBodyPartMsg(tf_msg_.transforms[13], i, BodyPart::RIGHTKNEE);
+            //copyTfTransformToBodyPartMsg(tf_msg_.transforms[14], i, BodyPart::RIGHTLEG);
+            copyTfTransformToBodyPartMsg(tf_msg_.transforms[15], i, BodyPart::RIGHTFOOT);
 
+            copyTfTransformToBodyPartMsg(tf_msg_.transforms[16], i, BodyPart::LEFTHIP);
+            copyTfTransformToBodyPartMsg(tf_msg_.transforms[17], i, BodyPart::LEFTKNEE);
+            //copyTfTransformToBodyPartMsg(tf_msg_.transforms[18], i, BodyPart::LEFTLEG);
+
+            copyTfTransformToBodyPartMsg(tf_msg_.transforms[19], i, BodyPart::LEFTFOOT);
+            //cout << "published human body parts: " << user << endl;
             break;
         }
     }

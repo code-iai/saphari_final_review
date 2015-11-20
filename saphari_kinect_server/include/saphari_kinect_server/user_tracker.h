@@ -74,6 +74,7 @@ public:
     saphari_msgs::Humans humansMsg;
     saphari_msgs::Human emptyHm;
     ros::Publisher humansPub;
+    void copyTfTransformToBodyPartMsg(const geometry_msgs::TransformStamped& tf, int human_idx, int bodypart_id);
 
 protected:
     XnUserID getClosestUser();

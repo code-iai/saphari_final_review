@@ -1,3 +1,2 @@
 <launch>
-  <include file="$(find saphari_task_executive)/launch/logging_pipeline.launch" />
 </launch>

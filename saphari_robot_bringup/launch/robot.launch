@@ -23,6 +23,8 @@
     <arg name="simulation" value="$(arg simulation)" />
   </include>
 
+  <include file="$(find saphari_robot_bringup)/launch/knowledge_base.launch" />
+
   <include file="$(find saphari_interactive_markers)/launch/saphari_interactive_markers.launch" />
 
   <node name="robot_state_publisher" pkg="robot_state_publisher"

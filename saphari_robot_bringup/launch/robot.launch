@@ -2,6 +2,7 @@
   <arg name="simulation" default="true" />
   <arg name="with_tool_perception" default="true" />
   <arg name="with_human_perception" default="true" />
+  <arg name="with_knowledge_base" default="true" />
 
   <include file="$(find saphari_robot_description)/launch/upload.launch" />
 
@@ -23,7 +24,9 @@
     <arg name="simulation" value="$(arg simulation)" />
   </include>
 
-  <include file="$(find saphari_robot_bringup)/launch/knowledge_base.launch" />
+  <include file="$(find saphari_robot_bringup)/launch/knowledge_base.launch" >
+    <arg name="enabled" value="$(arg with_knowledge_base)" />
+  </include>
 
   <include file="$(find saphari_interactive_markers)/launch/saphari_interactive_markers.launch" />
 

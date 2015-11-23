@@ -147,11 +147,11 @@
     (let* ((logging-id (on-prepare-perception-request obj-desig))
            (desigs (tool-perception-response->object-desigs
                     (apply #'call-service (getf demo-handle :tool-perception))
-                    '((:on :table)))))
-      (on-finish-perception-request logging-id desigs)
-      (apply #'publish-tool-markers demo-handle nil desigs)
-      (publish-tool-poses-to-tf demo-handle desigs)
-      desigs)))
+                    '((:on :table))))
+           (logged-desigs (on-finish-perception-request logging-id desigs)))
+      (apply #'publish-tool-markers demo-handle nil logged-desigs)
+      (publish-tool-poses-to-tf demo-handle logged-desigs)
+      logged-desigs)))
 
 (cpl-impl:def-cram-function query-tool-perception (demo-handle &rest desigs)
   (if (getf demo-handle :json-prolog)
@@ -173,11 +173,20 @@
     id))
 
 (defun on-finish-perception-request (id results)
-  (dolist (desig results)
-    (beliefstate:add-designator-to-node
-     desig id :annotation "perception-result"))
-;  (beliefstate:add-topic-image-to-active-node cram-beliefstate::*kinect-topic-rgb*)
-  (beliefstate:stop-node id :success (not (eql results nil))))
+  (let ((logged-results
+          (loop for desig in results
+                collect
+                (progn
+                  (beliefstate:add-designator-to-node desig id :annotation "perception-result")
+                  (desig:equate
+                   desig
+                   (desig:copy-designator 
+                    desig
+                    :new-description
+                    `((:knowrob-id ,(beliefstate:resolve-designator-knowrob-id desig)))))))))
+    ; TODO:  (beliefstate:add-topic-image-to-active-node cram-beliefstate::*kinect-topic-rgb*)
+    (beliefstate:stop-node id :success (not (eql logged-results nil)))
+    logged-results))
 
 ;;;
 ;;; ROS INTERFACE

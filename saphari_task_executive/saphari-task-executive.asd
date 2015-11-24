@@ -48,6 +48,7 @@
      (:file "designator-utils" :depends-on ("package"))
      (:file "conversions" :depends-on ("package" "lisp-utils" "designator-utils"))
      (:file "tf" :depends-on ("package" "conversions"))
+     (:file "knowrob-queries" :depends-on ("package" "knowrob-utils" "conversions"))
      (:file "designator-reasoning" :depends-on ("package" "designator-utils" "tf"))
      (:file "marker-viz" :depends-on ("package" "designator-reasoning" "designator-utils"))
      (:file "tool-perception" :depends-on ("package" "lisp-utils" "knowrob-utils" "designator-reasoning" "conversions" "marker-viz"))

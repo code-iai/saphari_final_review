@@ -93,52 +93,6 @@
    0.5868684649467468))
 
 ;;;
-;;; QUERY KNOWROB
-;;;
-
-(defun query-knowrob-tool-perception (&rest class-keywords)
-  (let ((query-string
-          (conc-strings "knowrob_saphari:saphari_latest_object_detections("
-                        (apply #'keywords->knowrob-string-list class-keywords)
-                        ",_Detections),"
-                        "member(_Detection, _Detections),"
-                        "mng_designator(_Detection, _ObjJava),"
-                        "mng_designator_props(_Detection, _ObjJava, ['TYPE'], DESIGTYPE),"
-                        "mng_designator_props(_Detection, _ObjJava, ['AT', 'POSE'], _DesigPose),"
-                        "jpl_get(_DesigPose, 'frameID', FRAMEID),"
-                        "jpl_get(_DesigPose, 'timeStamp', _TimeStampIso),"
-                        "jpl_call(_TimeStampIso, 'toSeconds', [], TIMESTAMP),"
-;;                        "jpl_call(_TimeStampIso, 'totalNsecs', [], TIMESTAMP),"
-                        "jpl_call(_DesigPose, 'getData', [], _Pose),"
-                        "knowrob_coordinates:matrix4d_to_list(_Pose, _PoseList),"
-                        "matrix_rotation(_PoseList, [QW, QX, QY, QZ]),"
-                        "matrix_translation(_PoseList, [X, Y, Z]).")))
-    (let ((bindings (cut:force-ll (prolog-simple query-string))))
-      (mapcar (lambda (binding)
-                (cut:with-vars-bound (?QW ?QX ?QY ?QZ
-                                          ?X ?Y ?Z
-                                          ?TIMESTAMP ?FRAMEID
-                                          ?DESIGTYPE) binding
-                  (properties->obj-desig
-                   (json-symbol->keyword ?DESIGTYPE)
-                   (make-msg
-                    "geometry_msgs/PoseStamped"
-                    (:stamp :header) ?TIMESTAMP
-                    (:frame_id :header) (json-symbol->string ?FRAMEID)
-                    (:x :position :pose) ?X
-                    (:y :position :pose) ?Y
-                    (:z :position :pose) ?Z
-                    (:x :orientation :pose) ?QX
-                    (:y :orientation :pose) ?QY
-                    (:z :orientation :pose) ?QZ
-                    (:w :orientation :pose) ?QW)
-                   ;; TODO: get confidence from KNOWROB
-                   0.2
-                   ;; TODO: get that extra description from knowrob
-                   '((:on :table)))))
-              bindings))))
-
-;;;
 ;;; HIGH-LEVEL PLAN INTERFACE
 ;;;
 

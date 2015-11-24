@@ -47,17 +47,26 @@
         ;; TODO: loop
         ;; TODO: human reactivity
         (lookat-pickup-zone demo-handle)
-        (alexandria:when-let ((object-desigs (trigger-tool-perception demo-handle)))
-          ;; TODO: infer target-object and target-location
-          (let* ((target-object
-                   (nth (random (length object-desigs)) object-desigs))
-                 (target-location
-                   (location-designator `((:a :location)
-                                          (:in :sorting-basket)
-                                          (:slot-id :middle-slot)
-                                          (:target-obj ,target-object)))))
+        (alexandria:when-let* ((object-desigs (trigger-tool-perception demo-handle)))
+          (multiple-value-bind (target-object target-location)
+              (infer-target-object-and-location-desigs object-desigs)
             (let ((updated-target-object (grasp-object demo-handle target-object)))
-              (place-object demo-handle updated-target-object target-location))))))))
+              (place-object demo-handle updated-target-object target-location)))
+            ;; TODO: infer target-object and target-location
+            ;; (let* ((target-object
+            ;;          (nth (random (length object-desigs)) object-desigs))
+            ;;        (target-location
+            ;;          (location-designator `((:a :location)
+            ;;                                 (:in :sorting-basket)
+            ;;                                 (:slot-id :middle-slot)
+            ;;                                 (:target-obj ,target-object)))))
+            ;;   (let ((updated-target-object (grasp-object demo-handle target-object)))
+            ;;     (place-object demo-handle updated-target-object target-location)))
+            )))))
+
+;;;
+;;; TEMPORARY DEBUG/DEVEL CODE
+;;;
 
 (defun make-target-object (type-keyword slot-id pose)
   (object-designator
@@ -92,3 +101,8 @@
 (defun bringup-scripting-environment ()
   (start-ros-node "cram")
   (setf *dh* (make-demo-handle)))
+
+(defun fill-knowrob-with-percepts (demo-handle)
+  (cpl:top-level
+    (lookat-pickup-zone demo-handle)
+    (trigger-tool-perception demo-handle)))

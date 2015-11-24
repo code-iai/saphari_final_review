@@ -51,12 +51,22 @@
   (when (desig-p desig)
     (desig:desig-prop-value desig prop)))
 
-(defun desig-prop-value-p (desig prop value &key (test #'equal))
+(defun desig-prop-value-p (desig prop value)
   "Checks whether designator 'desig' has property 'prop'
  associated with 'value' in its description. Return NIL if
  'desig' is not a designator. Optionally, the test function
  can be changed through the keyword parameter :test."
-  (funcall test (desig-prop-value desig prop) value))
+  (let ((test-fn (typecase value
+                   (string #'string=)
+                   (desig:designator #'desig-descr-equal)
+                   (t #'equal))))
+    (funcall test-fn (desig-prop-value desig prop) value)))
+
+(defun desig-descr-included (subset-desig superset-desig)
+  "Checks whether the description of 'subset-desig' is contained
+ in the description of 'superset-desig'."
+  (loop for (prop value) in (desig-descr subset-desig)
+        always (desig-prop-value-p superset-desig prop value)))
 
 (defun desig-descr-equal (desig-1 desig-2)
   "Checks whether the two designators 'desig-1' and 'desig-2'
@@ -64,24 +74,23 @@
  of their descriptions contain nested designators. Returns NIL if
  either of the two inputs is not an instance of type designator."
   (and
-   (desig-p desig-1)
-   (desig-p desig-2)
-   (every #'identity
-          (mapcar (lambda (prop-value-pair)
-                    (destructuring-bind (prop value) prop-value-pair
-                      (desig-prop-value-p
-                       desig-2 prop value
-                       :test (if (desig-p value) #'desig-descr-equal #'equal))))
-                  (desig:description desig-1)))))
+   (= (length (desig-descr desig-1)) (length (desig-descr desig-2)))
+   (desig-descr-included desig-1 desig-2))
+  ;; (and
+  ;;  (desig-p desig-1)
+  ;;  (desig-p desig-2)
+  ;;  (every #'identity
+  ;;         (mapcar (lambda (prop-value-pair)
+  ;;                   (destructuring-bind (prop value) prop-value-pair
+  ;;                     (desig-prop-value-p
+  ;;                      desig-2 prop value
+  ;;                      :test (if (desig-p value) #'desig-descr-equal #'equal))))
+  ;;                 (desig:description desig-1))))
+  )
 
 (defun desig-descr (desig)
   (when (desig-p desig)
     (desig:description desig)))
-
-(defun desig-descr-recur (desig)
-  (loop for (prop value) in (desig-descr desig) collect
-        `(,(if (desig-p prop) (desig-descr-recur prop) prop)
-          ,(if (desig-p value) (desig-descr-recur value) value))))
 
 (defun sample-desig ()
   (action-designator

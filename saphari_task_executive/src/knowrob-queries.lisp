@@ -80,16 +80,19 @@
 ;;   member(DesigID, DesigIDs),
 ;;   saphari_object_properties(DesigID, ObjClass, Pose).")
 
+(defun ensure-double-float (num)
+  (float num 0.0d0))
+
 (defun knowrob-bindings->pose-msg (trans-bindings rot-bindings)
   (make-msg
    "geometry_msgs/Pose"
-   (:x :position) (first trans-bindings)
-   (:y :position) (second trans-bindings)
-   (:z :position) (third trans-bindings)
-   (:x :orientation) (first rot-bindings)
-   (:y :orientation) (second rot-bindings)
-   (:z :orientation) (third rot-bindings)
-   (:w :orientation) (fourth rot-bindings)))
+   (:x :position) (ensure-double-float (first trans-bindings))
+   (:y :position) (ensure-double-float (second trans-bindings))
+   (:z :position) (ensure-double-float (third trans-bindings))
+   (:x :orientation) (ensure-double-float (first rot-bindings))
+   (:y :orientation) (ensure-double-float (second rot-bindings))
+   (:z :orientation) (ensure-double-float (third rot-bindings))
+   (:w :orientation) (ensure-double-float (fourth rot-bindings))))
 
 (defun query-saphari-next-object ()
   (let ((query "knowrob_saphari:saphari_next_object(

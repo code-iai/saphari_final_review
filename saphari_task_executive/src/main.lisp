@@ -46,12 +46,15 @@
       (cpl:top-level
         ;; TODO: loop
         ;; TODO: human reactivity
+        ;; TODO: failure handling
         (lookat-pickup-zone demo-handle)
         (alexandria:when-let* ((object-desigs (trigger-tool-perception demo-handle)))
           (multiple-value-bind (target-object target-location)
               (infer-target-object-and-location-desigs object-desigs)
             (let ((updated-target-object (grasp-object demo-handle target-object)))
-              (place-object demo-handle updated-target-object target-location)))
+               (put-down demo-handle updated-target-object target-location)
+              ))
+                        
             ;; TODO: infer target-object and target-location
             ;; (let* ((target-object
             ;;          (nth (random (length object-desigs)) object-desigs))
@@ -73,7 +76,8 @@
    `((:an :object)
      (:type ,type-keyword)
      (:at ,(location-designator
-            `((:slot-id ,slot-id)
+            `((:a :location)
+              (:slot-id ,slot-id)
               (:pose ,(make-msg
                        "geometry_msgs/PoseStamped"
                        (:frame_id :header) "sorting_basket"

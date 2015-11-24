@@ -35,7 +35,7 @@
   (or
    (infer-lookat-motion-goal desig)
    (infer-grasp-motion-goal demo-handle desig)
-   (infer-place-motion-goal demo-handle desig)
+   (infer-put-down-motion-goal demo-handle desig)
    (cpl:fail "Could not resolve: ~a" desig)))
 
 (defun infer-lookat-motion-goal (desig)
@@ -88,12 +88,11 @@
    (desig-prop-value-p desig :an :action)
    (desig-prop-value-p desig :to :grasp)
    (alexandria:when-let*
-       ((sim-p (desig-prop-value desig :sim))
-        (obj (desig-prop-value desig :obj))
+       ((obj (desig-prop-value desig :obj))
         (goal-pose-stamped (infer-object-grasping-pose-stamped obj))
         (beasty-cartesian-goal (gripper-at-pose-stamped-msg
                                 demo-handle goal-pose-stamped)))
-     (roslisp-beasty:make-default-cartesian-goal beasty-cartesian-goal sim-p))))
+     (roslisp-beasty:make-default-cartesian-goal beasty-cartesian-goal (desig-prop-value desig :sim)))))
 
 (defun infer-object-grasping-offset (desig)
   (declare (ignore desig))
@@ -129,18 +128,18 @@
    (:z :position :pose) 0.02
    (:w :orientation :pose) 1.0))
   
-(defun infer-object-placing-pose-stamped (desig slot-id)
+(defun infer-put-down-pose-stamped (object location)
   (alexandria:when-let*
-      ((slot-pose-stamped-msg (infer-slot-pose-stamped slot-id))
-       (obj-grasping-offset (infer-object-grasping-offset desig)))
-    (with-fields (header pose) slot-pose-stamped-msg
+      ((put-down-pose-stamped-msg (infer-location-pose location))
+       (obj-grasping-offset (infer-object-grasping-offset object)))
+    (with-fields (header pose) put-down-pose-stamped-msg
       (make-msg
        "geometry_msgs/PoseStamped"
        :header header
        :pose (transform->pose-msg
               (cl-transforms:transform*
                (pose-msg->transform pose)
-               obj-grasping-offset))))))  
+               obj-grasping-offset))))))
 
 (defun gripper-at-pose-stamped-msg (demo-handle pose-stamped-msg)
   (alexandria:when-let*
@@ -155,32 +154,18 @@
           tf "gripper_tool_frame" "arm_flange_link"))))
     (cl-transforms:transform* goal-in-base inverse-gripper-offset)))
 
-(defun infer-place-motion-goal (demo-handle desig)
+(defun infer-put-down-motion-goal (demo-handle desig)
   (and
    (desig-prop-value-p desig :an :action)
-   (desig-prop-value-p desig :to :reach)
-   (alexandria:when-let ((sim-p (desig-prop-value desig :sim))
-                         (loc (desig-prop-value desig :at)))
-     (and
-      (desig-prop-value-p loc :a :location)
-      (alexandria:when-let* ((slot-id (desig-prop-value loc :slot-id))
-                             (obj (desig-prop-value loc :target-obj))
-                             (goal-pose-stamped (infer-object-placing-pose-stamped obj slot-id))
-                             (beasty-cartesian-goal (gripper-at-pose-stamped-msg
-                                                     demo-handle goal-pose-stamped)))
-      ;; ;; TODO: move this into a default function
-      ;; (list
-      ;;  0.5003623962402344
-      ;;  0.8569384217262268
-      ;;  0.08925693482160568
-      ;;  -1.1276057958602905
-      ;;  -0.0697876513004303
-      ;;  1.164320468902588
-      ;;  0.5868684649467468)
-      ;; sim-p))))
-        (roslisp-beasty:make-default-cartesian-goal beasty-cartesian-goal sim-p))))))
+   (desig-prop-value-p desig :to :put-down)
+   (alexandria:when-let*
+       ((sim-p (desig-prop-value desig :sim))
+        (loc (desig-prop-value desig :at))
+        (obj (desig-prop-value desig :obj))
+        (put-down-pose-stamped (infer-put-down-pose-stamped obj loc))
+        (goal-pose-stamped (gripper-at-pose-stamped-msg demo-handle put-down-pose-stamped)))
+     (roslisp-beasty:make-default-cartesian-goal goal-pose-stamped sim-p))))
                           
-
 (defun infer-gripper-goal (desig)
   (or
    (infer-gripper-open-goal desig)
@@ -221,11 +206,19 @@
     cram-wsg50:*default-speed*
     cram-wsg50:*default-force*)))
 
+;;;
+;;; MERE UTILS
+;;;
+
 (defun infer-object-pose (desig)
   (and
    (desig-prop-value-p desig :an :object)
-   (alexandria:when-let ((loc-desig (desig-prop-value desig :at)))
-     (desig-prop-value loc-desig :pose))))
+   (infer-location-pose (desig-prop-value desig :at))))
+
+(defun infer-location-pose (desig)
+  (and
+   (desig-prop-value-p desig :a :location)
+   (desig-prop-value desig :pose)))
 
 (defun infer-object-transform (desig &optional (postfix ""))
   (declare (type string postfix))

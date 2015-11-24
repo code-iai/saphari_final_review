@@ -106,9 +106,7 @@
           (desig:copy-designator
            object
            :new-description
-           `((:at ,(location-designator
-                    `((:in :gripper)
-                      (:pose ,obj-in-gripper-pose))))))))
+           `((:at ,(pose-stamped->loc-desig obj-in-gripper-pose '((:in :gripper))))))))
       (desig:equate object new-obj-desig)
       (publish-tool-markers demo-handle t new-obj-desig)
       new-obj-desig)))
@@ -120,53 +118,51 @@
                        (:obj ,object)
                        (:sim ,(getf demo-handle :sim-p))))))
     ;; TODO: failure handling
-    (perform-beasty-motion demo-handle desig)))
+    (perform-beasty-motion demo-handle desig)
+    ))
 
-(cpl:def-cram-function place-object (demo-handle object location)
-  ;; TODO: verify object in hand?
-  ;; TODO: verify location to place this object?
-  ;; TODO: failure handling
-  (lookat-target-zone demo-handle)
-  (reach-location demo-handle location)
-  (let ((new-obj-desig (release-object demo-handle object)))
-    (lookat-target-zone demo-handle)
-    new-obj-desig))
-
-(cpl:def-cram-function reach-location (demo-handle location)
-  (let ((desig
+(cpl:def-cram-function put-down (demo-handle object location)
+  (let ((put-down-desig
           (action-designator
-           `((:an :action)
-             (:to :reach)
-             (:at ,location)
-             (:sim ,(getf demo-handle :sim-p))))))
+           `((:an :action) (:to :put-down)
+             (:obj ,object) (:at ,location)
+             (:sim ,(getf demo-handle :sim-p)))))
+        (release-desig (action-designator
+                        `((:an :action) (:to :release)
+                          (:obj ,object) (:at ,location)
+                          (:sim ,(getf demo-handle :sim-p))))))
     ;; TODO: failure handling
-    (perform-beasty-motion demo-handle desig)))
-
-(cpl:def-cram-function release-object (demo-handle object)
-  (let ((desig
-          (action-designator
-           `((:an :action)
-             (:to :release)
-             (:obj ,object)))))
-    (perform-gripper-motion demo-handle desig)
-    (alexandria:when-let*
-        ((obj-in-gripper-pose
-          (transform->pose-stamped-msg
-           (infer-object-grasping-offset object)
-           "gripper_tool_frame"))
-         (new-obj-desig
-          (desig:copy-designator
-           object
-           :new-description
-           `((:at ,(location-designator
-                    `((:pose ,obj-in-gripper-pose))))))))
-      (desig:equate object new-obj-desig)
-      (publish-tool-markers demo-handle nil new-obj-desig)
-      new-obj-desig)))
+    ;; TODO: turn into action desig to look at slot
+    (lookat-target-zone demo-handle)
+    ;; TODO: change into a single type of perform?
+    (perform-beasty-motion demo-handle put-down-desig)
+    ;; TODO: failure handling
+    (perform-gripper-motion demo-handle release-desig)
+    ;; TODO: move this code into perform-gripper-motion
+    (let ((new-object (desig:copy-designator object :new-description `((:at ,location)))))
+      (desig:equate object new-object)
+      (publish-tool-markers demo-handle nil new-object)
+      ;; TODO: turn into action desig to look at slot
+      (lookat-target-zone demo-handle)
+      new-object)
+    ;; (alexandria:when-let*
+    ;;     ((obj-in-gripper-pose
+    ;;       (transform->pose-stamped-msg
+    ;;        (infer-object-grasping-offset object)
+    ;;        "gripper_tool_frame"))
+    ;;      (new-obj-desig
+    ;;       (desig:copy-designator
+    ;;        object
+    ;;        :new-description
+    ;;        `((:at ,(pose-stamped->loc-desig obj-in-gripper-pose '((:in :basket))))))))
+    ;;   (desig:equate object new-obj-desig)
+    ;;   (publish-tool-markers demo-handle nil new-obj-desig)
+    ;;   new-obj-desig)
+            ))
              
              
 ;; TODO: turn me into a plan
-(defun perform-beasty-motion (demo-handle desig)
+(cpl:def-cram-function perform-beasty-motion (demo-handle desig)
   (roslisp-beasty:move-beasty-and-wait
    (getf demo-handle :beasty)
    (infer-motion-goal demo-handle desig)))

@@ -57,7 +57,7 @@
 
 (defun pose-stamped->loc-desig (pose-stamped extra-descr)
   (declare (type geometry_msgs-msg:posestamped pose-stamped))
-  (location-designator (conc-lists `((:pose ,pose-stamped)) extra-descr)))
+  (location-designator (conc-lists `((:a :location)(:pose ,pose-stamped)) extra-descr)))
 
 ;;;
 ;;; ROS MESSAGE CONVERSIONS

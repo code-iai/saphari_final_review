@@ -107,13 +107,6 @@
       (publish-tool-poses-to-tf demo-handle logged-desigs)
       logged-desigs)))
 
-(cpl-impl:def-cram-function query-tool-perception (demo-handle &rest desigs)
-  (if (getf demo-handle :json-prolog)
-      ;; TODO: desig->class-keywords
-      ;; TODO: equate?
-      (apply #'query-knowrob-tool-perception desigs)
-      (cpl:fail "Tool query failed: json-prolog disabled.")))
-
 ;;;
 ;;; LOGGING INTERFACE
 ;;;

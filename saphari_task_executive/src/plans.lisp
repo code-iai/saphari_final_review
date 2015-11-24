@@ -28,15 +28,6 @@
 
 (in-package :saphari-task-executive)
 
-(cpl-impl:def-cram-function perceive-tools (demo-handle &rest desigs)
-  (cpl:try-in-order
-    (apply #'query-tool-perception demo-handle desigs)
-    (cpl:seq
-      (lookat-pickup-zone demo-handle)
-      (ros-info :saphari-task-executive "Moving arm to look at pickup zone.")
-      (trigger-tool-perception demo-handle)
-      (apply #'query-tool-perception demo-handle desigs))))
-
 (cpl:def-cram-function lookat-pickup-zone (demo-handle &optional (distance 30))
   ;; TOOD: use with-designators
   (let ((desig (action-designator
@@ -127,10 +118,11 @@
            `((:an :action) (:to :put-down)
              (:obj ,object) (:at ,location)
              (:sim ,(getf demo-handle :sim-p)))))
-        (release-desig (action-designator
-                        `((:an :action) (:to :release)
-                          (:obj ,object) (:at ,location)
-                          (:sim ,(getf demo-handle :sim-p))))))
+        (release-desig
+          (action-designator
+           `((:an :action) (:to :release)
+             (:obj ,object) (:at ,location)
+             (:sim ,(getf demo-handle :sim-p))))))
     ;; TODO: failure handling
     ;; TODO: turn into action desig to look at slot
     (lookat-target-zone demo-handle)
@@ -169,4 +161,7 @@
 
 (cpl:def-cram-function perform-gripper-motion (demo-handle desig)
   (destructuring-bind (width speed force) (infer-gripper-goal desig)
-    (cram-wsg50:move-wsg50-and-wait (getf demo-handle :wsg50) width speed force 5 5)))
+    (let ((new-desig (desig:copy-designator desig :new-description `((:width ,width) (:speed ,speed) (:force ,force)))))
+      (cram-wsg50:move-wsg50-and-wait (getf demo-handle :wsg50) width speed force 5 5)
+      (desig:equate desig new-desig)
+      new-desig)))

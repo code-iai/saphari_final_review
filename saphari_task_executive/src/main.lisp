@@ -43,6 +43,8 @@
 (defun main ()
   (with-ros-node ("cram")
     (let ((demo-handle (make-demo-handle)))
+      (beliefstate::init-semrec)
+      (beliefstate:enable-logging t)
       (cpl:top-level
         ;; TODO: loop
         ;; TODO: human reactivity
@@ -52,20 +54,8 @@
           (multiple-value-bind (target-object target-location)
               (infer-target-object-and-location-desigs object-desigs)
             (let ((updated-target-object (grasp-object demo-handle target-object)))
-               (put-down demo-handle updated-target-object target-location)
-              ))
-                        
-            ;; TODO: infer target-object and target-location
-            ;; (let* ((target-object
-            ;;          (nth (random (length object-desigs)) object-desigs))
-            ;;        (target-location
-            ;;          (location-designator `((:a :location)
-            ;;                                 (:in :sorting-basket)
-            ;;                                 (:slot-id :middle-slot)
-            ;;                                 (:target-obj ,target-object)))))
-            ;;   (let ((updated-target-object (grasp-object demo-handle target-object)))
-            ;;     (place-object demo-handle updated-target-object target-location)))
-            )))))
+               (put-down demo-handle updated-target-object target-location)))))
+      (beliefstate:extract-files))))
 
 ;;;
 ;;; TEMPORARY DEBUG/DEVEL CODE

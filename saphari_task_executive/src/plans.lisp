@@ -28,16 +28,34 @@
 
 (in-package :saphari-task-executive)
 
-(cpl:def-cram-function lookat-pickup-zone (demo-handle &optional (distance 30))
-  ;; TOOD: use with-designators
-  (let ((desig (action-designator
-                `((:an :action)
-                  (:to :see)
-                  (:obj ,(object-designator '((:an :object)
-                                              (:type :pickup-zone))))
-                  (:distance ,distance)
-                  (:sim ,(getf demo-handle :sim-p))))))
-    (perform-beasty-motion demo-handle desig)))
+(defun on-start-perform-action-designator (desig)
+  (declare (type desig:action-designator desig))
+  (let ((id (beliefstate:start-node
+             "PERFORM-ACTION-DESIGNATOR"
+             (list
+              (list 'beliefstate::description (desig:description desig))
+              ;; matching-process-modules to comply with semrec
+              (list 'beliefstate::matching-process-modules nil))
+             2)))
+    (beliefstate:add-designator-to-node desig id)
+    id))
+
+(defun on-finish-perform-action-designator (id)
+  (beliefstate:stop-node id))
+
+(defun on-start-grasping (desig)
+  (let ((id (beliefstate:start-node "GRASP-OBJECT")))
+    (beliefstate:add-designator-to-node desig id :annotation "designator")))
+
+(defun on-finish-grasping (id)
+  (beliefstate:stop-node id))
+
+(defun on-start-put-down (desig)
+  (let ((id (beliefstate:start-node "PUT-DOWN-OBJECT")))
+    (beliefstate:add-designator-to-node desig id :annotation "designator")))
+
+(defun on-finish-put-down (id)
+  (beliefstate:stop-node id))
 
 (cpl:def-cram-function lookat-target-zone (demo-handle)
   ;; TOOD: use with-designators
@@ -66,11 +84,17 @@
   ;; TODO: check nothing in hand?
   ;; TODO: object perceived?
   ;; TODO: failure handling
-  (open-gripper demo-handle)
-  (reach-object demo-handle object)
-  (clamp-object demo-handle object)
-  (lookat-pickup-zone demo-handle)
-  object)
+  (let* ((desig (action-designator
+                 `((:an :action)
+                   (:to :grasp)
+                   (:obj ,object))))
+         (logging-id (on-start-grasping desig)))
+    (open-gripper demo-handle)
+    (reach-object demo-handle object)
+    (clamp-object demo-handle object)
+    (lookat-pickup-zone demo-handle)
+    (on-finish-grasping logging-id)
+    object))
 
 (cpl:def-cram-function open-gripper (demo-handle)
   (let ((desig (action-designator
@@ -82,12 +106,15 @@
 
 (cpl:def-cram-function clamp-object (demo-handle object)
   ;; TODO: refactor desig to also hold object?
-  (let ((desig (action-designator
+  (let* ((desig (action-designator
                 `((:an :action)
-                  (:to :close)
-                  (:body-part :gripper)))))
+                  (:to :clamp)
+                  (:body-part :gripper))))
+         (logging-id (on-start-perform-action-designator desig)))
     ;; TODO: failure handling
     (perform-gripper-motion demo-handle desig)
+    (on-finish-perform-action-designator logging-id)
+    ;; TODO: move this into perform-gripper-motion
     (alexandria:when-let*
         ((obj-in-gripper-pose
           (transform->pose-stamped-msg
@@ -103,19 +130,26 @@
       new-obj-desig)))
     
 (cpl:def-cram-function reach-object (demo-handle object)
-  (let ((desig (action-designator
+  (let* ((desig (action-designator
                      `((:an :action)
-                       (:to :grasp)
+                       (:to :reach)
                        (:obj ,object)
-                       (:sim ,(getf demo-handle :sim-p))))))
+                       (:sim ,(getf demo-handle :sim-p)))))
+         (logging-id (on-start-perform-action-designator desig)))
     ;; TODO: failure handling
     (perform-beasty-motion demo-handle desig)
-    ))
+    (on-finish-perform-action-designator logging-id)))
 
 (cpl:def-cram-function put-down (demo-handle object location)
   (let ((put-down-desig
           (action-designator
            `((:an :action) (:to :put-down)
+             (:obj ,object) (:at ,location)
+             (:sim ,(getf demo-handle :sim-p)))))
+        (reach-desig
+          (action-designator
+           `((:an :action) (:to :reach)
+             ;; TODO: get rid of object here, we can get type-info out of location
              (:obj ,object) (:at ,location)
              (:sim ,(getf demo-handle :sim-p)))))
         (release-desig
@@ -125,18 +159,24 @@
              (:sim ,(getf demo-handle :sim-p))))))
     ;; TODO: failure handling
     ;; TODO: turn into action desig to look at slot
-    (lookat-target-zone demo-handle)
-    ;; TODO: change into a single type of perform?
-    (perform-beasty-motion demo-handle put-down-desig)
-    ;; TODO: failure handling
-    (perform-gripper-motion demo-handle release-desig)
-    ;; TODO: move this code into perform-gripper-motion
-    (let ((new-object (desig:copy-designator object :new-description `((:at ,location)))))
-      (desig:equate object new-object)
-      (publish-tool-markers demo-handle nil new-object)
-      ;; TODO: turn into action desig to look at slot
+    (let ((logging-id (on-start-put-down put-down-desig)))
       (lookat-target-zone demo-handle)
-      new-object)
+      (let ((logging-id (on-start-perform-action-designator reach-desig)))
+        ;; TODO: failure handling
+        (perform-beasty-motion demo-handle reach-desig)
+        (on-finish-perform-action-designator logging-id))
+      (let ((logging-id (on-start-perform-action-designator release-desig)))
+        ;; TODO: failure handling
+        (perform-gripper-motion demo-handle release-desig)
+        (on-finish-perform-action-designator logging-id))
+      ;; TODO: move this code into perform-gripper-motion
+      (let ((new-object (desig:copy-designator object :new-description `((:at ,location)))))
+        (desig:equate object new-object)
+        (publish-tool-markers demo-handle nil new-object)
+        ;; TODO: turn into action desig to look at slot
+        (lookat-target-zone demo-handle)
+        (on-finish-put-down logging-id)
+        new-object))
     ;; (alexandria:when-let*
     ;;     ((obj-in-gripper-pose
     ;;       (transform->pose-stamped-msg

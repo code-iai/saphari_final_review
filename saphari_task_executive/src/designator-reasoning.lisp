@@ -86,7 +86,8 @@
 (defun infer-grasp-motion-goal (demo-handle desig)
   (and
    (desig-prop-value-p desig :an :action)
-   (desig-prop-value-p desig :to :grasp)
+   (desig-prop-value-p desig :to :reach)
+   (not (desig-prop-value desig :at))
    (alexandria:when-let*
        ((obj (desig-prop-value desig :obj))
         (goal-pose-stamped (infer-object-grasping-pose-stamped obj))
@@ -157,7 +158,7 @@
 (defun infer-put-down-motion-goal (demo-handle desig)
   (and
    (desig-prop-value-p desig :an :action)
-   (desig-prop-value-p desig :to :put-down)
+   (desig-prop-value-p desig :to :reach)
    (alexandria:when-let*
        ((sim-p (desig-prop-value desig :sim))
         (loc (desig-prop-value desig :at))
@@ -176,7 +177,7 @@
 (defun infer-gripper-close-goal (desig)
   (and
    (desig-prop-value-p desig :an :action)
-   (desig-prop-value-p desig :to :close)
+   (desig-prop-value-p desig :to :clamp)
    (desig-prop-value-p desig :body-part :gripper)
    ;; TODO: more about objects?
    (list

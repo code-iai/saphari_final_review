@@ -64,14 +64,18 @@
   ;;;
   (or
    (and
-    (desig-prop-value-p desig :an :action)
-    (desig-prop-value-p desig :to :see)
-    (desig-descr-equal
-     (desig-prop-value desig :obj)
-     (object-designator '((:an :object)(:type :sorting-basket))))
-    (alexandria:when-let ((sim-p (desig-prop-value desig :sim)))
-      (roslisp-beasty:make-default-joint-goal
-       (lookat-sorting-basket-config) sim-p)))
+    (desig-descr-included
+     (action-designator
+      `((:an :action)
+        (:to :move)
+        (:at ,(location-designator
+               `((:a :location)
+                 (:above ,(location-designator
+                           `((:a :location)
+                             (:in :sorting-basket)))))))))
+     desig)
+    (roslisp-beasty:make-default-joint-goal
+     (lookat-sorting-basket-config) (desig-prop-value desig :sim)))
    (and
     (desig-prop-value-p desig :an :action)
     (desig-prop-value-p desig :to :see)

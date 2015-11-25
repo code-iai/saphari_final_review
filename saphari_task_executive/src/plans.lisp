@@ -94,15 +94,19 @@
                   (:sim ,(getf demo-handle :sim-p))))))
     (perform-beasty-motion demo-handle desig)))
 
-(cpl:def-cram-function lookat-target-zone (demo-handle)
+(cpl:def-cram-function lookat-target-zone (demo-handle location)
   ;; TOOD: use with-designators
-  (let ((desig (action-designator
+  (let* ((above-location
+           (location-designator
+            `((:a :location)
+              (:above ,location))))
+         (desig (action-designator
                 `((:an :action)
-                  (:to :see)
-                  (:obj ,(object-designator '((:an :object)
-                                              (:type :sorting-basket))))
+                  (:to :move)
+                  (:at ,above-location)
                   (:sim ,(getf demo-handle :sim-p))))))
-    (perform-beasty-motion demo-handle desig)))
+    (defparameter *desig* desig)
+    (perform-beasty-motion demo-handle desig above-location)))
 
 (cpl:def-cram-function grasp-object (demo-handle object)
   (let ((desig (action-designator
@@ -158,37 +162,41 @@
     (perform-beasty-motion demo-handle desig object)))
 
 (cpl:def-cram-function put-down (demo-handle object location)
-  (let ((put-down-desig
+  (let* ((put-down
           (action-designator
            `((:an :action) (:to :put-down)
              (:obj ,object) (:at ,location)
              (:sim ,(getf demo-handle :sim-p)))))
-        (reach-desig
+        (above-location
+          (location-designator
+           `((:a :location) (:above ,location))))
+        (move
+          (action-designator
+           `((:an :action) (:to :move)
+             (:at ,above-location)
+             (:sim ,(getf demo-handle :sim-p)))))
+        (reach
           (action-designator
            `((:an :action) (:to :reach)
              ;; TODO: get rid of object here, we can get type-info out of location
              (:obj ,object) (:at ,location)
              (:sim ,(getf demo-handle :sim-p)))))
-        (release-desig
+        (release
           (action-designator
            `((:an :action) (:to :release)
              (:obj ,object) (:at ,location)
              (:sim ,(getf demo-handle :sim-p))))))
-    ;; TODO: failure handling
-    ;; TODO: turn into action desig to look at slot
     (with-logging
-        ((alexandria:curry #'on-start-put-down put-down-desig object location)
+        ((alexandria:curry #'on-start-put-down put-down object location)
          #'on-finish-put-down)
-      (lookat-target-zone demo-handle)
-      (perform-beasty-motion demo-handle reach-desig location)
-      (perform-gripper-motion demo-handle release-desig object location)
+      (perform-beasty-motion demo-handle move above-location)
+      (perform-beasty-motion demo-handle reach location)
+      (perform-gripper-motion demo-handle release object location)
       ;; TODO: move this code into perform-gripper-motion
       (let ((new-object (desig:copy-designator object :new-description `((:at ,location)))))
         (desig:equate object new-object)
-        (publish-tool-markers demo-handle nil new-object)
-        ;; TODO: turn into action desig to look at slot
-        (lookat-target-zone demo-handle)
-        new-object))))
+        (publish-tool-markers demo-handle nil new-object))
+      (perform-beasty-motion demo-handle move above-location))))
              
              
 (defun perform-beasty-motion (demo-handle desig &rest other-log-desigs)

@@ -51,14 +51,15 @@
   (when (desig-p desig)
     (desig:desig-prop-value desig prop)))
 
-(defun desig-prop-value-p (desig prop value)
+(defun desig-prop-value-p (desig prop value &optional (desig-included-p nil))
   "Checks whether designator 'desig' has property 'prop'
  associated with 'value' in its description. Return NIL if
  'desig' is not a designator. Optionally, the test function
  can be changed through the keyword parameter :test."
   (let ((test-fn (typecase value
                    (string #'string=)
-                   (desig:designator #'desig-descr-equal)
+                   (desig:designator
+                    (if desig-included-p #'desig-descr-included #'desig-descr-equal))
                    (t #'equal))))
     (funcall test-fn (desig-prop-value desig prop) value)))
 
@@ -66,7 +67,7 @@
   "Checks whether the description of 'subset-desig' is contained
  in the description of 'superset-desig'."
   (loop for (prop value) in (desig-descr subset-desig)
-        always (desig-prop-value-p superset-desig prop value)))
+        always (desig-prop-value-p superset-desig prop value t)))
 
 (defun desig-descr-equal (desig-1 desig-2)
   "Checks whether the two designators 'desig-1' and 'desig-2'

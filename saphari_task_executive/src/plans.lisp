@@ -40,8 +40,13 @@
        (unwind-protect (progn ,@body)
          (funcall ,end-hook log-id result)))))
 
+(defun knowrob-annotation-prop (desig)
+  (etypecase desig
+    (desig:action-designator "designator")
+    (desig:object-designator "object-acted-on")
+    (desig:location-designator "goal-location")))
+
 (defun on-start-perform-action-designator (desig &rest other-desigs)
-  (declare (type desig:action-designator desig))
   (let ((id (beliefstate:start-node
              "PERFORM-ACTION-DESIGNATOR"
              (list
@@ -51,7 +56,8 @@
              2)))
     (beliefstate:add-designator-to-node desig id)
     (dolist (other-desig other-desigs)
-      (beliefstate:add-designator-to-node other-desig id))
+      (beliefstate:add-designator-to-node
+       other-desig id :annotation (knowrob-annotation-prop other-desig)))
     id))
 
 (defun on-finish-perform-action-designator (id success)
@@ -60,7 +66,8 @@
 (defun on-start-grasping (&rest desigs)
   (let ((id (beliefstate:start-node "GRASP-OBJECT")))
     (dolist (desig desigs)
-      (beliefstate:add-designator-to-node desig id :annotation "designator"))
+      (beliefstate:add-designator-to-node
+       desig id :annotation (knowrob-annotation-prop desig)))
     id))
 
 (defun on-finish-grasping (id success)
@@ -69,7 +76,8 @@
 (defun on-start-put-down (desig object location)
   (let ((id (beliefstate:start-node "PUT-DOWN-OBJECT")))
     (dolist (designator (list desig object location))
-      (beliefstate:add-designator-to-node designator id :annotation "designator"))
+      (beliefstate:add-designator-to-node
+       designator id :annotation (knowrob-annotation-prop designator)))
     id))
 
 (defun on-finish-put-down (id success)

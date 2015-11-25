@@ -54,7 +54,7 @@
           (multiple-value-bind (target-object target-location)
               (infer-target-object-and-location-desigs object-desigs)
             (let ((updated-target-object (grasp-object demo-handle target-object)))
-               (put-down demo-handle updated-target-object target-location)))))
+              (put-down demo-handle updated-target-object target-location)))))
       (beliefstate:extract-files))))
 
 ;;;

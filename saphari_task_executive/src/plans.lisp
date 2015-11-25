@@ -43,12 +43,13 @@
 (defun on-finish-perform-action-designator (id)
   (beliefstate:stop-node id))
 
-(defun on-start-grasping (desig)
+(defun on-start-grasping (&rest desigs)
   (let ((id (beliefstate:start-node "GRASP-OBJECT")))
-    (beliefstate:add-designator-to-node desig id :annotation "designator")))
+    (dolist (desig desigs)
+      (beliefstate:add-designator-to-node desig id :annotation "designator"))))
 
-(defun on-finish-grasping (id)
-  (beliefstate:stop-node id))
+(defun on-finish-grasping (id success)
+  (beliefstate:stop-node id :success success))
 
 (defun on-start-put-down (desig)
   (let ((id (beliefstate:start-node "PUT-DOWN-OBJECT")))
@@ -56,6 +57,17 @@
 
 (defun on-finish-put-down (id)
   (beliefstate:stop-node id))
+
+(cpl:def-cram-function lookat-pickup-zone (demo-handle &optional (distance 30))
+  ;; TOOD: use with-designators
+  (let ((desig (action-designator
+                `((:an :action)
+                  (:to :see)
+                  (:obj ,(object-designator '((:an :object)
+                                              (:type :pickup-zone))))
+                  (:distance ,distance)
+                  (:sim ,(getf demo-handle :sim-p))))))
+    (perform-beasty-motion demo-handle desig)))
 
 (cpl:def-cram-function lookat-target-zone (demo-handle)
   ;; TOOD: use with-designators
@@ -81,19 +93,16 @@
      (perform-beasty-motion demo-handle desig)))
 
 (cpl:def-cram-function grasp-object (demo-handle object)
-  ;; TODO: check nothing in hand?
-  ;; TODO: object perceived?
-  ;; TODO: failure handling
-  (let* ((desig (action-designator
-                 `((:an :action)
-                   (:to :grasp)
-                   (:obj ,object))))
-         (logging-id (on-start-grasping desig)))
-    (open-gripper demo-handle)
-    (reach-object demo-handle object)
-    (clamp-object demo-handle object)
-    (lookat-pickup-zone demo-handle)
-    (on-finish-grasping logging-id)
+  (let ((desig (action-designator
+                `((:an :action)
+                  (:to :grasp)
+                  (:obj ,object)))))
+    (cpl-impl::log-block #'on-start-grasping (desig object) #'on-finish-grasping
+      ;; TODO: refactor to be longer because logs look better?
+      (open-gripper demo-handle)
+      (reach-object demo-handle object)
+      (clamp-object demo-handle object)
+      (lookat-pickup-zone demo-handle))
     object))
 
 (cpl:def-cram-function open-gripper (demo-handle)

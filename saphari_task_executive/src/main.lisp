@@ -95,7 +95,66 @@
    (getf demo-handle :tf-listener)
    (infer-object-pose desig)
    "map"))
-    
+
+(defun random-password (length)
+  (let ((chars "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"))
+    (coerce (loop repeat length collect (aref chars (random (length chars))))
+            'string)))
+
+(defun object-desig->slot-owl (demo-handle basket-hash desig)
+  (alexandria:when-let ((type-keyword (desig-prop-value desig :type))
+                        (pose (desig-pose-in-map demo-handle desig))
+                        (slot-hash (random-password 8))
+                        (transform-hash (random-password 8))
+                        (template-string
+                         "
+<!-- http://knowrob.org/kb/saphari.owl#BasketSlot_~a -->
+<owl:NamedIndividual rdf:about=\"&saphari;BasketSlot_~a\">
+  <rdf:type rdf:resource=\"&saphari;BasketSlot\"/>
+  <knowrob:perceptionResponse>~a</knowrob:perceptionResponse>
+  <knowrob:physicalPartOf rdf:resource=\"&saphari;Basket_~a\"/>
+</owl:NamedIndividual>
+
+<owl:NamedIndividual rdf:about=\"&saphari;Transformation_~a\">
+  <rdf:type rdf:resource=\"&knowrob;Transformation\"/>
+  <knowrob:quaternion rdf:datatype=\"&xsd;string\">~f ~f ~f ~f</knowrob:quaternion>
+  <knowrob:translation rdf:datatype=\"&xsd;string\">~f ~f ~f</knowrob:translation>
+</owl:NamedIndividual>
+
+<owl:NamedIndividual rdf:about=\"&knowrob;SemanticMapPerception_~a\">
+  <rdf:type rdf:resource=\"&knowrob;SemanticMapPerception\"/>
+  <knowrob:eventOccursAt rdf:resource=\"&saphari;Transformation_~a\"/>
+  <knowrob:startTime rdf:resource=\"&saphari;timepoint_0000000001\"/>
+  <knowrob:objectActedOn rdf:resource=\"&saphari;BasketSlot_~a\"/>
+</owl:NamedIndividual>
+"))
+    (with-slots (orientation origin) pose
+      (with-slots ((qx x) (qy y) (qz z) (qw w)) orientation
+        (with-slots (x y z) origin
+          (format
+           nil template-string
+           slot-hash slot-hash (symbol-name type-keyword) basket-hash transform-hash
+           qx qy qz qw
+           x y z
+           transform-hash transform-hash slot-hash))))))
+
+(defun object-desigs->basket-owl (demo-handle desigs &key (princ-result t) (return-result nil))
+  (let* ((basket-hash (random-password 8))
+         (template-string
+          "<!-- http://knowrob.org/kb/saphari.owl#Basket_~a -->
+<owl:NamedIndividual rdf:about=\"&saphari;Basket_~a\">
+  <rdf:type rdf:resource=\"&saphari;Basket\"/>
+</owl:NamedIndividual>")
+         (result
+           (apply
+            #'concatenate
+            'string
+            (format nil template-string basket-hash basket-hash)
+            (mapcar (alexandria:curry #'object-desig->slot-owl demo-handle basket-hash) desigs))))
+    (when princ-result (princ result))
+    (when return-result result)))
+
+
 (defparameter *dh* nil)
 
 (defun bringup-scripting-environment ()
@@ -106,3 +165,5 @@
   (cpl:top-level
     (lookat-pickup-zone demo-handle)
     (trigger-tool-perception demo-handle)))
+
+

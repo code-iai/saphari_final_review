@@ -78,3 +78,40 @@
                                               collect (tool-desig->marker desig index frame-locked-p))))
                         (pub (getf demo-handle :marker-pub)))
     (publish pub (make-msg "visualization_msgs/MarkerArray" :markers (coerce markers 'vector)))))
+
+(defun color-msg (selector)
+  (ecase selector
+    (:red (make-msg "std_msgs/ColorRGBA" :r 1.0 :g 0.0 :b 0.0 :a 1.0))
+    (:green (make-msg "std_msgs/ColorRGBA" :r 0.0 :g 1.0 :b 0.0 :a 1.0))
+    (:gray (make-msg "std_msgs/ColorRGBA" :r 0.7 :g 0.7 :b 0.7 :a 1.0))
+    ))
+
+(defun publish-slot-markers (demo-handle empty-slots)
+  (delete-all-markers demo-handle "cram_empty_slots")
+  (alexandria:when-let
+      ((markers (remove-if-not #'identity
+                               (loop for empty-slot in empty-slots
+                                     counting t into index
+                                     collect (slot-desig->marker empty-slot "cram_empty_slots" index (color-msg :red)))))
+       (pub (getf demo-handle :marker-pub)))
+    (publish pub (make-msg "visualization_msgs/MarkerArray" :markers (coerce markers 'vector)))))
+
+(defun slot-desig->marker (desig ns id color)
+  (alexandria:when-let*
+      ((type-keyword (desig-prop-value desig :target-object-type))
+       (pose-stamped-msg (desig-prop-value desig :pose))
+       (mesh-path (instrument-type->mesh-path type-keyword)))
+    (with-fields (header pose) pose-stamped-msg
+      (make-msg
+       "visualization_msgs/Marker"
+       :header header
+       :ns ns
+       :id id
+       :type (symbol-code 'visualization_msgs-msg:Marker :mesh_resource)
+       :action (symbol-code 'visualization_msgs-msg:Marker :add)
+       :pose pose
+       (:x :scale) 1.0 (:y :scale) 1.0 (:z :scale) 1.0
+       :color color
+       :mesh_resource mesh-path
+       :mesh_use_embedded_materials t))))
+       

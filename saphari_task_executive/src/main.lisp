@@ -89,6 +89,12 @@
       (make-target-object :pincers 6 (make-pose (make-3d-vector 0.13 0.03 0.02) (make-identity-rotation)))
       (make-target-object :pincers 7 (make-pose (make-3d-vector 0.13 0.08 0.02) (make-identity-rotation)))))
     (t nil)))
+
+(defun desig-pose-in-map (demo-handle desig)
+  (tf2-transform-pose-stamped-msg
+   (getf demo-handle :tf-listener)
+   (infer-object-pose desig)
+   "map"))
     
 (defparameter *dh* nil)
 

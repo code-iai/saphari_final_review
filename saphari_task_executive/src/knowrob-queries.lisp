@@ -104,6 +104,21 @@
                    (:frame_id :header) "map"
                    (:pose) (knowrob-bindings->pose-msg ?SLOTTRANS ?SLOTROT)))))))))
 
+(defun query-saphari-empty-slots ()
+  (let ((query "knowrob_saphari:saphari_empty_slot((SLOTID, OBJCLASS, (SLOTTRANS, SLOTROT)))."))
+    (mapcar
+     (lambda (solution)
+       (cut:with-vars-bound (?SLOTID ?OBJCLASS ?SLOTTRANS ?SLOTROT) solution
+         (location-designator `((:a :location)
+                                (:in :sorting-basket)
+                                (:target-object-type ,(json-symbol->keyword ?OBJCLASS))
+                                (:slot-id ,(json-symbol->string ?SLOTID))
+                                (:pose ,(make-msg
+                                         "geometry_msgs/PoseStamped"
+                                         (:frame_id :header) "map"
+                                         (:pose) (knowrob-bindings->pose-msg ?SLOTTRANS ?SLOTROT)))))))
+     (cut:force-ll (prolog-simple query)))))
+
 (defun infer-target-object-and-location-desigs (perceived-desigs)
   (multiple-value-bind (target-object target-location) (query-saphari-next-object)
     (values

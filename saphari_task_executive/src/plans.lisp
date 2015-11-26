@@ -105,7 +105,6 @@
                   (:to :move)
                   (:at ,above-location)
                   (:sim ,(getf demo-handle :sim-p))))))
-    (defparameter *desig* desig)
     (perform-beasty-motion demo-handle desig above-location)))
 
 (cpl:def-cram-function grasp-object (demo-handle object)

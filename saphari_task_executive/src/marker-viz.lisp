@@ -59,14 +59,14 @@
        :mesh_resource mesh-path
        :mesh_use_embedded_materials t))))
 
-(defun delete-all-markers (demo-handle)
+(defun delete-all-markers (demo-handle &optional (ns "cram_instrument_visualization"))
   (alexandria:when-let ((pub (getf demo-handle :marker-pub)))
     (publish pub 
              (make-message
               "visualization_msgs/MarkerArray"
               :markers
               (vector (make-message "visualization_msgs/Marker"
-                                    :ns "cram_instrument_visualization"
+                                    :ns ns
                                     :action 3))))))
 
 (defun publish-tool-markers (demo-handle frame-locked-p &rest desigs)

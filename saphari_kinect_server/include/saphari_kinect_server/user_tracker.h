@@ -91,6 +91,7 @@ private:
     ros::NodeHandle n;
     ros::Publisher userIDpub, tf_pub_;
     tf::tfMessage tf_msg_;
+    tf::tfMessage tf_msg_Pub;
 
     void storeHumansData(XnUserID user);
 

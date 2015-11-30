@@ -228,6 +228,17 @@ void userTracker::publishTransforms(std::string const& frame_id) {
     for (int i = 0; i < users_count; ++i) {
         //ROS_DEBUG("Processing user %d", i);
         user = users[i];
+        // may we should use the confidence to get a better quality of the skeleton and a more continues behaviour
+        // like with this: !!! I'm not sure if our version of OpenNi supports this
+        /* 
+        PMatrix3D  orientation = new PMatrix3D();   //matrix to store the steadiest orientation (used in rendering)
+        PMatrix3D  newOrientaton = new PMatrix3D();
+        float confidence = g_UserGenerator.GetSkeletonCap().getJointOrientationSkeleton(user,SimpleOpenNI.SKEL_HEAD,newOrientaton);//retrieve the head orientation from OpenNI
+        if(confidence > 0.001){                     //if the new orientation is steady enough (and play with the 0.001 value to see what works best)
+          orientation.reset();                      //reset the matrix and get the new values
+          orientation.apply(newOrientaton);         //copy the steady orientation to the matrix we use to render the avatar
+        // elements with low confidence like legs get sorted out automatically
+        }*/
         if(!g_UserGenerator.GetSkeletonCap().IsTracking(user)) {
             // Remove user from human state message
             for(int i=0; i<humansMsg.observed_user_ids.size(); ++i) {
@@ -245,7 +256,7 @@ void userTracker::publishTransforms(std::string const& frame_id) {
             string strNum;
             strm << user;
             strm >> strNum;
-
+            tf_msg_Pub.transforms.clear();
             // Publish a tf/tfMessage instead of tfBroadcast in order to avoid
             // 500 Hz publication rate
 
@@ -277,7 +288,7 @@ void userTracker::publishTransforms(std::string const& frame_id) {
 
             if(publishTf && user==closestUserId) {
                 // ROS_DEBUG("Publishing tf.");
-                tf_pub_.publish(tf_msg_);
+                tf_pub_.publish(tf_msg_Pub);
             }
 
             // Store all human data

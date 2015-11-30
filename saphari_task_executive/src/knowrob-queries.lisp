@@ -86,9 +86,11 @@
 
 (defun query-saphari-next-object ()
   (let ((query "knowrob_saphari:saphari_next_object(
-                    SLOTID, (SLOTTRANS, SLOTROT), OBJCLASS, DESIGID)"))
+                    SLOTID, (SLOTTRANS, SLOTROT), OBJCLASS, DESIGID)")
+        (before (ros-time)))
     (cut:with-vars-bound (?SLOTID ?SLOTTRANS ?SLOTROT ?OBJCLASS ?DESIGID)
         (cut:lazy-car (prolog-simple query))
+      (ros-info :saphari-next-object "query time: ~a" (- (ros-time) before))
       (values 
        (object-designator
         `((:an :object)
@@ -119,8 +121,30 @@
                                          (:pose) (knowrob-bindings->pose-msg ?SLOTTRANS ?SLOTROT)))))))
      (cut:force-ll (prolog-simple query)))))
 
+(defun query-saphari-taken-slots ()
+  (let ((query "knowrob_saphari:saphari_taken_slot((SLOTID, OBJCLASS, (SLOTTRANS, SLOTROT)))."))
+    (mapcar
+     (lambda (solution)
+       (cut:with-vars-bound (?SLOTID ?OBJCLASS ?SLOTTRANS ?SLOTROT) solution
+         (location-designator `((:a :location)
+                                (:in :sorting-basket)
+                                (:target-object-type ,(json-symbol->keyword ?OBJCLASS))
+                                (:slot-id ,(json-symbol->string ?SLOTID))
+                                (:pose ,(make-msg
+                                         "geometry_msgs/PoseStamped"
+                                         (:frame_id :header) "map"
+                                         (:pose) (knowrob-bindings->pose-msg ?SLOTTRANS ?SLOTROT)))))))
+     (cut:force-ll (prolog-simple query)))))
+
 (defun infer-target-object-and-location-desigs (perceived-desigs)
   (multiple-value-bind (target-object target-location) (query-saphari-next-object)
     (values
      (find target-object perceived-desigs :test #'desig-descr-included)
      target-location)))
+
+(defun infer-empty-slots (demo-handle)
+  (let ((empty-slots (query-saphari-empty-slots))
+        (taken-slots (query-saphari-taken-slots)))
+    (publish-slot-markers demo-handle empty-slots taken-slots)
+    (ros-info :infer-empty-slots "No. empty slots: ~a" (length empty-slots))
+    empty-slots))

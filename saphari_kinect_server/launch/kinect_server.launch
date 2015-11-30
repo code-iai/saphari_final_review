@@ -62,6 +62,6 @@
   	</node> -->
 
   <!-- Kinect to word tf publisher
-  <node pkg="tf" type="static_transform_publisher" name="kinect_to_world" args="0 0 0 0 0 0 1 /world /openni_depth_frame 100" /> -->
+  <node pkg="tf" type="static_transform_publisher" name="kinect_to_world" args="0.28611 -1.1464 1.3448 0.77338 0.40982 -0.18511 -0.44683 /world /openni_depth_frame 30" /> -->
 
 </launch>

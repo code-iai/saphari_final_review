@@ -46,15 +46,20 @@
       (beliefstate::init-semrec)
       (beliefstate:enable-logging t)
       (cpl:top-level
-        ;; TODO: loop
         ;; TODO: human reactivity
         ;; TODO: failure handling
-        (lookat-pickup-zone demo-handle)
-        (alexandria:when-let* ((object-desigs (trigger-tool-perception demo-handle)))
-          (multiple-value-bind (target-object target-location)
-              (infer-target-object-and-location-desigs object-desigs)
-            (let ((updated-target-object (grasp-object demo-handle target-object)))
-              (put-down demo-handle updated-target-object target-location)))))
+        (let* ((empty-slots-fluent (cpl:make-fluent :value (infer-empty-slots demo-handle))))
+          (cpl:pursue
+            (cpl:wait-for (cpl:not empty-slots-fluent))
+            (loop-at-most-every 1
+              (setf (cpl:value empty-slots-fluent) (infer-empty-slots demo-handle))
+              ;; TODO: change into nice perception plan
+              (lookat-pickup-zone demo-handle)
+              (alexandria:when-let* ((object-desigs (trigger-tool-perception demo-handle)))
+                (multiple-value-bind (target-object target-location)
+                    (infer-target-object-and-location-desigs object-desigs)
+                  (let ((updated-target-object (grasp-object demo-handle target-object)))
+                    (put-down demo-handle updated-target-object target-location))))))))
       (beliefstate:extract-files))))
 
 ;;;

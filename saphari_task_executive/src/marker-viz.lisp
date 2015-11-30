@@ -86,15 +86,19 @@
     (:gray (make-msg "std_msgs/ColorRGBA" :r 0.7 :g 0.7 :b 0.7 :a 1.0))
     ))
 
-(defun publish-slot-markers (demo-handle empty-slots)
+(defun publish-slot-markers (demo-handle empty-slots taken-slots)
   (delete-all-markers demo-handle "cram_empty_slots")
-  (alexandria:when-let
-      ((markers (remove-if-not #'identity
-                               (loop for empty-slot in empty-slots
-                                     counting t into index
-                                     collect (slot-desig->marker empty-slot "cram_empty_slots" index (color-msg :red)))))
-       (pub (getf demo-handle :marker-pub)))
-    (publish pub (make-msg "visualization_msgs/MarkerArray" :markers (coerce markers 'vector)))))
+  (delete-all-markers demo-handle "cram_taken_slots")
+  (alexandria:when-let ((pub (getf demo-handle :marker-pub)))
+    (let* ((empty-markers (remove-if-not #'identity
+                                         (loop for empty-slot in empty-slots
+                                               counting t into index
+                                               collect (slot-desig->marker empty-slot "cram_empty_slots" index (color-msg :red)))))
+           (taken-markers (remove-if-not #'identity
+                                         (loop for taken-slot in taken-slots
+                                               counting t into index
+                                               collect (slot-desig->marker taken-slot "cram_taken_slots" (+ index (length (list empty-markers))) (color-msg :gray))))))
+      (publish pub (make-msg "visualization_msgs/MarkerArray" :markers (coerce (append empty-markers taken-markers) 'vector))))))
 
 (defun slot-desig->marker (desig ns id color)
   (alexandria:when-let*

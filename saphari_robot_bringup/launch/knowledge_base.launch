@@ -1,5 +1,10 @@
 <launch>
   <arg name="enabled" default="true" />
+  <arg name="delete_mongo" default="false" />
+
+  <group if="$(arg delete_mongo)">
+    <node name="delete_mongo" pkg="saphari_robot_bringup" type="delete_mongo_roslog.sh" />
+  </group>
 
   <group if="$(arg enabled)">
     <node name="semrec_ros" pkg="semrec" type="semrec" args="-c $(find saphari_robot_bringup)/config/semrec_config.cfg" 

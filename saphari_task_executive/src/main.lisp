@@ -40,7 +40,7 @@
    :marker-pub (advertise "visualization_marker_array" "visualization_msgs/MarkerArray")
    ))
 
-(defun main ()
+(defun loop-main ()
   (with-ros-node ("cram")
     (let ((demo-handle (make-demo-handle)))
       (beliefstate::init-semrec)
@@ -62,6 +62,22 @@
                     (put-down demo-handle updated-target-object target-location))))))))
       (beliefstate:extract-files))))
 
+(defun single-main ()
+  (with-ros-node ("cram")
+    (let ((demo-handle (make-demo-handle)))
+      (beliefstate::init-semrec)
+      (beliefstate:enable-logging t)
+      (cpl:top-level
+        ;; TODO: human reactivity
+        ;; TODO: failure handling
+        ;; TODO: change into nice perception plan
+        (lookat-pickup-zone demo-handle)
+        (alexandria:when-let* ((object-desigs (trigger-tool-perception demo-handle)))
+          (multiple-value-bind (target-object target-location)
+              (infer-target-object-and-location-desigs object-desigs)
+            (let ((updated-target-object (grasp-object demo-handle target-object)))
+              (put-down demo-handle updated-target-object target-location)))))
+      (beliefstate:extract-files))))
 ;;;
 ;;; TEMPORARY DEBUG/DEVEL CODE
 ;;;
@@ -171,4 +187,16 @@
     (lookat-pickup-zone demo-handle)
     (trigger-tool-perception demo-handle)))
 
-
+(defun test-desig-mongo-dump ()
+  (beliefstate::init-semrec)
+  (beliefstate:enable-logging t)
+  (let* ((loc (location-designator `((:a :location) (:in :sorting-basket))))
+         (obj (object-designator `((:an :object) (:type :big-clamp))))
+         (act (action-designator `((:an :action) (:to :put-down) (:obj ,obj) (:at ,loc)))))
+    (let ((logging-id (beliefstate:start-node "PUT-DOWN-OBJECT")))
+      (beliefstate:add-designator-to-node act logging-id :annotation "designator")
+      (beliefstate:add-designator-to-node loc logging-id :annotation "goal-location")
+      (beliefstate:add-designator-to-node obj logging-id :annotation "object-acted-on")
+      (sleep 0.1)
+      (beliefstate:stop-node logging-id))
+    (beliefstate:extract-files)))

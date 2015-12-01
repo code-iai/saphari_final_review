@@ -40,6 +40,9 @@
   "Creates an object designator with description 'descr'."
   (desig:make-designator 'desig:object descr))
 
+(defun human-designator (descr)
+  (desig:make-designator 'desig:human descr))
+
 (defun desig-p (desig)
   "Checks whether 'desig' is an of type designator object."
   (typep desig 'desig:designator))

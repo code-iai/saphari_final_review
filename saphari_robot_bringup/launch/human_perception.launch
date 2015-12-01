@@ -7,7 +7,10 @@
       <node pkg="rosbag" type="play" name="fake_human_perception" 
             args="$(find saphari_robot_bringup)/rosbags/2015-11-30-18-59-08.bag --loop --topics /kinect_tracker/user_state" />
     
-      <!--node pkg="saphari_task_executive" type="humans_filter" name="humans_filter" /-->
+      <node pkg="saphari_task_executive" type="humans_tf_publisher" name="humans_tf_publisher" >
+        <remap from="~tf" to="/tf" />
+        <remap from="~humans" to="/kinect_tracker/user_state" />
+      </node>
     
       <node pkg="saphari_task_executive" type="humans_visualization" name="humans_visualization" />
     </group>

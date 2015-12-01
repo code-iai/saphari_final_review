@@ -37,7 +37,7 @@
            
 (defun ros-configuration (selector)
   (ecase selector
-    (:subscriber '("/kinect_traker/user_state" "saphari_msgs/Humans"))
+    (:subscriber '("/kinect_tracker/user_state" "saphari_msgs/Humans"))
     (:publisher '("filtered_humans" "saphari_msgs/Humans"))))
 
 (defun filter-publish-humans-msg (publisher msg)

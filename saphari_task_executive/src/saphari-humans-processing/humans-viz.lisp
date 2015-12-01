@@ -73,7 +73,7 @@
    (:action) (symbol-code 'visualization_msgs-msg:marker :add)
    (:position :pose) (point32-msg->point-msg centroid)
    (:w :orientation :pose) 1.0
-   :lifetime 5.0
+   :lifetime 1.0
    :scale (radius->scale-msg (bodypart-id->radius id))
    :color color)))
 
@@ -129,7 +129,7 @@
           ;; TODO: parameter server lookup
           (restamp-p t))
     (subscribe
-     "filtered_humans"
+     "/kinect_tracker/user_state"
      "saphari_msgs/Humans"
      (lambda (msg)
        (publish

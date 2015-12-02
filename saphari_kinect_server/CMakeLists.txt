@@ -32,18 +32,19 @@ include_directories(${OPENGL_INCLUDE_DIR})
 
 find_package(OpenCV REQUIRED)
 
+if( OpenCV_FOUND )
+    include_directories( ${OpenCV_INCLUDE_DIRS} )
+endif( OpenCV_FOUND )
+
 rosbuild_add_boost_directories()
 
 include(FindPkgConfig)
 pkg_check_modules(OPENNI libopenni)
 
 include_directories(${OPENNI_INCLUDEDIR} /usr/include/nite)
-		    # /home/rmcpc0242/catkin_ws/devel/include)
-
-# link_directories(/home/rmcpc0242/catkin_ws/src/dlr_beasty/dlr_ard/lib/)
 
 rosbuild_add_library (kinect_driver src/driver.cpp src/user_tracker.cpp)
-target_link_libraries (kinect_driver OpenNI)
+target_link_libraries (kinect_driver OpenNI ${OpenCV_LIBS})
 
 rosbuild_add_executable (kinect_driver_node src/kinect_node.cpp)
 target_link_libraries (kinect_driver_node kinect_driver)

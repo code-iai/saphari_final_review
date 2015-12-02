@@ -2,6 +2,8 @@
 
 using namespace saphari_msgs;
 
+xn::ImageMetaData imageMD;
+
 userTracker::userTracker(ros::NodeHandle &node):n(node) {
     sem_ = 1;
     //isTracking_ = false;
@@ -13,6 +15,10 @@ userTracker::userTracker(ros::NodeHandle &node):n(node) {
     userIDpub = n.advertise<std_msgs::Int32>("/kinect_tracker/active_user_id", 2);
     tf_pub_ = n.advertise<tf::tfMessage>("/tf", 2);
     humansPub = n.advertise<saphari_msgs::Humans>("/kinect_tracker/user_state",2);
+
+    //adds by UNINA
+    gDataPub = n.advertise<saphari_msgs::GestureData>("/kinect_tracker/Camera_Info",0);
+    //end adds
 
     // Get parameters from launch file
     // tf
@@ -75,6 +81,10 @@ userTracker::userTracker(ros::NodeHandle &node):n(node) {
     emptyHm.bodyParts.push_back(emptyBp);
 
     tf_msg_.transforms.resize(20);
+
+    //adds E
+    exImg.create(480, 640, CV_8UC3);
+    //end adds
 }
 
 
@@ -127,7 +137,7 @@ void userTracker::initUserTracker() {
 
         xn::EnumerationErrors errors;
         std::string path = ros::package::getPath("saphari_kinect_server");
-        path += "/SamplesConfig.xml";       
+        path += "/SamplesConfig.xml";
         nRetVal = g_Context.InitFromXmlFile(path.c_str());
         if (nRetVal == XN_STATUS_NO_NODE_PRESENT) {
             XnChar strError[1024];
@@ -140,7 +150,21 @@ void userTracker::initUserTracker() {
             exit (1);
         }
 
-        //nRetVal = g_Context.FindExistingNode(XN_NODE_TYPE_DEPTH, g_DepthGenerator);
+        //adds by UNINA
+        nRetVal = g_Context.FindExistingNode(XN_NODE_TYPE_DEPTH, g_DepthGenerator);
+        if (nRetVal != XN_STATUS_OK){
+            nRetVal = g_DepthGenerator.Create(g_Context);
+        }
+
+        //nRetVal = imageGenerator.Create(g_Context);
+
+        //mapOutputMode.nXRes = 640;
+        //mapOutputMode.nYRes = 480;
+//        resolution.height = mapOutputMode.nXRes;
+//        resolution.width = mapOutputMode.nYRes;
+        //g_DepthGenerator.SetMapOutputMode(mapOutputMode);
+
+        //end adds
         //CHECK_RC(nRetVal, "Find depth generator");
 
         nRetVal = g_Context.FindExistingNode(XN_NODE_TYPE_USER, g_UserGenerator);
@@ -183,6 +207,10 @@ void userTracker::publishTransform(XnUserID const& user,
     double x = joint_position.position.position.X / 1000.0;
     double y = -joint_position.position.position.Y / 1000.0;
     double z = joint_position.position.position.Z / 1000.0;
+
+    joints[link_indx].X = joint_position.position.position.X;
+    joints[link_indx].Y = joint_position.position.position.Y;
+    joints[link_indx].Z = joint_position.position.position.Z;
 
     XnSkeletonJointOrientation joint_orientation;
     g_UserGenerator.GetSkeletonCap().GetSkeletonJointOrientation(user, joint, joint_orientation);
@@ -287,8 +315,88 @@ void userTracker::publishTransforms(std::string const& frame_id) {
             publishTransform(user, XN_SKEL_RIGHT_FOOT, frame_id, "kinect/left_foot_" + strNum, 19);
 
             if(publishTf && user==closestUserId) {
-                // ROS_DEBUG("Publishing tf.");
                 tf_pub_.publish(tf_msg_Pub);
+				//adds by UNINA
+				const XnDepthPixel* pDepth = depthMD.Data();
+				xn::SceneMetaData smd;
+				g_UserGenerator.GetUserPixels(user,smd);
+				cv::Mat mask;
+				mask.create(HEIGHT, WIDTH, CV_8UC3);
+				cv::MatIterator_<cv::Vec3b> it;
+
+				//Convert image into opencv format
+				it = mask.begin<cv::Vec3b> ();
+				int pixelCount = 0;
+				int minus = joints[7].Z * 30/100;
+				int maior = joints[7].Z + 80;
+				for (int y = 0; y < HEIGHT; y++) {
+				    for (int x = 0; x < WIDTH; x++) {
+				        if ((smd(x, y) == user) && (*pDepth > minus) && (*pDepth < maior)) {
+				            (*it)[0] = 255;
+				            (*it)[1] = 255;
+				            (*it)[2] = 255;
+				            pixelCount++;
+				        } else {
+				            (*it)[0] = 0;
+				            (*it)[1] = 0;
+				            (*it)[2] = 0;
+
+				        }
+				        it++;
+				        pDepth++;
+
+				    }
+				}
+
+				//XnPoint3D realPoints[1];
+				XnPoint3D projectivePoints[20];
+
+				g_DepthGenerator.ConvertRealWorldToProjective(20,joints,projectivePoints);
+
+				//HEAD
+				gData.HEAD_COORD.x = projectivePoints[0].X;
+				gData.HEAD_COORD.y = projectivePoints[0].Y;
+				gData.HEAD_COORD.z = projectivePoints[0].Z;
+				//NECK
+				gData.NECK_COORD.x = projectivePoints[1].X;
+				gData.NECK_COORD.y = projectivePoints[1].Y;
+				gData.NECK_COORD.z = projectivePoints[1].Z;
+				//RIGHT SHOULDER
+				gData.SHOULDER_RIGHT_COORD.x = projectivePoints[4].X;
+				gData.SHOULDER_RIGHT_COORD.y = projectivePoints[4].Y;
+				gData.SHOULDER_RIGHT_COORD.z = projectivePoints[4].Z;
+				//RIGHT ELBOW
+				gData.ELBOW_RIGHT_COORD.x = projectivePoints[5].X;
+				gData.ELBOW_RIGHT_COORD.y = projectivePoints[5].Y;
+				gData.ELBOW_RIGHT_COORD.z = projectivePoints[5].Z;
+				//RIGHT HAND
+				gData.HAND_RIGHT_COORD.x = projectivePoints[7].X;
+				gData.HAND_RIGHT_COORD.y = projectivePoints[7].Y;
+				gData.HAND_RIGHT_COORD.z = projectivePoints[7].Z;
+				//RIGHT HIP
+				gData.HIP_RIGHT_COORD.x = projectivePoints[12].X;
+				gData.HIP_RIGHT_COORD.y = projectivePoints[12].Y;
+				gData.HIP_RIGHT_COORD.z = projectivePoints[12].Z;
+
+				//send hand img
+				cv_bridge::CvImage ros_img;
+				std_msgs::Header header;
+
+				ros_img.image = mask;
+				header.seq = count++;
+				ros_img.header = header;
+				ros_img.encoding = sensor_msgs::image_encodings::BGR8;
+
+				ros_img.toImageMsg(gData.img);
+
+				gDataPub.publish(gData);
+
+				cv::namedWindow("user",cv::WINDOW_AUTOSIZE);
+				cv::imshow("user",mask);
+				cv::waitKey(5);
+
+				//end adds
+
             }
 
             // Store all human data
@@ -511,7 +619,9 @@ void userTracker::userMainLoop(std::string frame_id) {
         }*/
 
     g_Context.WaitAndUpdateAll();
-    //g_DepthGenerator.GetMetaData(depthMD);
+
+
+    g_DepthGenerator.GetMetaData(depthMD);
 
     // Uncomment to read depth_map from a ros topic
     // g_Context.WaitOneUpdateAll(g_DepthGenerator);

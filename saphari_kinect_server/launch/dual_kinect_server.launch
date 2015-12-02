@@ -1,0 +1,63 @@
+<!-- Launch saphari_kinect_server with two kinects -->
+<launch>
+    
+    <arg name="nodelet" default="true"/>
+
+    <arg name="device_id1" default="A00362911581136A" />
+    <arg name="device_id2" default="A00362A12303136A" />
+
+    <arg name="camera1" default="camera1" />
+    <arg name="camera2" default="camera2" />
+
+    <arg name="num_dev" default="2" />
+
+
+
+    <node pkg="nodelet" type="nodelet" name="kinect_nodelet_manager"  args="manager" output="screen"/>
+
+
+    <node if="$(arg nodelet)" pkg="nodelet" type="nodelet" name="KinectServerNodelet" args="load saphari_kinect_server/KinectServerNodelet kinect_nodelet_manager" output="screen">
+    
+        <remap from="~depth_output1" to="/camera1/depth/image" />
+        <remap from="~depth_output2" to="/camera2/depth/image" />
+
+        <remap from="~rgb_output1" to="/camera1/rgb/image" />
+        <remap from="~rgb_output2" to="/camera2/rgb/image" />  
+
+        <param name="device_id1" value="$(arg device_id1)" />
+        <param name="device_id2" value="$(arg device_id2)" />
+        <param name="camera1" value="$(arg camera1)" />
+        <param name="camera2" value="$(arg camera2)" />
+        <param name="num_dev" value="$(arg num_dev)" />
+
+            <!-- Human state parameters -->        
+        <param name="pub_tf_human" value="true" />
+            <param name="tf_frame" value="/openni_depth_frame" />
+        
+        <param name="pub_human_state" value="true" />
+            <param name="calibration_file" value="$(find saphari_kinect_server)/calibration.txt" />
+            <param name="world_frame" value="/openni_depth_frame" />
+       </node> 
+
+    <node unless="$(arg nodelet)" pkg="saphari_kinect_server" type="kinect_driver_node" name="kinect_driver_node" output="screen"> 
+        <remap from="~depth_output1" to="/camera1/depth/image" />
+        <remap from="~depth_output2" to="/camera2/depth/image" />
+
+        <remap from="~rgb_output1" to="/camera1/rgb/image" />
+        <remap from="~rgb_output2" to="/camera2/rgb/image" />  
+
+        <param name="device_id1" value="$(arg device_id1)" />
+        <param name="device_id2" value="$(arg device_id2)" />
+        <param name="camera1" value="$(arg camera1)" />
+        <param name="camera2" value="$(arg camera2)" />
+        <param name="num_dev" value="$(arg num_dev)" />
+
+        <param name="pub_tf_human" value="true" />
+        <param name="tf_frame" value="/world" />
+        
+        <param name="pub_human_state" value="true" />
+        <param name="calibration_file" value="$(find saphari_kinect_server)/calibration.txt" />
+        <param name="world_frame" value="/world" />
+      </node>
+
+</launch>

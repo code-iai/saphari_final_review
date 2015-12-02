@@ -10,6 +10,13 @@
 #include <tf/transform_listener.h>
 #include <tf/tfMessage.h>
 
+#include <opencv2/opencv.hpp>
+// #include <opencv/cv.h>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <cv_bridge/cv_bridge.h>
+#include <sensor_msgs/image_encodings.h>
+
 #include <XnOpenNI.h>
 #include <XnCodecIDs.h>
 #include <XnCppWrapper.h>
@@ -19,10 +26,13 @@
 #include <vector>
 
 #include <saphari_msgs/Humans.h>
-
+#include <saphari_msgs/GestureData.h>
 #define pi_ 3.1416
 
 #define MAX_USERS 15
+// picture size taken by the kinect -> used byy UNINA
+#define WIDTH 640
+#define HEIGHT 480
 
 #define CHECK_RC(nRetVal, what)										\
     if (nRetVal != XN_STATUS_OK)									\
@@ -65,6 +75,14 @@ public:
     xn::DepthMetaData depthMD;
     xn::DepthMetaData depthMD_cb;
 
+    //adds by UNINA
+    xn::ImageGenerator imageGenerator;
+    XnMapOutputMode mapOutputMode;
+    cv::Mat exImg;
+    XnPoint3D joints[20];
+    xn::SceneMetaData smd;
+    //end adds
+
     int sem_;
 
     XnBool g_bNeedPose;
@@ -75,6 +93,10 @@ public:
     saphari_msgs::Human emptyHm;
     ros::Publisher humansPub;
     void copyTfTransformToBodyPartMsg(const geometry_msgs::TransformStamped& tf, int human_idx, int bodypart_id);
+
+    //adds by UNINA
+    saphari_msgs::GestureData gData;
+    ros::Publisher gDataPub;
 
 protected:
     XnUserID getClosestUser();
@@ -102,6 +124,10 @@ private:
     std::string tfRefFrame, humStateRefFrame;
     tf::Transform cameraToRobot;
 
+    //adds by UNINA
+    //header count
+    int count = 0;
+    //end adds
 };
 
 #endif // USERTRACKER_H

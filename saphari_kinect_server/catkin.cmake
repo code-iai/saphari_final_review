@@ -5,6 +5,8 @@ find_package(catkin REQUIRED
   roscpp
   tf
   nodelet
+  cv_bridge
+  OpenCV
   openni_camera
   saphari_msgs 
   geometry_msgs
@@ -27,11 +29,12 @@ if(OpenNI_FOUND AND Nite_FOUND)
     include
     ${catkin_INCLUDE_DIRS}
     ${OpenNI_INCLUDEDIR} 
-    ${Nite_INCLUDE_DIR})
+    ${Nite_INCLUDE_DIR}
+    ${OpenCV_INCLUDE_DIRS})
 
     add_library(kinect_driver src/driver.cpp src/user_tracker.cpp)
     target_link_libraries(kinect_driver 
-      ${catkin_LIBRARIES} ${OpenNI_LIBRARIES} ${Nite_LIBRARIES})
+      ${catkin_LIBRARIES} ${OpenNI_LIBRARIES} ${Nite_LIBRARIES} ${OpenCV_LIBRARIES})
     
     add_library (kinect_nodelet SHARED src/kinect_nodelet.cpp)
     target_link_libraries(kinect_nodelet

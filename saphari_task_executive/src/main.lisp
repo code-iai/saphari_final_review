@@ -38,7 +38,12 @@
    :tf-broadcaster (advertise "/tf" "tf2_msgs/TFMessage")
    :tf-listener (make-instance 'cl-tf2:buffer-client)
    :marker-pub (advertise "visualization_marker_array" "visualization_msgs/MarkerArray")
-   ))
+   :humans-percept-fluent (let ((f (cpl:make-fluent :value nil)))
+                            (subscribe 
+                             "/kinect_tracker/user_state"
+                             "saphari_msgs/Humans"
+                             (lambda (msg) (setf (cpl:value f) (humans-msg->alist msg))))
+                            f)))
 
 (defun loop-main ()
   (with-ros-node ("cram")
@@ -77,6 +82,16 @@
               (infer-target-object-and-location-desigs object-desigs)
             (let ((updated-target-object (grasp-object demo-handle target-object)))
               (put-down demo-handle updated-target-object target-location)))))
+      (beliefstate:extract-files))))
+
+(defun human-percept-main ()
+  (with-ros-node ("cram")
+    (unwind-protect
+         (let ((demo-handle (make-demo-handle)))
+           (beliefstate::init-semrec)
+           (beliefstate:enable-logging t)
+           (cpl:top-level
+             (human-tracking (getf demo-handle :humans-percept-fluent))))
       (beliefstate:extract-files))))
 ;;;
 ;;; TEMPORARY DEBUG/DEVEL CODE

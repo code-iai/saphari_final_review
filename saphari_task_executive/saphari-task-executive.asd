@@ -52,6 +52,7 @@
      (:file "designator-reasoning" :depends-on ("package" "designator-utils" "tf"))
      (:file "marker-viz" :depends-on ("package" "designator-reasoning" "designator-utils"))
      (:file "tool-perception" :depends-on ("package" "lisp-utils" "knowrob-utils" "designator-reasoning" "conversions" "marker-viz"))
+     (:file "human-perception" :depends-on ("package" "lisp-utils" "designator-utils" "conversions" "marker-viz" "tf"))
      (:file "arm-control" :depends-on ("package" "lisp-utils" "conversions"))
-     (:file "plans" :depends-on ("package" "designator-utils" "designator-reasoning" "tool-perception" "arm-control" "marker-viz"))
+     (:file "plans" :depends-on ("package" "designator-utils" "designator-reasoning" "tool-perception" "arm-control" "marker-viz" "human-perception"))
      (:file "main" :depends-on ("package" "tool-perception" "arm-control" "plans"))))))

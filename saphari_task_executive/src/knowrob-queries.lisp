@@ -28,48 +28,6 @@
 
 (in-package :saphari-task-executive)
 
-;; (defun query-knowrob-tool-perception (&rest class-keywords)
-;;   (let ((query-string
-;;           (conc-strings "knowrob_saphari:saphari_latest_object_detections("
-;;                         (apply #'keywords->knowrob-string-list class-keywords)
-;;                         ",_Detections),"
-;;                         "member(_Detection, _Detections),"
-;;                         "mng_designator(_Detection, _ObjJava),"
-;;                         "mng_designator_props(_Detection, _ObjJava, ['TYPE'], DESIGTYPE),"
-;;                         "mng_designator_props(_Detection, _ObjJava, ['AT', 'POSE'], _DesigPose),"
-;;                         "jpl_get(_DesigPose, 'frameID', FRAMEID),"
-;;                         "jpl_get(_DesigPose, 'timeStamp', _TimeStampIso),"
-;;                         "jpl_call(_TimeStampIso, 'toSeconds', [], TIMESTAMP),"
-;; ;;                        "jpl_call(_TimeStampIso, 'totalNsecs', [], TIMESTAMP),"
-;;                         "jpl_call(_DesigPose, 'getData', [], _Pose),"
-;;                         "knowrob_coordinates:matrix4d_to_list(_Pose, _PoseList),"
-;;                         "matrix_rotation(_PoseList, [QW, QX, QY, QZ]),"
-;;                         "matrix_translation(_PoseList, [X, Y, Z]).")))
-;;     (let ((bindings (cut:force-ll (prolog-simple query-string))))
-;;       (mapcar (lambda (binding)
-;;                 (cut:with-vars-bound (?QW ?QX ?QY ?QZ
-;;                                           ?X ?Y ?Z
-;;                                           ?TIMESTAMP ?FRAMEID
-;;                                           ?DESIGTYPE) binding
-;;                   (properties->obj-desig
-;;                    (json-symbol->keyword ?DESIGTYPE)
-;;                    (make-msg
-;;                     "geometry_msgs/PoseStamped"
-;;                     (:stamp :header) ?TIMESTAMP
-;;                     (:frame_id :header) (json-symbol->string ?FRAMEID)
-;;                     (:x :position :pose) ?X
-;;                     (:y :position :pose) ?Y
-;;                     (:z :position :pose) ?Z
-;;                     (:x :orientation :pose) ?QX
-;;                     (:y :orientation :pose) ?QY
-;;                     (:z :orientation :pose) ?QZ
-;;                     (:w :orientation :pose) ?QW)
-;;                    ;; TODO: get confidence from KNOWROB
-;;                    0.2
-;;                    ;; TODO: get that extra description from knowrob
-;;                    '((:on :table)))))
-;;               bindings))))
-
 (defun ensure-double-float (num)
   (float num 0.0d0))
 
@@ -107,7 +65,10 @@
                    (:pose) (knowrob-bindings->pose-msg ?SLOTTRANS ?SLOTROT)))))))))
 
 (defun query-saphari-empty-slots ()
-  (let ((query "knowrob_saphari:saphari_empty_slot((SLOTID, OBJCLASS, (SLOTTRANS, SLOTROT)))."))
+  (let* ((query "knowrob_saphari:saphari_empty_slot((SLOTID, OBJCLASS, (SLOTTRANS, SLOTROT))).")
+         (before (ros-time))
+         (solutions (cut:force-ll (prolog-simple query))))
+    (ros-info :saphari-empty-slot "query time: ~a" (- (ros-time) before))
     (mapcar
      (lambda (solution)
        (cut:with-vars-bound (?SLOTID ?OBJCLASS ?SLOTTRANS ?SLOTROT) solution
@@ -119,10 +80,13 @@
                                          "geometry_msgs/PoseStamped"
                                          (:frame_id :header) "map"
                                          (:pose) (knowrob-bindings->pose-msg ?SLOTTRANS ?SLOTROT)))))))
-     (cut:force-ll (prolog-simple query)))))
+     solutions)))
 
 (defun query-saphari-taken-slots ()
-  (let ((query "knowrob_saphari:saphari_taken_slot((SLOTID, OBJCLASS, (SLOTTRANS, SLOTROT)))."))
+  (let* ((query "knowrob_saphari:saphari_taken_slot((SLOTID, OBJCLASS, (SLOTTRANS, SLOTROT))).")
+         (before (ros-time))
+         (solutions (cut:force-ll (prolog-simple query))))
+    (ros-info :saphari-taken-slot "query time: ~a" (- (ros-time) before))
     (mapcar
      (lambda (solution)
        (cut:with-vars-bound (?SLOTID ?OBJCLASS ?SLOTTRANS ?SLOTROT) solution
@@ -134,10 +98,14 @@
                                          "geometry_msgs/PoseStamped"
                                          (:frame_id :header) "map"
                                          (:pose) (knowrob-bindings->pose-msg ?SLOTTRANS ?SLOTROT)))))))
-     (cut:force-ll (prolog-simple query)))))
+     solutions)))
 
 (defun infer-target-object-and-location-desigs (perceived-desigs)
+  (sleep 0.1) ; TODO: handle the race condition between logging and querying more gracefully
   (multiple-value-bind (target-object target-location) (query-saphari-next-object)
+    (ros-info :next-object "~a" (desig-prop-value target-object :knowrob-id))
+    (dolist (perceived-desig perceived-desigs)
+      (ros-info :perceived-desig "~a" (desig-prop-value perceived-desig :knowrob-id)))
     (values
      (find target-object perceived-desigs :test #'desig-descr-included)
      target-location)))
@@ -146,5 +114,6 @@
   (let ((empty-slots (query-saphari-empty-slots))
         (taken-slots (query-saphari-taken-slots)))
     (publish-slot-markers demo-handle empty-slots taken-slots)
-    (ros-info :infer-empty-slots "No. empty slots: ~a" (length empty-slots))
+    (ros-info :infer-empty-slots "no. empty slots: ~a, no. of taken slots: ~a"
+              (length empty-slots) (length taken-slots))
     empty-slots))

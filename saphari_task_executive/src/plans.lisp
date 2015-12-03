@@ -32,6 +32,14 @@
 ;;; LOGGING
 ;;;
 
+(defmacro with-log-extraction (&body body)
+  `(progn
+     (beliefstate::init-semrec)
+     (beliefstate:enable-logging t)
+     (unwind-protect
+          ,@body
+       (beliefstate:extract-files))))
+  
 (defmacro with-logging ((begin-hook end-hook) &body body)
   `(let ((log-id (funcall ,begin-hook))
          (result t)) ;; Implicit success

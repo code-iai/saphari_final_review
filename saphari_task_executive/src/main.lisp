@@ -95,26 +95,19 @@
 ;;             ;; end body
 ;;             (cpl:pulse worker-fluent)))))))
 
-(defun single-main ()
+(defun single-pnp-main ()
   (with-ros-node ("cram")
-    ;; TODO: make high-level logging macro
-    (beliefstate::init-semrec)
-    (beliefstate:enable-logging t)
-    (unwind-protect
-         (let ((demo-handle (make-demo-handle)))
-           (cpl:top-level (pick-and-place-next-object demo-handle)))
-      (beliefstate:extract-files))))
+    (with-log-extraction
+      (let ((demo-handle (make-demo-handle)))
+        (cpl:top-level (pick-and-place-next-object demo-handle))))))
 
 (defun human-percept-main ()
   (with-ros-node ("cram")
-    ;; TODO: make high-level logging macro
-    (beliefstate::init-semrec)
-    (beliefstate:enable-logging t)
-    (unwind-protect
-         (let ((demo-handle (make-demo-handle)))
-           (cpl:top-level
-             (human-tracking (getf demo-handle :humans-percept-fluent))))
-      (beliefstate:extract-files))))
+    (with-log-extraction
+      (let ((demo-handle (make-demo-handle)))
+        (cpl:top-level
+          (human-tracking (getf demo-handle :humans-percept-fluent)))))))
+
 ;;;
 ;;; TEMPORARY DEBUG/DEVEL CODE
 ;;;

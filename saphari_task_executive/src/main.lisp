@@ -106,7 +106,7 @@
     (with-log-extraction
       (let ((demo-handle (make-demo-handle)))
         (cpl:top-level
-          (human-tracking (getf demo-handle :humans-percept-fluent)))))))
+          (humans-tracking (getf demo-handle :humans-percept-fluent)))))))
 
 ;;;
 ;;; TEMPORARY DEBUG/DEVEL CODE
@@ -241,3 +241,94 @@
       (sleep 0.1)
       (beliefstate:stop-node logging-id)))
     (beliefstate:extract-files))
+
+(defun test-concurrent-logging-simple1 ()
+  (with-log-extraction
+    (cpl:top-level
+      (cpl:par
+        ;; TASK A
+        (let ((log-id (beliefstate:start-node "A" nil 2 cram-language-implementation::log-id)))
+          (cpl:sleep 4)
+          (beliefstate:stop-node log-id :relative-context-id cram-language-implementation::log-id)
+          )
+        ;; TASK B
+        (cpl:seq
+          (cpl:sleep 1)
+          (let ((log-id (beliefstate:start-node "B" nil 2 cram-language-implementation::log-id)))
+            (cpl:sleep 2)
+            (beliefstate:stop-node log-id :relative-context-id cram-language-implementation::log-id)
+            ))))))
+
+(defun test-concurrent-logging-simple2 ()
+  (with-log-extraction
+    (cpl:top-level
+      (cpl:par
+        ;; TASK A
+        (let ((log-id (beliefstate:start-node "A" nil 2 cram-language-implementation::log-id)))
+          (cpl:sleep 2)
+          (beliefstate:stop-node log-id :relative-context-id cram-language-implementation::log-id)
+          )
+        ;; TASK B
+        (cpl:seq
+          (cpl:sleep 1)
+          (let ((log-id (beliefstate:start-node "B" nil 2 cram-language-implementation::log-id)))
+            (cpl:sleep 2)
+            (beliefstate:stop-node log-id :relative-context-id cram-language-implementation::log-id)
+            ))))))
+
+(defun test-concurrent-logging-long1 ()
+  (with-log-extraction
+    (cpl:top-level
+      (cpl:par
+        ;; TASK A
+        (let ((log-id (beliefstate:start-node "A" nil 2 cram-language-implementation::log-id)))
+          (cpl:sleep 1)
+          (let ((log-id2 (beliefstate:start-node "A1" nil 2 log-id)))
+            (cpl:sleep 2)
+            (beliefstate:stop-node log-id2 :relative-context-id log-id))
+          (cpl:sleep 1)
+          (beliefstate:stop-node log-id :relative-context-id cram-language-implementation::log-id))
+        ;; TASK B
+        (cpl:seq
+          (cpl:sleep 1)
+          (let ((log-id (beliefstate:start-node "B" nil 2 cram-language-implementation::log-id)))
+            (cpl:sleep 0.5)
+            (let ((log-id2 (beliefstate:start-node "B1" nil 2 log-id)))
+              (cpl:sleep 0.5)
+              (beliefstate:stop-node log-id2 :relative-context-id log-id))
+            (cpl:sleep 0.5)
+            (let ((log-id2 (beliefstate:start-node "B2" nil 2 log-id)))
+              (cpl:sleep 0.5)
+              (beliefstate:stop-node log-id2 :relative-context-id log-id))
+            (cpl:sleep 0.5)
+            (beliefstate:stop-node log-id :relative-context-id cram-language-implementation::log-id)
+            ))))))
+
+(defun test-concurrent-logging-long2 ()
+  (with-log-extraction
+    (cpl:top-level
+      (cpl:par
+        ;; TASK A
+        (let ((log-id (beliefstate:start-node "A" nil 2 cram-language-implementation::log-id)))
+          (cpl:sleep 0.5)
+          (let ((log-id2 (beliefstate:start-node "A1" nil 2 log-id)))
+            (cpl:sleep 0.5)
+            (beliefstate:stop-node log-id2 :relative-context-id log-id))
+          (cpl:sleep 0.5)
+          (let ((log-id2 (beliefstate:start-node "A2" nil 2 log-id)))
+            (cpl:sleep 0.5)
+            (beliefstate:stop-node log-id2 :relative-context-id log-id))
+          (cpl:sleep 0.5)
+          (beliefstate:stop-node log-id :relative-context-id cram-language-implementation::log-id)
+          )
+        ;; TASK B
+        (cpl:seq
+          (cpl:sleep 1)
+          (let ((log-id (beliefstate:start-node "B" nil 2 cram-language-implementation::log-id)))
+            (cpl:sleep 1)
+            (let ((log-id2 (beliefstate:start-node "B1" nil 2 log-id)))
+              (cpl:sleep 1)
+              (beliefstate:stop-node log-id2 :relative-context-id log-id))
+            (cpl:sleep 1)
+            (beliefstate:stop-node log-id :relative-context-id cram-language-implementation::log-id)
+            ))))))

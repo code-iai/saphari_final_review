@@ -28,6 +28,10 @@
 
 (in-package :saphari-task-executive)
 
+;;;
+;;; LOGGING
+;;;
+
 (defmacro with-logging ((begin-hook end-hook) &body body)
   `(let ((log-id (funcall ,begin-hook))
          (result t)) ;; Implicit success
@@ -82,6 +86,21 @@
 
 (defun on-finish-put-down (id success)
   (beliefstate:stop-node id :success success))
+
+;;;
+;;; ACTUAL PLANS
+;;;
+
+(defun pick-and-place-next-object (demo-handle)
+  ;; TODO: change into nice perception plan
+  (alexandria:when-let ((empty-slots (infer-empty-slots demo-handle)))
+    (lookat-pickup-zone demo-handle)
+    (alexandria:when-let* ((object-desigs (trigger-tool-perception demo-handle)))
+      (multiple-value-bind (target-object target-location)
+          (infer-target-object-and-location-desigs object-desigs)
+        (let ((updated-target-object (grasp-object demo-handle target-object)))
+          (put-down demo-handle updated-target-object target-location))))
+    empty-slots))
 
 (cpl:def-cram-function lookat-pickup-zone (demo-handle &optional (distance 30))
   ;; TOOD: use with-designators

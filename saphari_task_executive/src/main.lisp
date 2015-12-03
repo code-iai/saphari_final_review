@@ -45,51 +45,73 @@
                              (lambda (msg) (setf (cpl:value f) (humans-msg->alist msg))))
                             f)))
 
-(defun loop-main ()
-  (with-ros-node ("cram")
-    (let ((demo-handle (make-demo-handle)))
-      (beliefstate::init-semrec)
-      (beliefstate:enable-logging t)
-      (cpl:top-level
-        ;; TODO: human reactivity
-        ;; TODO: failure handling
-        (let* ((empty-slots-fluent (cpl:make-fluent :value (infer-empty-slots demo-handle))))
-          (cpl:pursue
-            (cpl:wait-for (cpl:not empty-slots-fluent))
-            (loop-at-most-every 1
-              (setf (cpl:value empty-slots-fluent) (infer-empty-slots demo-handle))
-              ;; TODO: change into nice perception plan
-              (lookat-pickup-zone demo-handle)
-              (alexandria:when-let* ((object-desigs (trigger-tool-perception demo-handle)))
-                (multiple-value-bind (target-object target-location)
-                    (infer-target-object-and-location-desigs object-desigs)
-                  (let ((updated-target-object (grasp-object demo-handle target-object)))
-                    (put-down demo-handle updated-target-object target-location))))))))
-      (beliefstate:extract-files))))
+;;
+;; TODO: test this
+;;
+;; (defun loop-main ()
+;;   (with-ros-node ("cram")
+;;     ;; TODO: make high-level logging macro
+;;     (beliefstate::init-semrec)
+;;     (beliefstate:enable-logging t)
+;;     (unwind-protect
+;;          (let ((demo-handle (make-demo-handle)))
+;;            (cpl:top-level
+;;              ;; TODO: add human reactivity
+;;              (cpl:loop-until-success (:loop-wait 0.5 :global-timeout 0)
+;;                (unless (pick-and-place-next-object demo-handle)
+;;                  (cpl:task-success)))))
+;;       (beliefstate:extract-files))))
+
+;;
+;; TODO: turn this into a CRAM macro
+;;
+;; (cpl:top-level
+;;   (let ((finished-fluent (cpl:make-fluent) :value nil)
+;;         (worker-fluent (cpl:make-fluent))
+;;         (wait-fluent (cpl:make-fluent)))
+;;     (flet ((task-success ()
+;;              (setf (cpl:value finished-fluent) t)))
+;;       (cpl:pursue
+;;         ;; monitoring task
+;;         (cpl:seq
+;;           (ros-info :monitor "")
+;;           (cpl:pulse timer-fluent)
+;;           ;; global timeout
+;;           (cpl:wait-for finished-fluent :timeout 5))
+;;         ;; working task
+;;         (cpl:par
+;;           ;; wait task
+;;           (cpl:whenever ((cpl:pulsed worker-fluent))
+;;             (ros-info :wait "")
+;;             ;; local timeout
+;;             (cpl:wait-for (cpl:make-fluent) :timeout 0.5)
+;;             (cpl:pulse timer-fluent))
+;;           ;; worker task
+;;           (cpl:whenever ((cpl:pulsed timer-fluent))
+;;             ;; begin body
+;;             (let ((result (random 10)))
+;;               (ros-info :worker "~a" result)
+;;               (when (evenp result) (task-success)))
+;;             ;; end body
+;;             (cpl:pulse worker-fluent)))))))
 
 (defun single-main ()
   (with-ros-node ("cram")
-    (let ((demo-handle (make-demo-handle)))
-      (beliefstate::init-semrec)
-      (beliefstate:enable-logging t)
-      (cpl:top-level
-        ;; TODO: human reactivity
-        ;; TODO: failure handling
-        ;; TODO: change into nice perception plan
-        (lookat-pickup-zone demo-handle)
-        (alexandria:when-let* ((object-desigs (trigger-tool-perception demo-handle)))
-          (multiple-value-bind (target-object target-location)
-              (infer-target-object-and-location-desigs object-desigs)
-            (let ((updated-target-object (grasp-object demo-handle target-object)))
-              (put-down demo-handle updated-target-object target-location)))))
+    ;; TODO: make high-level logging macro
+    (beliefstate::init-semrec)
+    (beliefstate:enable-logging t)
+    (unwind-protect
+         (let ((demo-handle (make-demo-handle)))
+           (cpl:top-level (pick-and-place-next-object demo-handle)))
       (beliefstate:extract-files))))
 
 (defun human-percept-main ()
   (with-ros-node ("cram")
+    ;; TODO: make high-level logging macro
+    (beliefstate::init-semrec)
+    (beliefstate:enable-logging t)
     (unwind-protect
          (let ((demo-handle (make-demo-handle)))
-           (beliefstate::init-semrec)
-           (beliefstate:enable-logging t)
            (cpl:top-level
              (human-tracking (getf demo-handle :humans-percept-fluent))))
       (beliefstate:extract-files))))

@@ -99,5 +99,3 @@
                   (cpl:value log-ids)))
            (setf (cpl:value last-humans-percept) (cpl:value humans-percept)))
       (stop-tracking-lost-humans (cpl:value log-ids) (cpl:value log-ids)))))
-            
-

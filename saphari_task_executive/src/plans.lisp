@@ -28,78 +28,10 @@
 
 (in-package :saphari-task-executive)
 
-;;;
-;;; LOGGING
-;;;
-
-(defmacro with-log-extraction (&body body)
-  `(progn
-     (beliefstate::init-semrec)
-     (beliefstate:enable-logging t)
-     (unwind-protect
-          ,@body
-       (beliefstate:extract-files))))
-  
-(defmacro with-logging ((begin-hook end-hook) &body body)
-  `(let ((log-id (funcall ,begin-hook))
-         (result t)) ;; Implicit success
-     (labels ((log-succeed ()
-                (setf result t))
-              (log-fail ()
-                (setf result nil)))
-       (declare (ignorable (function log-succeed)))
-       (declare (ignorable (function log-fail)))
-       (unwind-protect (progn ,@body)
-         (funcall ,end-hook log-id result)))))
-
-(defun knowrob-annotation-prop (desig)
-  (etypecase desig
-    (desig:action-designator "designator")
-    (desig:object-designator "object-acted-on")
-    (desig:location-designator "goal-location")))
-
-(defun on-start-perform-action-designator (desig &rest other-desigs)
-  (let ((id (beliefstate:start-node
-             "PERFORM-ACTION-DESIGNATOR"
-             (list
-              (list 'beliefstate::description (desig:description desig))
-              ;; matching-process-modules to comply with semrec
-              (list 'beliefstate::matching-process-modules nil))
-             2)))
-    (beliefstate:add-designator-to-node desig id)
-    (dolist (other-desig other-desigs)
-      (beliefstate:add-designator-to-node
-       other-desig id :annotation (knowrob-annotation-prop other-desig)))
-    id))
-
-(defun on-finish-perform-action-designator (id success)
-  (beliefstate:stop-node id :success success))
-
-(defun on-start-grasping (&rest desigs)
-  (let ((id (beliefstate:start-node "GRASP-OBJECT")))
-    (dolist (desig desigs)
-      (beliefstate:add-designator-to-node
-       desig id :annotation (knowrob-annotation-prop desig)))
-    id))
-
-(defun on-finish-grasping (id success)
-  (beliefstate:stop-node id :success success))
-
-(defun on-start-put-down (desig object location)
-  (let ((id (beliefstate:start-node "PUT-DOWN-OBJECT")))
-    (dolist (designator (list desig object location))
-      (beliefstate:add-designator-to-node
-       designator id :annotation (knowrob-annotation-prop designator)))
-    id))
-
-(defun on-finish-put-down (id success)
-  (beliefstate:stop-node id :success success))
-
-;;;
-;;; ACTUAL PLANS
-;;;
-
-(defun pick-and-place-next-object (demo-handle)
+(defun pick-and-place-next-object (demo-handle parent-log-id)
+  (with-logging
+      ((alexandria:curry #'log-start-pick-and-place parent-log-id)
+       (alexandria:rcurry #'log-stop-pick-and-place parent-log-id))
   ;; TODO: change into nice perception plan
   (alexandria:when-let ((empty-slots (infer-empty-slots demo-handle)))
     (lookat-pickup-zone demo-handle)
@@ -108,10 +40,9 @@
           (infer-target-object-and-location-desigs object-desigs)
         (let ((updated-target-object (grasp-object demo-handle target-object)))
           (put-down demo-handle updated-target-object target-location))))
-    empty-slots))
+    empty-slots)))
 
 (cpl:def-cram-function lookat-pickup-zone (demo-handle &optional (distance 30))
-  ;; TOOD: use with-designators
   (let ((desig (action-designator
                 `((:an :action)
                   (:to :see)

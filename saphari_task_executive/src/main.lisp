@@ -30,7 +30,6 @@
 
 (defun make-demo-handle (&optional (sim-p t))
   (list
-   :json-prolog nil
    :sim-p sim-p
    :tool-perception (ros-interface-tool-perception)
    :beasty (make-and-init-beasty-handle sim-p)
@@ -76,14 +75,14 @@
       (let ((demo-handle (make-demo-handle)))
         (cpl:top-level
           (loop-until-succeed (:loop-wait 0.5)
-            (unless (pick-and-place-next-object demo-handle)
+            (unless (pick-and-place-next-object demo-handle cpl-impl::log-id)
               (loop-succeed))))))))
 
 (defun single-pnp-main ()
   (with-ros-node ("cram")
     (with-log-extraction
       (let ((demo-handle (make-demo-handle)))
-        (cpl:top-level (pick-and-place-next-object demo-handle))))))
+        (cpl:top-level (pick-and-place-next-object demo-handle cpl-impl::log-id))))))
 
 (defun human-percept-main ()
   (with-ros-node ("cram")

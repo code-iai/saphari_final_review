@@ -41,47 +41,52 @@
       empty-slots)))
 
 (defun perceive-instruments (demo-handle parent-log-id)
-  (let ((move-to-see
+  (let* ((above-location
+           (location-designator
+            `((:a :location)
+              (:above ,(location-designator
+                      '((:a :location)
+                        (:in :pickup-zone)))))))
+         (move
           (action-designator
-           `((:an :action)
-             (:to :see)
-             (:loc ,(object-designator '((:a :location)
-                                         (:type :pickup-zone))))
-             (:sim ,(getf demo-handle :sim-p)))))
-        (detect-instruments
-          (action-designator
-           `((:an :action)
-             (:to :detect)
-             (:obj ,(object-designator '((:an :object) (:type :surgical-instrument))))))))
+           `((:an :action) (:to :move)
+             (:at ,above-location) (:sim ,(getf demo-handle :sim-p)))))
+         (detect-instruments
+           (action-designator
+            `((:an :action)
+              (:to :detect)
+              (:obj ,(object-designator '((:an :object) (:type :surgical-instrument))))))))
     (with-logging
         ((alexandria:curry #'log-start-action-designator parent-log-id detect-instruments)
          (alexandria:rcurry #'log-stop-action-designator parent-log-id))
-      (perform-beasty-motion demo-handle log-id move-to-see)
+      (perform-beasty-motion demo-handle log-id move above-location)
       (trigger-tool-perception demo-handle log-id detect-instruments))))
 
 (defun grasp (demo-handle parent-log-id object)
-  (let ((grasp
-          (action-designator
-           `((:an :action) (:to :grasp) (:obj ,object))))
-        (open
-          (action-designator
-           `((:an :action) (:to :open) (:body-part :gripper))))
-        (reach
-          (action-designator
-           `((:an :action) (:to :reach) (:obj ,object)
-             (:sim ,(getf demo-handle :sim-p)))))
-        (clamp
-          (action-designator
-           ;; TODO: add gripper?
-           `((:an :action) (:to :clamp) (:body-part :gripper))))
-
-        (lift
-          (action-designator
-           ;; TODO: change description to sth with LIFT
-           `((:an :action) (:to :see)
-             (:loc ,(object-designator '((:a :location)
-                                         (:type :pickup-zone))))
-             (:sim ,(getf demo-handle :sim-p))))))
+  (let* ((grasp
+           (action-designator
+            `((:an :action) (:to :grasp) (:obj ,object))))
+         (open
+           (action-designator
+            `((:an :action) (:to :open) (:body-part :gripper))))
+         (reach
+           (action-designator
+            `((:an :action) (:to :reach) (:obj ,object)
+              (:sim ,(getf demo-handle :sim-p)))))
+         (clamp
+           (action-designator
+            ;; TODO: add object?
+            `((:an :action) (:to :clamp) (:body-part :gripper))))
+         (above-location
+           (location-designator
+            `((:a :location)
+              (:above ,(location-designator
+                      '((:a :location)
+                        (:in :pickup-zone)))))))
+         (move
+           (action-designator
+            `((:an :action) (:to :move)
+              (:at ,above-location) (:sim ,(getf demo-handle :sim-p))))))
     (with-logging
         ((alexandria:curry #'log-start-grasping parent-log-id grasp object)
          (alexandria:rcurry #'log-stop-grasping parent-log-id))
@@ -103,7 +108,7 @@
         (desig:equate object new-obj-desig)
         (publish-tool-markers demo-handle t new-obj-desig)
         new-obj-desig)
-      (perform-beasty-motion demo-handle log-id lift object))
+      (perform-beasty-motion demo-handle log-id move above-location))
     object))
 
     
@@ -119,8 +124,7 @@
         (move
           (action-designator
            `((:an :action) (:to :move)
-             (:at ,above-location)
-             (:sim ,(getf demo-handle :sim-p)))))
+             (:at ,above-location) (:sim ,(getf demo-handle :sim-p)))))
         (reach
           (action-designator
            `((:an :action) (:to :reach)

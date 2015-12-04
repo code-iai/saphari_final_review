@@ -44,7 +44,7 @@
 
 (defun query-saphari-next-object ()
   (let ((query "knowrob_saphari:saphari_next_object(
-                    SLOTID, (SLOTTRANS, SLOTROT), OBJCLASS, DESIGID)")
+                    SLOTID, (SLOTTRANS, SLOTROT), OBJCLASS, DESIGID).")
         (before (ros-time)))
     (cut:with-vars-bound (?SLOTID ?SLOTTRANS ?SLOTROT ?OBJCLASS ?DESIGID)
         (cut:lazy-car (prolog-simple query))

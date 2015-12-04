@@ -80,9 +80,12 @@
     (desig-descr-included
      (action-designator
       `((:an :action)
-        (:to :see)
-        (:loc ,(location-designator '((:a :location)
-                                      (:type :pickup-zone))))))
+        (:to :move)
+        (:at ,(location-designator
+               `((:a :location)
+                 (:above ,(location-designator
+                           `((:a :location)
+                             (:in :pickup-zone)))))))))
      desig)
     (roslisp-beasty:make-default-joint-goal
      (lookat-pickup-config) (desig-prop-value desig :sim)))))

@@ -45,55 +45,39 @@
                              (lambda (msg) (setf (cpl:value f) (humans-msg->alist msg))))
                             f)))
 
+(defmacro loop-until-succeed ((&key (timeout nil) (loop-wait 0)) &body body)
+  (alexandria:with-gensyms (timeout-sym wait-sym)
+  `(let ((,timeout-sym ,timeout)
+         (,wait-sym ,loop-wait))
+     (cpl:with-tags
+       (cpl:pursue
+         (unless (cpl:wait-for (cpl:eql (cpl:status worker) :succeeded) :timeout ,timeout-sym)
+           (cpl:fail "loop-until-success timed out."))
+         (cpl:par
+           (cpl:whenever ((cpl:pulsed (cpl:eql (cpl:status worker) :suspended)))
+             (cpl:sleep ,wait-sym)
+             (cpl:wait-for (cpl:eql (cpl:status worker) :suspended))
+             (cpl:wake-up worker))
+           (:tag worker
+             (let ((success nil))
+               (flet ((loop-succeed ()
+                        (setf success t)))
+                 (cpl:retry-after-suspension
+                   ,@body
+                   (unless success
+                     (cpl:suspend worker))))))))))))
+
 ;;
 ;; TODO: test this
 ;;
-;; (defun loop-main ()
-;;   (with-ros-node ("cram")
-;;     ;; TODO: make high-level logging macro
-;;     (beliefstate::init-semrec)
-;;     (beliefstate:enable-logging t)
-;;     (unwind-protect
-;;          (let ((demo-handle (make-demo-handle)))
-;;            (cpl:top-level
-;;              ;; TODO: add human reactivity
-;;              (cpl:loop-until-success (:loop-wait 0.5 :global-timeout 0)
-;;                (unless (pick-and-place-next-object demo-handle)
-;;                  (cpl:task-success)))))
-;;       (beliefstate:extract-files))))
-
-;;
-;; TODO: turn this into a CRAM macro
-;;
-;; (cpl:top-level
-;;   (let ((finished-fluent (cpl:make-fluent) :value nil)
-;;         (worker-fluent (cpl:make-fluent))
-;;         (wait-fluent (cpl:make-fluent)))
-;;     (flet ((task-success ()
-;;              (setf (cpl:value finished-fluent) t)))
-;;       (cpl:pursue
-;;         ;; monitoring task
-;;         (cpl:seq
-;;           (ros-info :monitor "")
-;;           (cpl:pulse timer-fluent)
-;;           ;; global timeout
-;;           (cpl:wait-for finished-fluent :timeout 5))
-;;         ;; working task
-;;         (cpl:par
-;;           ;; wait task
-;;           (cpl:whenever ((cpl:pulsed worker-fluent))
-;;             (ros-info :wait "")
-;;             ;; local timeout
-;;             (cpl:wait-for (cpl:make-fluent) :timeout 0.5)
-;;             (cpl:pulse timer-fluent))
-;;           ;; worker task
-;;           (cpl:whenever ((cpl:pulsed timer-fluent))
-;;             ;; begin body
-;;             (let ((result (random 10)))
-;;               (ros-info :worker "~a" result)
-;;               (when (evenp result) (task-success)))
-;;             ;; end body
-;;             (cpl:pulse worker-fluent)))))))
+(defun loop-main ()
+  (with-ros-node ("cram")
+    (with-log-extraction
+      (let ((demo-handle (make-demo-handle)))
+        (cpl:top-level
+          (loop-until-succeed (:loop-wait 0.5)
+            (unless (pick-and-place-next-object demo-handle)
+              (loop-succeed))))))))
 
 (defun single-pnp-main ()
   (with-ros-node ("cram")

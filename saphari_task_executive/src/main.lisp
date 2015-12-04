@@ -197,8 +197,8 @@
 
 (defun fill-knowrob-with-percepts (demo-handle)
   (cpl:top-level
-    (lookat-pickup-zone demo-handle)
-    (trigger-tool-perception demo-handle)))
+    (with-log-extraction
+      (perceive-instruments demo-handle cpl-impl::log-id))))
 
 (defun test-desig-mongo-dump ()
   (beliefstate::init-semrec)

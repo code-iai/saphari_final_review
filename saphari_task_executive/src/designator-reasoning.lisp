@@ -77,15 +77,15 @@
     (roslisp-beasty:make-default-joint-goal
      (lookat-sorting-basket-config) (desig-prop-value desig :sim)))
    (and
-    (desig-prop-value-p desig :an :action)
-    (desig-prop-value-p desig :to :see)
-    (desig-descr-equal
-     (desig-prop-value desig :obj)
-     (object-designator '((:an :object)(:type :pickup-zone))))
-    (alexandria:when-let ((distance (desig-prop-value desig :distance))
-                          (sim-p (desig-prop-value desig :sim)))
-      (roslisp-beasty:make-default-joint-goal
-       (lookat-pickup-config distance) sim-p)))))
+    (desig-descr-included
+     (action-designator
+      `((:an :action)
+        (:to :see)
+        (:loc ,(location-designator '((:a :location)
+                                      (:type :pickup-zone))))))
+     desig)
+    (roslisp-beasty:make-default-joint-goal
+     (lookat-pickup-config) (desig-prop-value desig :sim)))))
 
 (defun infer-grasp-motion-goal (demo-handle desig)
   (and

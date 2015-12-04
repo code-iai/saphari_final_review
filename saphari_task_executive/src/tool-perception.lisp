@@ -75,12 +75,8 @@
 (defun 50cm-lookat-pickup-config ()
   (list -0.195 0.733 -0.207 -0.611 0.148 1.79 0.474))
 
-(defun lookat-pickup-config (metric-input)
-  (case (metric-input->cm-keyword metric-input)
-    (:20cm (20cm-lookat-pickup-config))
-    (:30cm (30cm-lookat-pickup-config))
-    (:40cm (40cm-lookat-pickup-config))
-    (:50cm (50cm-lookat-pickup-config))))
+(defun lookat-pickup-config ()
+  (list -0.159 0.762 -0.200 -1.092 0.149 1.284 0.444))
 
 (defun lookat-sorting-basket-config ()
   (list
@@ -96,30 +92,39 @@
 ;;; HIGH-LEVEL PLAN INTERFACE
 ;;;
 
-(cpl-impl:def-cram-function trigger-tool-perception (demo-handle)
-  (cpl-desig-supp:with-designators ((obj-desig (desig:object '((:type :surgical-instrument)))))
-    (let* ((logging-id (on-prepare-perception-request obj-desig))
-           (desigs (tool-perception-response->object-desigs
-                    (apply #'call-service (getf demo-handle :tool-perception))
-                    '((:on :table))))
-           (logged-desigs (on-finish-perception-request logging-id desigs)))
-      (apply #'publish-tool-markers demo-handle nil logged-desigs)
-      (publish-tool-poses-to-tf demo-handle logged-desigs)
-      logged-desigs)))
+(defun trigger-tool-perception (demo-handle parent-log-id desig)
+  ;; TODO: use logging macro
+  (when
+      (desig-descr-included
+       (action-designator
+        `((:an :action) (:to :detect)
+          (:obj ,(object-designator
+                  '((:an :object) (:type :surgical-instrument))))))
+       desig)
+    (let* ((object (desig-prop-value desig :obj))
+           (logging-id (on-prepare-perception-request parent-log-id object))
+           (objects (tool-perception-response->object-desigs
+                     (apply #'call-service (getf demo-handle :tool-perception))
+                     '((:on :table))))
+           (logged-objects (on-finish-perception-request logging-id objects parent-log-id)))
+    (apply #'publish-tool-markers demo-handle nil logged-objects)
+    (publish-tool-poses-to-tf demo-handle logged-objects)
+    logged-objects)))
 
 ;;;
 ;;; LOGGING INTERFACE
 ;;;
 
-(defun on-prepare-perception-request (request)
+(defun on-prepare-perception-request (parent-log-id request)
   (declare (type desig:object-designator request))
   (let ((id (beliefstate:start-node
              "UIMA-PERCEIVE"
-             (cram-designators:description request))))
+             (cram-designators:description request)
+             2 parent-log-id)))
     (beliefstate:add-designator-to-node request id :annotation "perception-request")
     id))
 
-(defun on-finish-perception-request (id results)
+(defun on-finish-perception-request (id results parent-log-id)
   (let ((logged-results
           (loop for desig in results
                 collect
@@ -132,7 +137,7 @@
                     :new-description
                     `((:knowrob-id ,(beliefstate:resolve-designator-knowrob-id desig)))))))))
     ; TODO:  (beliefstate:add-topic-image-to-active-node cram-beliefstate::*kinect-topic-rgb*)
-    (beliefstate:stop-node id :success (not (eql logged-results nil)))
+    (beliefstate:stop-node id :success (not (eql logged-results nil)) :relative-context-id parent-log-id)
     logged-results))
 
 ;;;

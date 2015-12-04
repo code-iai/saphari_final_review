@@ -32,93 +32,82 @@
   (with-logging
       ((alexandria:curry #'log-start-pick-and-place parent-log-id)
        (alexandria:rcurry #'log-stop-pick-and-place parent-log-id))
-  ;; TODO: change into nice perception plan
-  (alexandria:when-let ((empty-slots (infer-empty-slots demo-handle)))
-    (lookat-pickup-zone demo-handle)
-    (alexandria:when-let* ((object-desigs (trigger-tool-perception demo-handle)))
-      (multiple-value-bind (target-object target-location)
-          (infer-target-object-and-location-desigs object-desigs)
-        (let ((updated-target-object (grasp-object demo-handle target-object)))
-          (put-down demo-handle updated-target-object target-location))))
-    empty-slots)))
+    (alexandria:when-let ((empty-slots (infer-empty-slots demo-handle)))
+      (alexandria:when-let ((object-desigs (perceive-instruments demo-handle log-id)))
+        (multiple-value-bind (target-object target-location)
+            (infer-target-object-and-location-desigs object-desigs)
+          (let ((updated-target-object (grasp demo-handle log-id target-object)))
+            (put-down demo-handle log-id updated-target-object target-location))))
+      empty-slots)))
 
-(cpl:def-cram-function lookat-pickup-zone (demo-handle &optional (distance 30))
-  (let ((desig (action-designator
-                `((:an :action)
-                  (:to :see)
-                  (:obj ,(object-designator '((:an :object)
-                                              (:type :pickup-zone))))
-                  (:distance ,distance)
-                  (:sim ,(getf demo-handle :sim-p))))))
-    (perform-beasty-motion demo-handle desig)))
-
-(cpl:def-cram-function lookat-target-zone (demo-handle location)
-  ;; TOOD: use with-designators
-  (let* ((above-location
-           (location-designator
-            `((:a :location)
-              (:above ,location))))
-         (desig (action-designator
-                `((:an :action)
-                  (:to :move)
-                  (:at ,above-location)
-                  (:sim ,(getf demo-handle :sim-p))))))
-    (perform-beasty-motion demo-handle desig above-location)))
-
-(cpl:def-cram-function grasp-object (demo-handle object)
-  (let ((desig (action-designator
-                `((:an :action)
-                  (:to :grasp)
-                  (:obj ,object)))))
+(defun perceive-instruments (demo-handle parent-log-id)
+  (let ((move-to-see
+          (action-designator
+           `((:an :action)
+             (:to :see)
+             (:loc ,(object-designator '((:a :location)
+                                         (:type :pickup-zone))))
+             (:sim ,(getf demo-handle :sim-p)))))
+        (detect-instruments
+          (action-designator
+           `((:an :action)
+             (:to :detect)
+             (:obj ,(object-designator '((:an :object) (:type :surgical-instrument))))))))
     (with-logging
-        ((alexandria:curry #'on-start-grasping desig object)
-         #'on-finish-grasping)
+        ((alexandria:curry #'log-start-action-designator parent-log-id detect-instruments)
+         (alexandria:rcurry #'log-stop-action-designator parent-log-id))
+      (perform-beasty-motion demo-handle log-id move-to-see)
+      (trigger-tool-perception demo-handle log-id detect-instruments))))
+
+(defun grasp (demo-handle parent-log-id object)
+  (let ((grasp
+          (action-designator
+           `((:an :action) (:to :grasp) (:obj ,object))))
+        (open
+          (action-designator
+           `((:an :action) (:to :open) (:body-part :gripper))))
+        (reach
+          (action-designator
+           `((:an :action) (:to :reach) (:obj ,object)
+             (:sim ,(getf demo-handle :sim-p)))))
+        (clamp
+          (action-designator
+           ;; TODO: add gripper?
+           `((:an :action) (:to :clamp) (:body-part :gripper))))
+
+        (lift
+          (action-designator
+           ;; TODO: change description to sth with LIFT
+           `((:an :action) (:to :see)
+             (:loc ,(object-designator '((:a :location)
+                                         (:type :pickup-zone))))
+             (:sim ,(getf demo-handle :sim-p))))))
+    (with-logging
+        ((alexandria:curry #'log-start-grasping parent-log-id grasp object)
+         (alexandria:rcurry #'log-stop-grasping parent-log-id))
       ;; TODO: refactor to be longer because logs look better?
-      (open-gripper demo-handle)
-      (reach-object demo-handle object)
-      (clamp-object demo-handle object)
-      (lookat-pickup-zone demo-handle))
+      (perform-gripper-motion demo-handle log-id open)
+      (perform-beasty-motion demo-handle log-id reach object)
+      (perform-gripper-motion demo-handle log-id clamp object)
+      ;; TODO: move this into perform-gripper-motion
+      (alexandria:when-let*
+          ((obj-in-gripper-pose
+            (transform->pose-stamped-msg
+             (infer-object-grasping-offset object)
+             "gripper_tool_frame"))
+           (new-obj-desig
+            (desig:copy-designator
+             object
+             :new-description
+             `((:at ,(pose-stamped->loc-desig obj-in-gripper-pose '((:in :gripper))))))))
+        (desig:equate object new-obj-desig)
+        (publish-tool-markers demo-handle t new-obj-desig)
+        new-obj-desig)
+      (perform-beasty-motion demo-handle log-id lift object))
     object))
 
-(cpl:def-cram-function open-gripper (demo-handle)
-  (let ((desig (action-designator
-                `((:an :action)
-                  (:to :open)
-                  (:body-part :gripper)))))
-    ;; TODO: failure handling
-    (perform-gripper-motion demo-handle desig)))
-
-(defun clamp-object (demo-handle object)
-  ;; TODO: refactor desig to also hold object?
-  (let* ((desig (action-designator
-                 `((:an :action)
-                   (:to :clamp)
-                   (:body-part :gripper)))))
-    (perform-gripper-motion demo-handle desig object)
-    ;; TODO: move this into perform-gripper-motion
-    (alexandria:when-let*
-        ((obj-in-gripper-pose
-          (transform->pose-stamped-msg
-           (infer-object-grasping-offset object)
-           "gripper_tool_frame"))
-         (new-obj-desig
-          (desig:copy-designator
-           object
-           :new-description
-           `((:at ,(pose-stamped->loc-desig obj-in-gripper-pose '((:in :gripper))))))))
-      (desig:equate object new-obj-desig)
-      (publish-tool-markers demo-handle t new-obj-desig)
-      new-obj-desig)))
     
-(defun reach-object (demo-handle object)
-  (let ((desig (action-designator
-                `((:an :action)
-                  (:to :reach)
-                  (:obj ,object)
-                  (:sim ,(getf demo-handle :sim-p))))))
-    (perform-beasty-motion demo-handle desig object)))
-
-(cpl:def-cram-function put-down (demo-handle object location)
+(defun put-down (demo-handle parent-log-id object location)
   (let* ((put-down
           (action-designator
            `((:an :action) (:to :put-down)
@@ -144,31 +133,31 @@
              (:obj ,object) (:at ,location)
              (:sim ,(getf demo-handle :sim-p))))))
     (with-logging
-        ((alexandria:curry #'on-start-put-down put-down object location)
-         #'on-finish-put-down)
-      (perform-beasty-motion demo-handle move above-location)
-      (perform-beasty-motion demo-handle reach location)
-      (perform-gripper-motion demo-handle release object location)
+        ((alexandria:curry #'log-start-put-down parent-log-id put-down object location)
+         (alexandria:rcurry #'log-stop-put-down parent-log-id))
+      (perform-beasty-motion demo-handle log-id move above-location)
+      (perform-beasty-motion demo-handle log-id reach location)
+      (perform-gripper-motion demo-handle log-id release object location)
       ;; TODO: move this code into perform-gripper-motion
       (let ((new-object (desig:copy-designator object :new-description `((:at ,location)))))
         (desig:equate object new-object)
         (publish-tool-markers demo-handle nil new-object))
-      (perform-beasty-motion demo-handle move above-location))))
+      (perform-beasty-motion demo-handle log-id move above-location))))
              
              
-(defun perform-beasty-motion (demo-handle desig &rest other-log-desigs)
+(defun perform-beasty-motion (demo-handle parent-log-id desig &rest other-log-desigs)
   (with-logging
-      ((alexandria:curry #'apply #'on-start-perform-action-designator desig other-log-desigs)
-       #'on-finish-perform-action-designator)
+      ((alexandria:curry #'apply #'log-start-action-designator parent-log-id desig other-log-desigs)
+       (alexandria:rcurry #'log-stop-action-designator parent-log-id))
     ;; TODO: stuff BEASTY params into action-desig
     (roslisp-beasty:move-beasty-and-wait
      (getf demo-handle :beasty)
      (infer-motion-goal demo-handle desig))))
 
-(defun perform-gripper-motion (demo-handle desig &rest other-log-desigs)
+(defun perform-gripper-motion (demo-handle parent-log-id desig &rest other-log-desigs)
   (with-logging
-      ((alexandria:curry #'apply #'on-start-perform-action-designator desig other-log-desigs)
-       #'on-finish-perform-action-designator)
+      ((alexandria:curry #'apply #'log-start-action-designator parent-log-id desig other-log-desigs)
+       (alexandria:rcurry #'log-stop-action-designator parent-log-id))
     (destructuring-bind (width speed force) (infer-gripper-goal desig)
       (let ((new-desig (desig:copy-designator desig :new-description `((:width ,width) (:speed ,speed) (:force ,force)))))
         (cram-wsg50:move-wsg50-and-wait (getf demo-handle :wsg50) width speed force 5 5)

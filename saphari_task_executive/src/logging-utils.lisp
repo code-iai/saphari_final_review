@@ -54,53 +54,49 @@
     (desig:object-designator "object-acted-on")
     (desig:location-designator "goal-location")))
 
-(defun on-start-perform-action-designator (desig &rest other-desigs)
+(defun log-start-action-designator (parent-log-id desig &rest other-desigs)
   (let ((id (beliefstate:start-node
              "PERFORM-ACTION-DESIGNATOR"
              (list
               (list 'beliefstate::description (desig:description desig))
               ;; matching-process-modules to comply with semrec
               (list 'beliefstate::matching-process-modules nil))
-             2)))
+             2
+             parent-log-id)))
     (beliefstate:add-designator-to-node desig id)
     (dolist (other-desig other-desigs)
       (beliefstate:add-designator-to-node
        other-desig id :annotation (knowrob-annotation-prop other-desig)))
     id))
 
-(defun on-finish-perform-action-designator (id success)
-  (beliefstate:stop-node id :success success))
+(defun log-stop-action-designator (id success parent-log-id)
+  (beliefstate:stop-node id :success success :relative-context-id parent-log-id))
 
 (defun log-start-grasping (parent-log-id &rest desigs)
-  (ros-info :log-start-grasping "parent-log-id: ~a" parent-log-id)
   (let ((id (beliefstate:start-node "GRASP-OBJECT" nil 2 parent-log-id)))
     (dolist (desig desigs)
       (beliefstate:add-designator-to-node
        desig id :annotation (knowrob-annotation-prop desig)))
     id))
 
-(defun on-start-grasping (&rest desigs)
-  (let ((id (beliefstate:start-node "GRASP-OBJECT")))
-    (dolist (desig desigs)
-      (beliefstate:add-designator-to-node
-       desig id :annotation (knowrob-annotation-prop desig)))
-    id))
+(defun log-stop-grasping (id success parent-log-id)
+  (beliefstate:stop-node id :success success :relative-context-id parent-log-id))
 
-(defun on-finish-grasping (id success)
-  (beliefstate:stop-node id :success success))
-
-(defun on-start-put-down (desig object location)
-  (let ((id (beliefstate:start-node "PUT-DOWN-OBJECT")))
+(defun log-start-put-down (parent-log-id desig object location)
+  (let ((id (beliefstate:start-node "PUT-DOWN-OBJECT" nil 2 parent-log-id)))
     (dolist (designator (list desig object location))
       (beliefstate:add-designator-to-node
        designator id :annotation (knowrob-annotation-prop designator)))
     id))
 
-(defun on-finish-put-down (id success)
-  (beliefstate:stop-node id :success success))
+(defun log-stop-put-down (id success parent-log-id)
+  (beliefstate:stop-node id :success success :relative-context-id parent-log-id))
 
 (defun log-start-pick-and-place (parent-log-id)
   (beliefstate:start-node "PICK-AND-PLACE" nil 2 parent-log-id))
 
 (defun log-stop-pick-and-place (log-id success parent-log-id)
   (beliefstate:stop-node log-id :success success :relative-context-id parent-log-id))
+
+(defun test (&key a b)
+  (format t "~a ~a~%" a b))

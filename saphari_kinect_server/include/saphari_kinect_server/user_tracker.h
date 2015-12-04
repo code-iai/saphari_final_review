@@ -53,7 +53,7 @@ public:
     // This function is called each frame
     void userMainLoop(std::string frame_id);
 
-    void initUserTracker();
+    void initUserTracker(float minUserDist, float maxUserDist);
 
     void loadTfTransformFromFile(string file, tf::Transform &transform);
 
@@ -99,7 +99,7 @@ public:
     ros::Publisher gDataPub;
 
 protected:
-    XnUserID getClosestUser();
+    XnUserID getClosestUser(std::vector<XnUserID> &activeUsers);
 
     void publishTransform(XnUserID const& user,
                           XnSkeletonJoint joint,
@@ -115,7 +115,14 @@ private:
     tf::tfMessage tf_msg_;
     tf::tfMessage tf_msg_Pub;
 
+    float minUserDist_;
+    float maxUserDist_;
+
     void storeHumansData(XnUserID user);
+
+	int enumerate(xn::Context context, XnPredefinedProductionNodeType type, xn::NodeInfoList& list, std::string infoMsg);
+
+    bool isIdInList(XnUserID id, std::vector<XnUserID> idsList);
 
     //bool isTracking_;
     //XnUserID userTracked_;

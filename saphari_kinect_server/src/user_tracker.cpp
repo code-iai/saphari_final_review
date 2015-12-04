@@ -89,7 +89,7 @@ userTracker::userTracker(ros::NodeHandle &node):n(node) {
 
 
 userTracker::~userTracker() {
-    //g_DepthGenerator.Release();
+    g_DepthGenerator.Release();
     g_UserGenerator.Release();
     g_Context.Shutdown();
 }
@@ -132,8 +132,12 @@ void userTracker::loadTfTransformFromFile(string file, tf::Transform &transform)
 }
 
 
-void userTracker::initUserTracker() {
+void userTracker::initUserTracker(float minUserDist, float maxUserDist) {
         XnStatus nRetVal = XN_STATUS_OK;
+
+        // Cut too close and too far users
+        minUserDist_ = minUserDist;
+        maxUserDist_ = maxUserDist;
 
         xn::EnumerationErrors errors;
         std::string path = ros::package::getPath("saphari_kinect_server");
@@ -167,12 +171,12 @@ void userTracker::initUserTracker() {
         //end adds
         //CHECK_RC(nRetVal, "Find depth generator");
 
-        nRetVal = g_Context.FindExistingNode(XN_NODE_TYPE_USER, g_UserGenerator);
-        if (nRetVal != XN_STATUS_OK) {
-            nRetVal = g_UserGenerator.Create(g_Context);
-            CHECK_RC(nRetVal, "Find user generator");
-        }
-
+	    nRetVal = g_Context.FindExistingNode(XN_NODE_TYPE_USER, g_UserGenerator);
+	    if (nRetVal != XN_STATUS_OK) {
+	        nRetVal = g_UserGenerator.Create(g_Context);
+	        CHECK_RC(nRetVal, "Find user generator");
+	    }
+	    
         nRetVal = registerCall();
         CHECK_RC(nRetVal, "RegisterCall");
 
@@ -244,8 +248,19 @@ void userTracker::publishTransform(XnUserID const& user,
 }
 
 
+bool userTracker::isIdInList(XnUserID id, std::vector<XnUserID> idsList){
+	for(size_t i=0; i<idsList.size(); ++i){
+		if(id == idsList[i])
+			return true;
+	}
+
+	return false;
+}
+
+
 void userTracker::publishTransforms(std::string const& frame_id) {
-    XnUserID closestUserId = getClosestUser();
+    std::vector<XnUserID> activeUsersID;
+    XnUserID closestUserId = getClosestUser(activeUsersID);
     // sleep(2);
 
     XnUserID users[MAX_USERS];
@@ -253,26 +268,16 @@ void userTracker::publishTransforms(std::string const& frame_id) {
     g_UserGenerator.GetUsers(users, users_count);
     XnUserID user = 0;
 
-    for (int i = 0; i < users_count; ++i) {
+    for (size_t i = 0; i < users_count; ++i) {
         //ROS_DEBUG("Processing user %d", i);
         user = users[i];
-        // may we should use the confidence to get a better quality of the skeleton and a more continues behaviour
-        // like with this: !!! I'm not sure if our version of OpenNi supports this
-        /* 
-        PMatrix3D  orientation = new PMatrix3D();   //matrix to store the steadiest orientation (used in rendering)
-        PMatrix3D  newOrientaton = new PMatrix3D();
-        float confidence = g_UserGenerator.GetSkeletonCap().getJointOrientationSkeleton(user,SimpleOpenNI.SKEL_HEAD,newOrientaton);//retrieve the head orientation from OpenNI
-        if(confidence > 0.001){                     //if the new orientation is steady enough (and play with the 0.001 value to see what works best)
-          orientation.reset();                      //reset the matrix and get the new values
-          orientation.apply(newOrientaton);         //copy the steady orientation to the matrix we use to render the avatar
-        // elements with low confidence like legs get sorted out automatically
-        }*/
-        if(!g_UserGenerator.GetSkeletonCap().IsTracking(user)) {
+
+        if((!g_UserGenerator.GetSkeletonCap().IsTracking(user)) || (!isIdInList(user, activeUsersID))) {
             // Remove user from human state message
-            for(int i=0; i<humansMsg.observed_user_ids.size(); ++i) {
-                if(humansMsg.observed_user_ids[i] == user) {
-                    humansMsg.observed_user_ids.erase(humansMsg.observed_user_ids.begin()+i);
-                    humansMsg.humans.erase(humansMsg.humans.begin()+i);
+            for(int j=0; j<humansMsg.observed_user_ids.size(); ++j) {
+                if(humansMsg.observed_user_ids[j] == user) {
+                    humansMsg.observed_user_ids.erase(humansMsg.observed_user_ids.begin()+j);
+                    humansMsg.humans.erase(humansMsg.humans.begin()+j);
 
                     break;
                 }
@@ -284,7 +289,7 @@ void userTracker::publishTransforms(std::string const& frame_id) {
             string strNum;
             strm << user;
             strm >> strNum;
-            tf_msg_Pub.transforms.clear();
+            //tf_msg_Pub.transforms.clear();
             // Publish a tf/tfMessage instead of tfBroadcast in order to avoid
             // 500 Hz publication rate
 
@@ -311,7 +316,7 @@ void userTracker::publishTransforms(std::string const& frame_id) {
 
             publishTransform(user, XN_SKEL_RIGHT_HIP,  frame_id, "kinect/left_hip_" + strNum, 16);
             publishTransform(user, XN_SKEL_RIGHT_KNEE, frame_id, "kinect/left_knee_" + strNum, 17);
-            //publishTransform(user, XN_SKEL_RIGHT_ANKLE, frame_id, "kinect/left_ankle_" + strNum, 18);
+         //publishTransform(user, XN_SKEL_RIGHT_ANKLE, frame_id, "kinect/left_ankle_" + strNum, 18);
             publishTransform(user, XN_SKEL_RIGHT_FOOT, frame_id, "kinect/left_foot_" + strNum, 19);
 
             if(publishTf && user==closestUserId) {
@@ -320,8 +325,8 @@ void userTracker::publishTransforms(std::string const& frame_id) {
 				const XnDepthPixel* pDepth = depthMD.Data();
 				xn::SceneMetaData smd;
 				g_UserGenerator.GetUserPixels(user,smd);
-				cv::Mat mask;
-				mask.create(HEIGHT, WIDTH, CV_8UC3);
+                cv::Mat mask;
+    			mask.create(HEIGHT, WIDTH, CV_8UC3);
 				cv::MatIterator_<cv::Vec3b> it;
 
 				//Convert image into opencv format
@@ -391,13 +396,12 @@ void userTracker::publishTransforms(std::string const& frame_id) {
 
 				gDataPub.publish(gData);
 
-				cv::namedWindow("user",cv::WINDOW_AUTOSIZE);
+                cv::namedWindow("user",cv::WINDOW_AUTOSIZE);
 				cv::imshow("user",mask);
 				cv::waitKey(5);
 
-				//end adds
-
             }
+				//end adds
 
             // Store all human data
             if(publishHumanState) {
@@ -405,6 +409,7 @@ void userTracker::publishTransforms(std::string const& frame_id) {
                 storeHumansData(user);
             }
         }
+
 
         // Publish tracked user ID (problems if more then 1 users)
         /*std_msgs::Int32 msg;
@@ -472,7 +477,7 @@ void userTracker::storeHumansData(XnUserID user) {
 }
 
 
-XnUserID userTracker::getClosestUser() {
+XnUserID userTracker::getClosestUser(std::vector<XnUserID> &activeUsers) {
     XnUserID users[MAX_USERS];
     XnUInt16 users_count = MAX_USERS;
     g_UserGenerator.GetUsers(users, users_count);
@@ -481,16 +486,17 @@ XnUserID userTracker::getClosestUser() {
 
     vector <float> dist;
     // Distances of all tracked users
-    XnPoint3D com;
-    for (int i = 0; i < users_count; ++i) {
+    XnSkeletonJointPosition pos;
+	for (int i = 0; i < users_count; ++i) {
         XnUserID user = users[i];
     //    cout << "user: " << user << endl;
         if (g_UserGenerator.GetSkeletonCap().IsTracking(user)) {
-            g_UserGenerator.GetCoM(user, com);
+            g_UserGenerator.GetSkeletonCap().GetSkeletonJointPosition(user, XN_SKEL_HEAD, pos);
+    
 
-            float x = com.X;
-            float y = com.Y;
-            float z = com.Z;
+            float x = pos.position.X / 1000.0;
+            float y = -pos.position.Y / 1000.0;
+            float z = pos.position.Z / 1000.0;
 
             dist.push_back(std::sqrt(x*x + y*y + z*z));
         }
@@ -501,17 +507,20 @@ XnUserID userTracker::getClosestUser() {
    // cout << "dim_: " << dim_ << endl;
     int minInd;
     if(dim_ > 0) {
-        minInd = users[0];
-        float minVal = dist[0];
-        for(int j = 1; j < dim_; ++j) {
-            if(dist[j] < minVal) {
+        minInd = -1;
+        float minVal = 1e5;
+        for(int j = 0; j < dim_; ++j) {
+            if((dist[j] > minUserDist_) && (dist[j] < maxUserDist_) && (dist[j] < minVal)) {
                 minVal = dist[j];
                 minInd = users[j];
+
+                // Store all active users IDs
+                activeUsers.push_back(users[j]);
             }
         }
     }
     else
-        minInd = 0;
+        minInd = -1;
 
     // Publish closest user ID (0 if no user found)
     std_msgs::Int32 msg;
@@ -603,6 +612,34 @@ void XN_CALLBACK_TYPE userTracker::UserCalibration_CalibrationEnd(xn::SkeletonCa
         }
     }
 }
+
+
+int userTracker::enumerate(xn::Context context, XnPredefinedProductionNodeType type, xn::NodeInfoList& list, std::string infoMsg) {
+	//std::cout << "Enumerating " << infoMsg << endl;
+	
+	XnStatus status = context.EnumerateProductionTrees (type, NULL, list, NULL);
+
+	if (status != XN_STATUS_OK && list.Begin () != list.End ()) { 
+		std::cout << "Enumerating " << infoMsg << " failed. Reason: " <<  xnGetStatusString (status) << std::endl; 
+		return -1;
+	}
+	else if (list.Begin () == list.End ()) {
+		std::cout << "No " << infoMsg << " found." << std::endl;
+		return -1;
+	}
+
+	int numNodes = 0;
+	for (xn::NodeInfoList::Iterator nodeIt = list.Begin (); nodeIt != list.End (); ++nodeIt, numNodes++) {
+		const xn::NodeInfo& info = *nodeIt;
+		const XnProductionNodeDescription& description = info.GetDescription();
+		printf("device %d vendor %s name %s, instance %s\n", numNodes, description.strVendor, description.strName, info.GetInstanceName());
+	}
+
+	//std::cout << "Finishing enumerating: " << infoMsg << endl;
+	return numNodes;
+}
+
+
 
 
 void userTracker::userMainLoop(std::string frame_id) {

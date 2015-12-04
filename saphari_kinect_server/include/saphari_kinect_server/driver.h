@@ -34,7 +34,7 @@ namespace saphari_kinect_server
         ~OpenNINode ();
 
         void runLoop ();
-        void init ();
+        void init (float minUserDist, float maxUserDist);
         void setupDevice();
         void depthCb1(boost::shared_ptr<openni_wrapper::DepthImage> depth_image, void* cookie);
         void depthCb2(boost::shared_ptr<openni_wrapper::DepthImage> depth_image, void* cookie);

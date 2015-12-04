@@ -32,7 +32,9 @@
 
             <!-- Human state parameters -->        
         <param name="pub_tf_human" value="true" />
-            <param name="tf_frame" value="/openni_depth_frame" />
+        <param name="tf_frame" value="/openni_depth_frame" />
+        <param name="min_user_dist" value="1.0" />
+        <param name="max_user_dist" value="4.0" /> 
         
         <param name="pub_human_state" value="true" />
             <param name="calibration_file" value="$(find saphari_kinect_server)/calibration.txt" />

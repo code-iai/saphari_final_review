@@ -2,13 +2,13 @@
 <launch>
     <arg name="nodelet" default="true"/>
 
-    <arg name="device_id1" default="#1" />
+    <arg name="device_id1" default="A00362911581136A" />
     <arg name="device_id2" default="#2" />
 
     <arg name="camera1" default="camera1" />
     <arg name="camera2" default="camera2" />
 
-    <arg name="num_dev" default="2" />
+    <arg name="num_dev" default="1" />
 
 
 
@@ -31,7 +31,9 @@
 
             <!-- Human state parameters -->        
         <param name="pub_tf_human" value="true" />
-            <param name="tf_frame" value="/openni_depth_frame" />
+        <param name="tf_frame" value="/openni_depth_frame" />
+        <param name="min_user_dist" value="1.0" />
+        <param name="max_user_dist" value="4.0" />
         
         <param name="pub_human_state" value="true" />
             <param name="calibration_file" value="$(find saphari_kinect_server)/calibration.txt" />

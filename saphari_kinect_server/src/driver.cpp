@@ -26,7 +26,7 @@ namespace enc = sensor_msgs::image_encodings;
 
 
   void OpenNINode::setupDevice() {
- 	OpenNIDriver& driver = OpenNIDriver::getInstance ();
+    OpenNIDriver& driver = OpenNIDriver::getInstance ();
 
     int num_dev;
     nh_.getParam("num_dev",num_dev);
@@ -36,7 +36,8 @@ namespace enc = sensor_msgs::image_encodings;
     }
 
     do {
-	  driver.updateDeviceList ();
+       // This was generating problems (stop) on another pc
+      //driver.updateDeviceList ();
 
 	  if (driver.getNumberDevices () == 0)
 	  {
@@ -45,7 +46,7 @@ namespace enc = sensor_msgs::image_encodings;
 	    continue;
 	  }
 
-	  ROS_INFO ("Number devices connected: %d", driver.getNumberDevices ());
+      ROS_INFO ("Number devices connected: %d", driver.getNumberDevices ());
       for (unsigned deviceIdx = 0; deviceIdx < driver.getNumberDevices (); ++deviceIdx) {
 	    ROS_INFO("%u. device on bus %03u:%02u is a %s (%03x) from %s (%03x) with serial id \'%s\'",
 		         deviceIdx + 1, driver.getBus(deviceIdx), driver.getAddress(deviceIdx),
@@ -127,7 +128,17 @@ namespace enc = sensor_msgs::image_encodings;
         device_2->registerImageCallback(&OpenNINode::imgCb2, *this);
     }
 
-    init();
+    // Get user_tracker parameters
+    float minUserDist;
+    if (!nh_.getParam("min_user_dist", minUserDist)){
+	      minUserDist = 0.8;
+	}
+    float maxUserDist;
+    if (!nh_.getParam("max_user_dist", maxUserDist)){
+	      maxUserDist = 5.0;
+	}
+
+    init(minUserDist, maxUserDist);
 
   }
 
@@ -152,7 +163,7 @@ namespace enc = sensor_msgs::image_encodings;
   }
 
 
-  void OpenNINode::init()
+  void OpenNINode::init(float minUserDist, float maxUserDist)
   {
 
     std::string serial_number = device_1->getSerialNumber();
@@ -202,7 +213,7 @@ namespace enc = sensor_msgs::image_encodings;
             rgb_pub_2   = depth_it.advertiseCamera("rgb_output2", 1);
       }
 
-      userTr.initUserTracker();
+      userTr.initUserTracker(minUserDist, maxUserDist);
 
 	  runLoop();
 

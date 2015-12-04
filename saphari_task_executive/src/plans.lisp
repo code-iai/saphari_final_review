@@ -51,16 +51,18 @@
           (action-designator
            `((:an :action) (:to :move)
              (:at ,above-location) (:sim ,(getf demo-handle :sim-p)))))
-         (detect-instruments
+         (instruments
+           (object-designator '((:an :object) (:type :surgical-instrument))))
+         (perceive
            (action-designator
             `((:an :action)
-              (:to :detect)
-              (:obj ,(object-designator '((:an :object) (:type :surgical-instrument))))))))
+              (:to :perceive)
+              (:obj ,instruments)))))
     (with-logging
-        ((alexandria:curry #'log-start-action-designator parent-log-id detect-instruments)
-         (alexandria:rcurry #'log-stop-action-designator parent-log-id))
+        ((alexandria:curry #'log-start-object-perception parent-log-id perceive instruments)
+         (alexandria:rcurry #'log-stop-object-perception parent-log-id))
       (perform-beasty-motion demo-handle log-id move above-location)
-      (trigger-tool-perception demo-handle log-id detect-instruments))))
+      (trigger-tool-perception demo-handle log-id perceive))))
 
 (defun grasp (demo-handle parent-log-id object)
   (let* ((grasp
@@ -68,7 +70,7 @@
             `((:an :action) (:to :grasp) (:obj ,object))))
          (open
            (action-designator
-            `((:an :action) (:to :open) (:body-part :gripper))))
+            `((:an :action) (:to :open) (:bodypart :gripper))))
          (reach
            (action-designator
             `((:an :action) (:to :reach) (:obj ,object)
@@ -76,7 +78,7 @@
          (clamp
            (action-designator
             ;; TODO: add object?
-            `((:an :action) (:to :clamp) (:body-part :gripper))))
+            `((:an :action) (:to :clamp) (:bodypart :gripper))))
          (above-location
            (location-designator
             `((:a :location)

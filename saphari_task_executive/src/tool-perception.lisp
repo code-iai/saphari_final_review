@@ -97,7 +97,7 @@
   (when
       (desig-descr-included
        (action-designator
-        `((:an :action) (:to :detect)
+        `((:an :action) (:to :perceive)
           (:obj ,(object-designator
                   '((:an :object) (:type :surgical-instrument))))))
        desig)

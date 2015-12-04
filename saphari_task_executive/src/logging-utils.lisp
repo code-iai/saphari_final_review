@@ -98,5 +98,12 @@
 (defun log-stop-pick-and-place (log-id success parent-log-id)
   (beliefstate:stop-node log-id :success success :relative-context-id parent-log-id))
 
-(defun test (&key a b)
-  (format t "~a ~a~%" a b))
+(defun log-start-object-perception (parent-log-id &rest desigs)
+  (let ((id (beliefstate:start-node "PERCEIVE-OBJECT" nil 2 parent-log-id)))
+    (dolist (desig desigs)
+      (beliefstate:add-designator-to-node
+       desig id :annotation (knowrob-annotation-prop desig)))
+    id))
+
+(defun log-stop-object-perception (log-id success parent-log-id)
+  (beliefstate:stop-node log-id :success success :relative-context-id parent-log-id))

@@ -185,7 +185,7 @@
   (and
    (desig-prop-value-p desig :an :action)
    (desig-prop-value-p desig :to :clamp)
-   (desig-prop-value-p desig :body-part :gripper)
+   (desig-prop-value-p desig :bodypart :gripper)
    ;; TODO: more about objects?
    (list
     cram-wsg50:*wsg50-closed-width*
@@ -196,7 +196,7 @@
   (and
    (desig-prop-value-p desig :an :action)
    (desig-prop-value-p desig :to :open)
-   (desig-prop-value-p desig :body-part :gripper)
+   (desig-prop-value-p desig :bodypart :gripper)
    ;; TODO: more about objects?
    (list
     cram-wsg50:*wsg50-open-width*

@@ -32,67 +32,76 @@
 ;;; LOG HUMANS PERCEPTIONS
 ;;;
 
-(defun log-track-new-human (user-id desig parent-log-id log-ids)
-  (let ((log-id (beliefstate:start-node "PERCEIVE-HUMAN" nil 2 parent-log-id)))
+(defun log-track-new-human (human parent-log-id log-ids knowrob-ids)
+  (let* ((user-id (car human))
+         (desig (rest human))
+         (log-id (beliefstate:start-node "PERCEIVE-HUMAN" nil 2 parent-log-id)))
     (beliefstate::add-human-to-node
      desig log-id
      :relative-context-id log-id
      :tf-prefix (conc-strings "human" (write-to-string user-id))
      :srdl-component "http://knowrob.org/kb/openni_human1.owl#iai_human_robot1")
-    (ros-info
-     :saphari-task-executive
-     "start logging ~a with user-id ~a with log-id ~a and parent-log-id ~a"
-     desig user-id log-id parent-log-id)
-    (set-in-alist user-id log-id log-ids)))
+    (let ((knowrob-id (beliefstate:resolve-designator-knowrob-id desig)))
+      ;; TODO: get rid off/clean printout
+      (ros-info :log-new-human "user-id ~a, log-id ~a, and knowrob-id ~a"
+                user-id log-id knowrob-id)
+      (list 
+       (set-in-alist user-id log-id log-ids)
+       (set-in-alist user-id knowrob-id knowrob-ids)))))
 
-(defun log-acknowledge-lost-human (user-id parent-log-id log-ids)
-  (beliefstate:stop-node
-   (rest (assoc user-id log-ids))
-   :relative-context-id parent-log-id)
-  (ros-info
-   :saphari-task-executive
-   "stop logging person with user-id ~a, log-id ~a, and parent-log-id ~a"
-   user-id (rest (assoc user-id log-ids)) parent-log-id)
-  (remove-from-alist user-id log-ids))
+(defun log-acknowledge-lost-human (human parent-log-id log-ids knowrob-ids)
+  (let ((user-id (car human)))
+    (beliefstate:stop-node
+     (rest (assoc user-id log-ids))
+     :relative-context-id parent-log-id)
+    (ros-info :log-lost-human "user-id ~a, log-id ~a, and knowrob-id ~a"
+              user-id (rest (assoc user-id log-ids)) (rest (assoc user-id knowrob-ids)))
+    (list
+     (remove-from-alist user-id log-ids)
+     (remove-from-alist user-id knowrob-ids))))
 
-(defun log-track-new-people (new-people parent-log-id log-ids)
+(defun log-track-new-people (new-people parent-log-id log-ids knowrob-ids)
   (if new-people
       (destructuring-bind (new-human &rest other-people) new-people
-        (log-track-new-people
-         other-people parent-log-id
-         (log-track-new-human (car new-human) (rest new-human) parent-log-id log-ids)))
-      log-ids))
+        (destructuring-bind (log-ids knowrob-ids)
+            (log-track-new-human new-human parent-log-id log-ids knowrob-ids)
+          (log-track-new-people other-people parent-log-id log-ids knowrob-ids)))
+      (list log-ids knowrob-ids)))
 
-(defun log-acknowledge-lost-people (lost-people parent-log-id log-ids)
+(defun log-acknowledge-lost-people (lost-people parent-log-id log-ids knowrob-ids)
   (if lost-people
       (destructuring-bind (lost-human &rest other-people) lost-people
-        (log-acknowledge-lost-people
-         other-people parent-log-id
-         (log-acknowledge-lost-human (car lost-human) parent-log-id log-ids)))
-      log-ids))
+        (destructuring-bind (log-ids knowrob-ids)
+            (log-acknowledge-lost-human lost-human parent-log-id log-ids knowrob-ids)
+          (log-acknowledge-lost-people other-people parent-log-id log-ids knowrob-ids)))
+      (list log-ids knowrob-ids)))
 
-(defun log-update-people (current-people last-people parent-log-id log-ids)
+(defun log-update-people (people-percept annotated-people parent-log-id log-ids knowrob-ids)
   (flet ((excluded-people (subset superset)
            (loop for (id . human) in superset
                  collect (unless (assoc id subset) (cons id human)) into alist
                  finally (return (remove-if-not #'identity alist)))))
-    (let ((new-people (excluded-people last-people current-people))
-          (lost-people (excluded-people current-people last-people)))
-      (log-acknowledge-lost-people
-       lost-people parent-log-id (log-track-new-people new-people parent-log-id log-ids)))))
+    (let ((new-people (excluded-people annotated-people people-percept))
+          (lost-people (excluded-people people-percept annotated-people)))
+      (destructuring-bind (log-ids knowrob-ids)
+          (log-track-new-people new-people parent-log-id log-ids knowrob-ids)
+        (log-acknowledge-lost-people lost-people parent-log-id log-ids knowrob-ids)))))
 
-(defun log-people (parent-log-id people-percept-fluent)
-  (let ((last-people-percept (cpl:make-fluent :value nil))
-        (log-ids (cpl:make-fluent :value nil)))
+(defun log-people (parent-log-id people-percept annotated-people)
+  (declare (type number parent-log-id)
+           (type cpl:fluent people-percept annotated-people))
+  (let ((log-ids (cpl:make-fluent :value nil))
+        (knowrob-ids (cpl:make-fluent :value nil)))
     (unwind-protect
-         (cpl:whenever ((cpl:pulsed people-percept-fluent))
-           (setf (cpl:value log-ids)
-                 (log-update-people
-                  (cpl:value people-percept-fluent)
-                  (cpl:value last-people-percept)
-                  parent-log-id (cpl:value log-ids)))
-           (setf (cpl:value last-people-percept) (cpl:value people-percept-fluent)))
-      (log-acknowledge-lost-people (cpl:value log-ids) parent-log-id (cpl:value log-ids)))))
+         (cpl:whenever ((cpl:pulsed people-percept))
+           (destructuring-bind (new-log-ids new-knowrob-ids)
+               (log-update-people
+                (cpl:value people-percept) (cpl:value annotated-people)
+                parent-log-id (cpl:value log-ids) (cpl:value knowrob-ids))
+             (setf (cpl:value log-ids) new-log-ids)
+             (setf (cpl:value knowrob-ids) new-knowrob-ids)
+             (setf (cpl:value annotated-people) (mapcar (lambda (e) (make-human (car e) (rest e))) new-knowrob-ids))))
+      (log-acknowledge-lost-people (cpl:value log-ids) parent-log-id (cpl:value log-ids) (cpl:value knowrob-ids)))))
 
 ;;;
 ;;; LOG INTRUSIONS
@@ -124,13 +133,10 @@
   (let* ((intrusion-id (car intrusion))
          (bodypart (cddr intrusion))
          (human (cadr intrusion))
-         (desig (rest human)))
-    (let ((log-id (beliefstate:start-node "HUMAN-INTRUSION" (list :_bodypart bodypart) 2 parent-log-id)))
-      (beliefstate::add-human-to-node
-       desig log-id
-       :relative-context-id log-id
-       :tf-prefix (conc-strings "human" (write-to-string (car human)))
-       :srdl-component "http://knowrob.org/kb/openni_human1.owl#iai_human_robot1")
+         (desig (rest human))
+         (full-knowrob-id (desig-prop-value desig :knowrob-id))
+         (knowrob-id (subseq full-knowrob-id (1+ (position #\# full-knowrob-id)))))
+    (let ((log-id (beliefstate:start-node "HUMAN-INTRUSION" (list :_bodypart bodypart) 2 parent-log-id `((:_humandesig ,knowrob-id)))))
       (ros-info :start-intrusion "~a with log-id ~a" intrusion-id log-id)
       (set-in-alist intrusion-id log-id log-ids))))
 
@@ -261,22 +267,25 @@
   (with-logging
       ((alexandria:curry #'log-start-people-monitoring parent-log-id)
        (alexandria:rcurry #'log-stop-people-monitoring parent-log-id))
-    (let* ((people-percept-fluent (getf demo-handle :humans-percept-fluent))
-           (intrusions-fluent (cpl:make-fluent :value nil))
+    (let* ((people-percept (getf demo-handle :humans-percept-fluent))
+           (annotated-people (cpl:make-fluent :value nil))
+           (intrusions (cpl:make-fluent :value nil))
            ;; (intrusions-fluent
            ;;   (cpl:fl-funcall #'intrusions-for-people demo-handle people-percept-fluent bodypart-thresholds))
            )
       (cpl:with-tags
         (cpl:pursue
-          (log-people log-id people-percept-fluent)
+          (log-people log-id people-percept annotated-people)
 
-          (log-intrusions log-id intrusions-fluent)
-          
           ;; TODO: to be replaced by something cooler
           (loop
-            (setf (cpl:value intrusions-fluent)
-                  (intrusions-for-people demo-handle (cpl:value people-percept-fluent) bodypart-thresholds))
+            (setf (cpl:value intrusions)
+                  (intrusions-for-people demo-handle (cpl:value annotated-people) bodypart-thresholds))
             (cpl:sleep 0.3))
+          
+          (log-intrusions log-id intrusions)
+          
+          
 
           ;; TODO: suspend task
           ;; (cpl:whenever ((cpl:pulsed intrusions-fluent))

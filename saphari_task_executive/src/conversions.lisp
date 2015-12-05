@@ -59,8 +59,8 @@
   (declare (type geometry_msgs-msg:posestamped pose-stamped))
   (location-designator (conc-lists `((:a :location)(:pose ,pose-stamped)) extra-descr)))
 
-(defun make-human (user-id)
-  (cons user-id (human-designator `((:user-id ,user-id)))))
+(defun make-human (user-id &optional knowrob-id)
+  (cons user-id (human-designator `((:user-id ,user-id)(:knowrob-id ,knowrob-id)))))
 
 (defun humans-msg->alist (msg)
   (declare (type saphari_msgs-msg:humans msg))

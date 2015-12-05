@@ -96,8 +96,8 @@
     (with-log-extraction
       (let ((demo-handle (make-demo-handle)))
         (cpl:top-level
-          (with-people-monitoring (cpl-impl::log-id demo-handle (list (cons "head" 10) (cons "left_hand" 2)))
-            (cpl:wait-for (cpl:make-fluent) :timeout 4)))))))
+          (with-people-monitoring (cpl-impl::log-id demo-handle (list (cons "head" 4) (cons "left_hand" 3) (cons "right_hand" 2)))
+            (cpl:wait-for (cpl:make-fluent))))))))
 
 (defun single-human-pnp-main ()
   (with-ros-node ("cram")

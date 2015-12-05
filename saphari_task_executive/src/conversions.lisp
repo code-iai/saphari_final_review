@@ -59,6 +59,15 @@
   (declare (type geometry_msgs-msg:posestamped pose-stamped))
   (location-designator (conc-lists `((:a :location)(:pose ,pose-stamped)) extra-descr)))
 
+(defun humans-msg->alist (msg)
+  (with-fields (humans) msg
+    (loop for human across humans
+          collect (human-msg->id-and-desig human))))
+          
+(defun human-msg->id-and-desig (msg)
+  (with-fields (userid) msg
+    (cons userid (human-designator `((:user-id ,userid))))))
+
 ;;;
 ;;; ROS MESSAGE CONVERSIONS
 ;;;

@@ -63,10 +63,14 @@
               (list 'beliefstate::matching-process-modules nil))
              2
              parent-log-id)))
-    (beliefstate:add-designator-to-node desig id)
+    ;; TODO: simplify?
+    (beliefstate:add-designator-to-node
+     desig id :relative-context-id id)
     (dolist (other-desig other-desigs)
       (beliefstate:add-designator-to-node
-       other-desig id :annotation (knowrob-annotation-prop other-desig)))
+       other-desig id
+       :annotation (knowrob-annotation-prop other-desig)
+       :relative-context-id id))
     id))
 
 (defun log-stop-action-designator (id success parent-log-id)
@@ -76,7 +80,9 @@
   (let ((id (beliefstate:start-node "GRASP-OBJECT" nil 2 parent-log-id)))
     (dolist (desig desigs)
       (beliefstate:add-designator-to-node
-       desig id :annotation (knowrob-annotation-prop desig)))
+       desig id
+       :annotation (knowrob-annotation-prop desig)
+       :relative-context-id id))
     id))
 
 (defun log-stop-grasping (id success parent-log-id)
@@ -86,7 +92,9 @@
   (let ((id (beliefstate:start-node "PUT-DOWN-OBJECT" nil 2 parent-log-id)))
     (dolist (designator (list desig object location))
       (beliefstate:add-designator-to-node
-       designator id :annotation (knowrob-annotation-prop designator)))
+       designator id
+       :annotation (knowrob-annotation-prop designator)
+       :relative-context-id id))
     id))
 
 (defun log-stop-put-down (id success parent-log-id)
@@ -102,8 +110,16 @@
   (let ((id (beliefstate:start-node "PERCEIVE-OBJECT" nil 2 parent-log-id)))
     (dolist (desig desigs)
       (beliefstate:add-designator-to-node
-       desig id :annotation (knowrob-annotation-prop desig)))
+       desig id
+       :annotation (knowrob-annotation-prop desig)
+       :relative-context-id id))
     id))
 
 (defun log-stop-object-perception (log-id success parent-log-id)
+  (beliefstate:stop-node log-id :success success :relative-context-id parent-log-id))
+
+(defun log-start-people-monitoring (parent-log-id)
+  (beliefstate:start-node "PEOPLE-MONITORING" nil 2 parent-log-id))
+
+(defun log-stop-people-monitoring (log-id success parent-log-id)
   (beliefstate:stop-node log-id :success success :relative-context-id parent-log-id))

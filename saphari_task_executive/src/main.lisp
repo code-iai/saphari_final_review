@@ -69,6 +69,7 @@
 ;;
 ;; TODO: test this
 ;;
+
 (defun loop-main ()
   (with-ros-node ("cram")
     (with-log-extraction
@@ -89,7 +90,16 @@
     (with-log-extraction
       (let ((demo-handle (make-demo-handle)))
         (cpl:top-level
-          (humans-tracking (getf demo-handle :humans-percept-fluent)))))))
+          (with-people-monitoring (cpl-impl::log-id (getf demo-handle :humans-percept-fluent))
+            (cpl:wait-for (cpl:make-fluent))))))))
+
+(defun single-human-pnp-main ()
+  (with-ros-node ("cram")
+    (with-log-extraction
+      (let ((demo-handle (make-demo-handle)))
+        (cpl:top-level
+          (with-people-monitoring (cpl-impl::log-id (getf demo-handle :humans-percept-fluent))
+            (pick-and-place-next-object demo-handle cpl-impl::log-id)))))))
 
 ;;;
 ;;; TEMPORARY DEBUG/DEVEL CODE

@@ -121,7 +121,9 @@
              "UIMA-PERCEIVE"
              (cram-designators:description request)
              2 parent-log-id)))
-    (beliefstate:add-designator-to-node request id :annotation "perception-request")
+    (beliefstate:add-designator-to-node
+     request id :annotation "perception-request"
+                :relative-context-id id)
     id))
 
 (defun on-finish-perception-request (id results parent-log-id)
@@ -129,7 +131,10 @@
           (loop for desig in results
                 collect
                 (progn
-                  (beliefstate:add-designator-to-node desig id :annotation "perception-result")
+                  (beliefstate:add-designator-to-node
+                   desig id
+                   :annotation "perception-result"
+                   :relative-context-id id)
                   (desig:equate
                    desig
                    (desig:copy-designator 

@@ -28,74 +28,83 @@
 
 (in-package :saphari-task-executive)
 
-(defun humans-msg->alist (msg)
-  (with-fields (humans) msg
-    (loop for human across humans
-          collect (human-msg->id-and-desig human))))
-          
-(defun human-msg->id-and-desig (msg)
-  (with-fields (userid) msg
-    (cons userid (human-designator `((:user-id ,userid))))))
-
-(defun remove-from-alist (key alist &key (test #'equal))
-  (remove-if (alexandria:curry test key) alist :key #'car))
-
-(defun set-in-alist (key datum alist)
-  (acons key datum (remove-from-alist key alist)))
-
-(defun start-tracking-new-human (user-id desig log-ids)
-  (let ((log-id (beliefstate:start-node "PERCEIVE-HUMAN")))
+(defun log-track-new-human (user-id desig parent-log-id log-ids)
+  (let ((log-id (beliefstate:start-node "PERCEIVE-HUMAN" nil 2 parent-log-id)))
     (beliefstate::add-human-to-node
      desig log-id
+     :relative-context-id log-id
      :tf-prefix (conc-strings "human" (write-to-string user-id))
      :srdl-component "http://knowrob.org/kb/openni_human1.owl#iai_human_robot1")
     (ros-info
      :saphari-task-executive
-     "start logging ~a with user-id ~a and log-id ~a"
-     desig user-id log-id)
+     "start logging ~a with user-id ~a with log-id ~a and parent-log-id ~a"
+     desig user-id log-id parent-log-id)
     (set-in-alist user-id log-id log-ids)))
 
-(defun stop-tracking-lost-human (user-id log-ids)
-  (beliefstate:stop-node (rest (assoc user-id log-ids)))
+(defun log-acknowledge-lost-human (user-id parent-log-id log-ids)
+  (beliefstate:stop-node
+   (rest (assoc user-id log-ids))
+   :relative-context-id parent-log-id)
   (ros-info
    :saphari-task-executive
-   "stop logging person with user-id ~a and log-id ~a"
-   user-id (rest (assoc user-id log-ids)))
+   "stop logging person with user-id ~a, log-id ~a, and parent-log-id ~a"
+   user-id (rest (assoc user-id log-ids)) parent-log-id)
   (remove-from-alist user-id log-ids))
 
-(defun start-tracking-new-humans (new-humans log-ids)
-  (if new-humans
-      (destructuring-bind (new-human &rest other-humans) new-humans
-        (start-tracking-new-humans
-         other-humans (start-tracking-new-human (car new-human) (rest new-human) log-ids)))
+(defun log-track-new-people (new-people parent-log-id log-ids)
+  (if new-people
+      (destructuring-bind (new-human &rest other-people) new-people
+        (log-track-new-people
+         other-people parent-log-id
+         (log-track-new-human (car new-human) (rest new-human) parent-log-id log-ids)))
       log-ids))
 
-(defun stop-tracking-lost-humans (lost-humans log-ids)
-  (if lost-humans
-      (destructuring-bind (lost-human &rest other-humans) lost-humans
-        (stop-tracking-lost-humans
-         other-humans (stop-tracking-lost-human (car lost-human) log-ids)))
+(defun log-acknowledge-lost-people (lost-people parent-log-id log-ids)
+  (if lost-people
+      (destructuring-bind (lost-human &rest other-people) lost-people
+        (log-acknowledge-lost-people
+         other-people parent-log-id
+         (log-acknowledge-lost-human (car lost-human) parent-log-id log-ids)))
       log-ids))
 
-(defun excluded-humans (subset superset)
-  (loop for (id . human) in superset
-        collect (unless (assoc id subset) (cons id human)) into alist
-        finally (return (remove-if-not #'identity alist))))
+(defun log-update-people (current-people last-people parent-log-id log-ids)
+  (flet ((excluded-people (subset superset)
+           (loop for (id . human) in superset
+                 collect (unless (assoc id subset) (cons id human)) into alist
+                 finally (return (remove-if-not #'identity alist)))))
+    (let ((new-people (excluded-people last-people current-people))
+          (lost-people (excluded-people current-people last-people)))
+      (log-acknowledge-lost-people
+       lost-people parent-log-id (log-track-new-people new-people parent-log-id log-ids)))))
 
-(defun update-humans-tracking (current-humans last-humans log-ids)
-  (let ((new-humans (excluded-humans last-humans current-humans))
-        (lost-humans (excluded-humans current-humans last-humans)))
-    (stop-tracking-lost-humans lost-humans (start-tracking-new-humans new-humans log-ids))))
-
-(defun humans-tracking (humans-percept)
-  (let ((last-humans-percept (cpl:make-fluent :value nil))
+(defun log-people (parent-log-id people-percept)
+  (let ((last-people-percept (cpl:make-fluent :value nil))
         (log-ids (cpl:make-fluent :value nil)))
     (unwind-protect
-         (cpl:whenever ((cpl:pulsed humans-percept))
+         (cpl:whenever ((cpl:pulsed people-percept))
            (setf (cpl:value log-ids)
-                 (update-humans-tracking
-                  (cpl:value humans-percept)
-                  (cpl:value last-humans-percept)
-                  (cpl:value log-ids)))
-           (setf (cpl:value last-humans-percept) (cpl:value humans-percept)))
-      (stop-tracking-lost-humans (cpl:value log-ids) (cpl:value log-ids)))))
+                 (log-update-people
+                  (cpl:value people-percept)
+                  (cpl:value last-people-percept)
+                  parent-log-id (cpl:value log-ids)))
+           (setf (cpl:value last-people-percept) (cpl:value people-percept)))
+      (log-acknowledge-lost-people (cpl:value log-ids) parent-log-id (cpl:value log-ids)))))
+
+(defmacro with-people-monitoring ((parent-log-id human-percept) &body body)
+  (alexandria:with-gensyms (human-percept-sym parent-log-id-sym)
+    `(let ((,human-percept-sym ,human-percept)
+           (,parent-log-id-sym ,parent-log-id))
+       (with-people-monitoring-fn
+        ,parent-log-id-sym ,human-percept-sym (lambda () ,@body)))))
+
+(defun with-people-monitoring-fn (parent-log-id people-percept main-lambda)
+  (with-logging
+      ((alexandria:curry #'log-start-people-monitoring parent-log-id)
+       (alexandria:rcurry #'log-stop-people-monitoring parent-log-id))
+    (cpl:with-tags
+      (cpl:pursue
+        (log-people log-id people-percept)
+        ;; TODO: calc intrusions
+        ;; TODO: log intrusions
+        ;; TODO: suspend main task
+        (:tag main (funcall main-lambda))))))

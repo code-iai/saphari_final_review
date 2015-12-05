@@ -99,3 +99,13 @@
   (alexandria:when-let ((duplicate-keys (get-duplicates (apply #'conc-lists (mapcar #'plist-keys plists)))))
     (error "Merge-plists encountered the following duplicate keys in its inputs: ~a" duplicate-keys))
   (apply #'conc-lists plists))
+
+;;;
+;;; ALIST UTILS
+;;;
+
+(defun remove-from-alist (key alist &key (test #'equal))
+  (remove-if (alexandria:curry test key) alist :key #'car))
+
+(defun set-in-alist (key datum alist)
+  (acons key datum (remove-from-alist key alist)))

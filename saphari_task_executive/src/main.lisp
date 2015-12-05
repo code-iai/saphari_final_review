@@ -38,10 +38,16 @@
    :tf-listener (make-instance 'cl-tf2:buffer-client)
    :marker-pub (advertise "visualization_marker_array" "visualization_msgs/MarkerArray")
    :humans-percept-fluent (let ((f (cpl:make-fluent :value nil)))
+                            ;; (subscribe 
+                            ;;  "/kinect_tracker/user_state"
+                            ;;  "saphari_msgs/Humans"
+                            ;;  (lambda (msg) (setf (cpl:value f) msg))
+                            ;;  :max-queue-length 1)
                             (subscribe 
                              "/kinect_tracker/user_state"
                              "saphari_msgs/Humans"
-                             (lambda (msg) (setf (cpl:value f) (humans-msg->alist msg))))
+                             (lambda (msg) (setf (cpl:value f) (humans-msg->alist msg)))
+                             :max-queue-length 1)
                             f)))
 
 (defmacro loop-until-succeed ((&key (timeout nil) (loop-wait 0)) &body body)
@@ -90,8 +96,8 @@
     (with-log-extraction
       (let ((demo-handle (make-demo-handle)))
         (cpl:top-level
-          (with-people-monitoring (cpl-impl::log-id (getf demo-handle :humans-percept-fluent))
-            (cpl:wait-for (cpl:make-fluent))))))))
+          (with-people-monitoring (cpl-impl::log-id demo-handle (list (cons "head" 10) (cons "left_hand" 2)))
+            (cpl:wait-for (cpl:make-fluent) :timeout 4)))))))
 
 (defun single-human-pnp-main ()
   (with-ros-node ("cram")

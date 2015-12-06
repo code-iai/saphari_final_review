@@ -46,15 +46,15 @@
 
 (defun point-msg->point (msg)
   (with-fields (x y z) msg
-    (cl-transforms:make-3d-vector x y z)))
+    (make-3d-vector x y z)))
 
 (defun quaternion-msg->quaternion (msg)
   (with-fields (x y z w) msg
-    (cl-transforms:make-quaternion x y z w)))
+    (make-quaternion x y z w)))
  
 (defun pose-msg->pose (msg)
   (with-fields (position orientation) msg
-    (cl-transforms:make-pose
+    (make-pose
      (point-msg->point position)
      (quaternion-msg->quaternion orientation))))
 
@@ -77,11 +77,18 @@
     (ros-debug :relay-beasty-goal "In: ~a" goal-msg)
     (let* ((arm-transform (tf2-lookup tf "arm_base_link" frame-id))
            (goal-pose
-            (cl-transforms:pose->transform
-             (cl-transforms:transform-pose arm-transform (pose-msg->pose pose-msg)))))
+            (pose->transform
+             (transform-pose arm-transform (pose-msg->pose pose-msg))))
+           (beasty-goal
+             (goal
+              :command-config (command-config :command-type :cartesian-impedance)
+              :cartesian-goal-config (cartesian-goal-config :cartesian-goal-pose goal-pose)
+              :simulated-config (simulated-config :simulated-robot sim-p)
+              :motor-power-config (motor-power-config :motor-power t)
+              :tool-config (tool-config :tool-mass 1.58 :tool-com (make-3d-vector 0 0 0.17)))))
       (ros-debug :relay-beasty-goal "Arm-transform: ~a" arm-transform)
       (ros-debug :relay-beasty-goal "Out: ~a" goal-pose)
-      (move-beasty-and-wait beasty (make-default-cartesian-goal goal-pose sim-p)))))  
+      (move-beasty-and-wait beasty beasty-goal))))
 
 ;;;
 ;;; ENTRY POINT FOR SCRIPT

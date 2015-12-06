@@ -29,4 +29,4 @@
 (in-package :cl-user)
 
 (defpackage :saphari-interactive-markers
-  (:use #:common-lisp #:roslisp #:roslisp-beasty))
+  (:use #:common-lisp #:roslisp #:roslisp-beasty #:cl-transforms))

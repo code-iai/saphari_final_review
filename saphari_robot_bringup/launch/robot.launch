@@ -3,6 +3,7 @@
   <arg name="with_tool_perception" default="true" />
   <arg name="with_human_perception" default="true" />
   <arg name="with_knowledge_base" default="true" />
+  <arg name="with_interactive_markers" default="false" />
 
   <include file="$(find saphari_robot_description)/launch/upload.launch" />
 
@@ -28,7 +29,10 @@
     <arg name="enabled" value="$(arg with_knowledge_base)" />
   </include>
 
-  <include file="$(find saphari_interactive_markers)/launch/saphari_interactive_markers.launch" />
+  <include file="$(find saphari_interactive_markers)/launch/saphari_interactive_markers.launch" >
+    <arg name="simulation" value="$(arg simulation)" />
+    <arg name="enabled" value="$(arg with_interactive_markers)" />
+  </include>
 
   <node name="robot_state_publisher" pkg="robot_state_publisher"
         type="state_publisher" />

@@ -1,4 +1,14 @@
 <launch>
-  <node pkg="saphari_interactive_markers" type="saphari_interactive_markers"
-        name="saphari_interactive_markers" output="screen"/>
+  <arg name="enabled" default="true" />
+  <arg name="simulation" default="true" />
+
+  <group if="$(arg enabled)" >
+    <node pkg="saphari_interactive_markers" type="saphari_interactive_markers"
+          name="saphari_interactive_markers" output="screen"/>
+  
+    <node pkg="saphari_interactive_markers" type="beasty_goal_relay"
+          name="beasty_goal_relay" output="screen" >
+      <rosparam param="~simulation" subst_value="True">$(arg simulation)</rosparam>
+    </node>
+  </group>
 </launch>

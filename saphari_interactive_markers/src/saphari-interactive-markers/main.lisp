@@ -67,12 +67,12 @@
   (handler-case (cl-tf2:transform (cl-tf2:lookup-transform tf frame-id child-frame-id))
     (cl-tf2::tf2-server-error () (progn (sleep 0.1) (tf2-lookup tf frame-id child-frame-id)))))
                                                          
-(defun init-ros-components (&optional (sim-p t))
+(defun init-ros-components (sim-p)
   (let ((tf (make-instance 'cl-tf2:buffer-client))
         (beasty (make-and-init-beasty-handle "beasty" 1 1337 sim-p)))
     (list tf beasty)))
 
-(defun relay-beasty-goal-msg (tf beasty goal-msg &optional (sim-p t))
+(defun relay-beasty-goal-msg (tf beasty sim-p goal-msg)
   (with-fields ((frame-id (frame_id header)) (pose-msg pose)) goal-msg
     (ros-debug :relay-beasty-goal "In: ~a" goal-msg)
     (let* ((arm-transform (tf2-lookup tf "arm_base_link" frame-id))
@@ -89,5 +89,8 @@
 
 (defun main (&optional (node-name "beasty_goal_relay"))
   (with-ros-node (node-name :spin t)
-    (let ((callback (apply #'alexandria:curry #'relay-beasty-goal-msg (init-ros-components))))
-      (subscribe "/saphari_interactive_markers/goal_out" "geometry_msgs/PoseStamped" callback))))     
+    (let ((sim-p (get-param "~simulation" t)))
+      (ros-debug :beasty-goal-relay "simulation: ~a" sim-p)
+      (destructuring-bind (tf beasty) (init-ros-components sim-p)
+        (let ((callback (alexandria:curry #'relay-beasty-goal-msg tf beasty sim-p)))
+          (subscribe "/saphari_interactive_markers/goal_out" "geometry_msgs/PoseStamped" callback))))))

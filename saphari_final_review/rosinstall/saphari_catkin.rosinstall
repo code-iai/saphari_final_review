@@ -59,3 +59,7 @@
     local-name: iai_robot_drivers
     uri: https://github.com/code-iai/iai_robot_drivers.git
     version: master
+- git: 
+    local-name: iai_cad_tools
+    uri: https://github.com/code-iai/iai_cad_tools.git
+    version: master

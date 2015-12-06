@@ -109,21 +109,24 @@
           :command-config (roslisp-beasty::command-config :command-type :joint-impedance)
           :joint-goal-config (roslisp-beasty::joint-goal-config :joint-goal-config (list 0 0 0 0 0 0 0))
           :simulated-config (roslisp-beasty::simulated-config :simulated-robot (getf demo-handle :sim-p))
-          :tool-config (roslisp-beasty::tool-config :tool-mass 1.58 :tool-com  (make-3d-vector 0 0 0.17))))
+          :tool-config (roslisp-beasty::tool-config :tool-mass 1.58 :tool-com  (make-3d-vector 0 0 0.17))
+          :motor-power-config (roslisp-beasty::motor-power-config :motor-power t)))
         (roslisp-beasty:move-beasty-and-wait
          (getf demo-handle :beasty)
          (roslisp-beasty:goal
           :command-config (roslisp-beasty::command-config :command-type :joint-impedance)
           :joint-goal-config (roslisp-beasty::joint-goal-config :joint-goal-config (lookat-pickup-config))
           :simulated-config (roslisp-beasty::simulated-config :simulated-robot (getf demo-handle :sim-p))
-          :tool-config (roslisp-beasty::tool-config :tool-mass 1.58 :tool-com  (make-3d-vector 0 0 0.17))))
+          :tool-config (roslisp-beasty::tool-config :tool-mass 1.58 :tool-com  (make-3d-vector 0 0 0.17))
+          :motor-power-config (roslisp-beasty::motor-power-config :motor-power t)))
         (roslisp-beasty:move-beasty-and-wait
          (getf demo-handle :beasty)
          (roslisp-beasty:goal
           :command-config (roslisp-beasty::command-config :command-type :joint-impedance)
           :joint-goal-config (roslisp-beasty::joint-goal-config :joint-goal-config (lookat-sorting-basket-config))
           :simulated-config (roslisp-beasty::simulated-config :simulated-robot (getf demo-handle :sim-p))
-          :tool-config (roslisp-beasty::tool-config :tool-mass 1.58 :tool-com  (make-3d-vector 0 0 0.17))))))))
+          :tool-config (roslisp-beasty::tool-config :tool-mass 1.58 :tool-com  (make-3d-vector 0 0 0.17))
+          :motor-power-config (roslisp-beasty::motor-power-config :motor-power t)))))))
 
 (defun single-human-pnp-main ()
   (with-ros-node ("cram")

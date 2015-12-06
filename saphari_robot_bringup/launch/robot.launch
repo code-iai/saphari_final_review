@@ -4,6 +4,7 @@
   <arg name="with_human_perception" default="true" />
   <arg name="with_knowledge_base" default="true" />
   <arg name="with_interactive_markers" default="false" />
+  <arg name="with_gripper" default="true" />
 
   <include file="$(find saphari_robot_description)/launch/upload.launch" />
 
@@ -23,6 +24,7 @@
 
   <include file="$(find saphari_robot_bringup)/launch/gripper.launch">
     <arg name="simulation" value="$(arg simulation)" />
+    <arg name="enabled" value="$(arg with_gripper)" />
   </include>
 
   <include file="$(find saphari_robot_bringup)/launch/knowledge_base.launch" >

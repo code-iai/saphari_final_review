@@ -99,6 +99,23 @@
           (with-people-monitoring (cpl-impl::log-id demo-handle (list (cons "head" 4) (cons "left_hand" 3) (cons "right_hand" 2)))
             (cpl:wait-for (cpl:make-fluent))))))))
 
+(defun beasty-test-main()
+  (with-ros-node ("cram")
+    (let ((demo-handle (make-demo-handle)))
+      (cpl:top-level
+        (roslisp-beasty:move-beasty-and-wait
+         (getf demo-handle :beasty)
+         (roslisp-beasty:make-default-joint-goal
+          (list 0 0 0 0 0 0 0) (getf demo-handle :sim-p)))
+        (roslisp-beasty:move-beasty-and-wait
+         (getf demo-handle :beasty)
+         (roslisp-beasty:make-default-joint-goal
+          (lookat-pickup-config) (getf demo-handle :sim-p)))
+        (roslisp-beasty:move-beasty-and-wait
+         (getf demo-handle :beasty)
+         (roslisp-beasty:make-default-joint-goal
+          (lookat-sorting-basket-config) (getf demo-handle :sim-p)))))))
+
 (defun single-human-pnp-main ()
   (with-ros-node ("cram")
     (with-log-extraction

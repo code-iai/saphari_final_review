@@ -74,8 +74,7 @@
                            `((:a :location)
                              (:in :sorting-basket)))))))))
      desig)
-    (roslisp-beasty:make-default-joint-goal
-     (lookat-sorting-basket-config) (desig-prop-value desig :sim)))
+    (joint-goal (lookat-sorting-basket-config) (desig-prop-value desig :sim)))
    (and
     (desig-descr-included
      (action-designator
@@ -87,8 +86,7 @@
                            `((:a :location)
                              (:in :pickup-zone)))))))))
      desig)
-    (roslisp-beasty:make-default-joint-goal
-     (lookat-pickup-config) (desig-prop-value desig :sim)))))
+    (joint-goal (lookat-pickup-config) (desig-prop-value desig :sim)))))
 
 (defun infer-grasp-motion-goal (demo-handle desig)
   (and
@@ -100,7 +98,7 @@
         (goal-pose-stamped (infer-object-grasping-pose-stamped obj))
         (beasty-cartesian-goal (gripper-at-pose-stamped-msg
                                 demo-handle goal-pose-stamped)))
-     (roslisp-beasty:make-default-cartesian-goal beasty-cartesian-goal (desig-prop-value desig :sim)))))
+     (cartesian-goal beasty-cartesian-goal (desig-prop-value desig :sim)))))
 
 (defun infer-object-grasping-offset (desig)
   (declare (ignore desig))
@@ -172,7 +170,7 @@
         (obj (desig-prop-value desig :obj))
         (put-down-pose-stamped (infer-put-down-pose-stamped obj loc))
         (goal-pose-stamped (gripper-at-pose-stamped-msg demo-handle put-down-pose-stamped)))
-     (roslisp-beasty:make-default-cartesian-goal goal-pose-stamped sim-p))))
+     (cartesian-goal goal-pose-stamped sim-p))))
                           
 (defun infer-gripper-goal (desig)
   (or

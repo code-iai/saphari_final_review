@@ -39,3 +39,23 @@
 
 (defun make-wsg-handle ()
   (cram-wsg50:make-wsg50-handle "gripper"))
+
+(defun saphari-tool-config ()
+  (roslisp-beasty:tool-config :tool-mass 1.58 :tool-com  (make-3d-vector 0 0 0.17)))
+
+(defun joint-goal (goal-config sim-p)
+  (roslisp-beasty:goal
+   :command-config (roslisp-beasty:command-config :command-type :joint-impedance)
+   :joint-goal-config (roslisp-beasty:joint-goal-config :joint-goal-config goal-config)
+   :simulated-config (roslisp-beasty:simulated-config :simulated-robot sim-p)
+   :tool-config (saphari-tool-config)
+   :motor-power-config (roslisp-beasty:motor-power-config :motor-power t)))
+
+(defun cartesian-goal (goal-pose sim-p)
+  (roslisp-beasty:goal
+   :command-config (roslisp-beasty:command-config :command-type :cartesian-impedance)
+   :joint-goal-config (roslisp-beasty:cartesian-goal-config :cartesian-goal-pose goal-pose)
+   :simulated-config (roslisp-beasty:simulated-config :simulated-robot sim-p)
+   :tool-config (saphari-tool-config)
+   :motor-power-config (roslisp-beasty:motor-power-config :motor-power t)))
+   

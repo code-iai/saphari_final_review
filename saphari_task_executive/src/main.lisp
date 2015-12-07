@@ -144,14 +144,14 @@
   (case goal-id
     (1
      (list
-      (make-target-object :bandage-scissors 0 (make-pose (make-3d-vector 0.28 0.07 0.02) (make-identity-rotation)))
-      (make-target-object :scalpel 1 (make-pose (make-3d-vector 0.34 -0.05 0.02) (make-quaternion 0 0 -0.707107 0.707107)))
-      (make-target-object :scalpel 2 (make-pose (make-3d-vector 0.29 -0.05 0.02) (make-quaternion 0 0 -0.707107 0.707107)))
-      (make-target-object :small-clamp  3 (make-pose (make-3d-vector 0.05 0.04 0.02) (make-quaternion 0 0 -0.707107 0.707107)))
-      (make-target-object :retractor 4 (make-pose (make-3d-vector 0.14 -0.08 0.02) (make-identity-rotation)))
-      (make-target-object :big-clamp 5 (make-pose (make-3d-vector 0.16 -0.02 0.02) (make-identity-rotation)))
-      (make-target-object :pincers 6 (make-pose (make-3d-vector 0.13 0.03 0.02) (make-identity-rotation)))
-      (make-target-object :pincers 7 (make-pose (make-3d-vector 0.13 0.08 0.02) (make-identity-rotation)))))
+      (make-target-object :bandage-scissors 0 (make-pose (make-3d-vector 0.28 (+ 0.07 0.125) 0.02) (make-identity-rotation)))
+      (make-target-object :scalpel 1 (make-pose (make-3d-vector 0.34 (+ -0.05 0.125) 0.02) (make-quaternion 0 0 -0.707107 0.707107)))
+      (make-target-object :scalpel 2 (make-pose (make-3d-vector 0.29 (+ -0.05 0.125) 0.02) (make-quaternion 0 0 -0.707107 0.707107)))
+      (make-target-object :small-clamp  3 (make-pose (make-3d-vector 0.05 (+ 0.04 0.125) 0.02) (make-quaternion 0 0 -0.707107 0.707107)))
+      (make-target-object :retractor 4 (make-pose (make-3d-vector 0.14 (+ -0.08 0.125) 0.02) (make-identity-rotation)))
+      (make-target-object :big-clamp 5 (make-pose (make-3d-vector 0.16 (+ -0.03 0.125) 0.02) (make-identity-rotation)))
+      (make-target-object :pincers 6 (make-pose (make-3d-vector 0.13 (+ 0.03 0.125) 0.02) (make-identity-rotation)))
+      (make-target-object :pincers 7 (make-pose (make-3d-vector 0.13 (+ 0.08 0.125) 0.02) (make-identity-rotation)))))
     (t nil)))
 
 (defun desig-pose-in-map (demo-handle desig)
@@ -176,7 +176,7 @@
 <owl:NamedIndividual rdf:about=\"&saphari;BasketSlot_~a\">
   <rdf:type rdf:resource=\"&saphari;BasketSlot\"/>
   <knowrob:perceptionResponse>~a</knowrob:perceptionResponse>
-  <knowrob:physicalPartOf rdf:resource=\"&saphari;Basket_~a\"/>
+  <knowrob:physicalPartOf rdf:resource=\"~a\"/>
 </owl:NamedIndividual>
 
 <owl:NamedIndividual rdf:about=\"&saphari;Transformation_~a\">
@@ -203,17 +203,10 @@
            transform-hash transform-hash slot-hash))))))
 
 (defun object-desigs->basket-owl (demo-handle desigs &key (princ-result t) (return-result nil))
-  (let* ((basket-hash (random-password 8))
-         (template-string
-          "<!-- http://knowrob.org/kb/saphari.owl#Basket_~a -->
-<owl:NamedIndividual rdf:about=\"&saphari;Basket_~a\">
-  <rdf:type rdf:resource=\"&saphari;Basket\"/>
-</owl:NamedIndividual>")
+  (let* ((basket-hash "http://knowrob.org/kb/Saphari.owl#saphari_robot_sorting_basket")
          (result
            (apply
-            #'concatenate
-            'string
-            (format nil template-string basket-hash basket-hash)
+            #'conc-strings
             (mapcar (alexandria:curry #'object-desig->slot-owl demo-handle basket-hash) desigs))))
     (when princ-result (princ result))
     (when return-result result)))

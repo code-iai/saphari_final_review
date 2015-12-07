@@ -101,17 +101,36 @@
 
 (defun beasty-test-main()
   (with-ros-node ("cram")
-    (let ((demo-handle (make-demo-handle)))
+    (let* ((demo-handle (make-demo-handle nil))
+           (arm (getf demo-handle :beasty)))
       (cpl:top-level
+
         (roslisp-beasty:move-beasty-and-wait
          (getf demo-handle :beasty)
          (joint-goal (list 0 0 0 0 0 0 0) (getf demo-handle :sim-p)))
-        (roslisp-beasty:move-beasty-and-wait
-         (getf demo-handle :beasty)
-         (joint-goal (lookat-pickup-config) (getf demo-handle :sim-p)))
-        (roslisp-beasty:move-beasty-and-wait
-         (getf demo-handle :beasty)
-         (joint-goal (lookat-sorting-basket-config) (getf demo-handle :sim-p)))))))
+        
+        (cpl-impl:pursue
+          (let ((goal (joint-goal (lookat-pickup-config) (getf demo-handle :sim-p))))
+            (when (collision-p (cpl:value (roslisp-beasty:collision-fluent arm)))
+              (roslisp-beasty:beasty-safety-reset arm goal))
+            ;; TODO: stuff BEASTY params into equated action-desig
+            (roslisp-beasty:move-beasty-and-wait arm goal))
+        
+          (cpl:whenever ((cpl:pulsed (roslisp-beasty:collision-fluent arm)))
+            (when (collision-p (cpl:value (roslisp-beasty:collision-fluent arm)))
+              (log-collision (cpl:value (roslisp-beasty:collision-fluent arm)) cpl-impl::log-id))))
+
+        (cpl-impl:pursue
+          (let ((goal (joint-goal (lookat-sorting-basket-config) (getf demo-handle :sim-p))))
+            (when (collision-p (cpl:value (roslisp-beasty:collision-fluent arm)))
+              (roslisp-beasty:beasty-safety-reset arm goal))
+            ;; TODO: stuff BEASTY params into equated action-desig
+            (roslisp-beasty:move-beasty-and-wait arm goal))
+
+          (cpl:seq
+            (cpl:wait-for (cpl:fl-funcall #'collision-p (roslisp-beasty:collision-fluent arm)))
+            (log-collision (cpl:value (roslisp-beasty:collision-fluent arm)) cpl-impl::log-id)))))))
+        
 
 (defun single-human-pnp-main ()
   (with-ros-node ("cram")

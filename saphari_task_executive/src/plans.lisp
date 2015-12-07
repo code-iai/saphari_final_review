@@ -152,19 +152,19 @@
 
 (defun log-collision (collision parent-log-id)
   (let ((logging-id (beliefstate:start-node (string collision) nil 2 parent-log-id)))
-    (beliefstate:stop-node logging-id :relative-context-id parent-log-id)))
+    (beliefstate:stop-node logging-id :relative-context-id parent-log-id))
+  collision)
 
 (defun collision-p (collision-type)
-  (and (roslisp-beasty::collision-type-p collision-type)
-       (not (eql :NO-COLLISION collision-type))))
-
+  (declare (type symbol collision-type))
+  (member collision-type (list :LIGHT-COLLISION :STRONG-COLLISION :SEVERE-COLLISION)))
+  
 (defun perform-beasty-motion (demo-handle parent-log-id desig &rest other-log-desigs)
   (with-logging
       ((alexandria:curry #'apply #'log-start-action-designator parent-log-id desig other-log-desigs)
        (alexandria:rcurry #'log-stop-action-designator parent-log-id))
     (let ((arm (getf demo-handle :beasty)))
       (cpl-impl:pursue
-        
         (cpl-impl:on-suspension (roslisp-beasty:stop-beasty arm)
           (let ((goal (infer-motion-goal demo-handle desig)))
             (when (collision-p (cpl:value (roslisp-beasty:collision-fluent arm)))

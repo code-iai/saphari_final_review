@@ -197,7 +197,7 @@
    (desig-prop-value-p desig :bodypart :gripper)
    ;; TODO: more about objects?
    (list
-    cram-wsg50:*wsg50-open-width*
+    40 ;;cram-wsg50:*wsg50-open-width*
     cram-wsg50:*default-speed*
     cram-wsg50:*default-force*)))
 
@@ -208,7 +208,7 @@
    (desig-prop-value desig :obj)
    ;; TODO: more about objects?
    (list
-    cram-wsg50:*wsg50-open-width*
+    40 ;;cram-wsg50:*wsg50-open-width*
     cram-wsg50:*default-speed*
     cram-wsg50:*default-force*)))
 

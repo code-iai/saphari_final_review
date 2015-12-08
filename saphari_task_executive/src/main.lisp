@@ -36,7 +36,8 @@
    :wsg50 (make-wsg-handle)
    :tf-broadcaster (advertise "/tf" "tf2_msgs/TFMessage")
    :tf-listener (make-instance 'cl-tf2:buffer-client)
-   :marker-pub (advertise "visualization_marker_array" "visualization_msgs/MarkerArray")
+   :humans-marker-pub (advertise "humans/visualization_marker_array" "visualization_msgs/MarkerArray")
+   :tools-marker-pub (advertise "tools/visualization_marker_array" "visualization_msgs/MarkerArray")
    :humans-percept-fluent (let ((f (cpl:make-fluent :value nil)))
                             ;; (subscribe 
                             ;;  "/kinect_tracker/user_state"
@@ -79,7 +80,7 @@
 (defun loop-main ()
   (with-ros-node ("cram")
     (with-log-extraction
-      (let ((demo-handle (make-demo-handle)))
+      (let ((demo-handle (make-demo-handle nil)))
         (cpl:top-level
           (loop-until-succeed (:loop-wait 0.5)
             (unless (pick-and-place-next-object demo-handle cpl-impl::log-id)
@@ -88,54 +89,46 @@
 (defun single-pnp-main ()
   (with-ros-node ("cram")
     (with-log-extraction
-      (let ((demo-handle (make-demo-handle)))
+      (let ((demo-handle (make-demo-handle nil)))
         (cpl:top-level (pick-and-place-next-object demo-handle cpl-impl::log-id))))))
+
+(defun tool-perception-main ()
+  (with-ros-node ("cram")
+    (with-log-extraction
+      (let ((demo-handle (make-demo-handle nil)))
+        (cpl:top-level (perceive-instruments demo-handle cpl-impl::log-id))))))
 
 (defun human-percept-main ()
   (with-ros-node ("cram")
     (with-log-extraction
-      (let ((demo-handle (make-demo-handle)))
+      (let ((demo-handle (make-demo-handle nil)))
         (cpl:top-level
-          (with-people-monitoring (cpl-impl::log-id demo-handle (list (cons "head" 4) (cons "left_hand" 3) (cons "right_hand" 2)))
+          (with-people-monitoring (cpl-impl::log-id demo-handle)
             (cpl:wait-for (cpl:make-fluent))))))))
 
 (defun beasty-test-main()
   (with-ros-node ("cram")
-    (let* ((demo-handle (make-demo-handle nil))
-           (arm (getf demo-handle :beasty)))
-      (cpl:top-level
-
-        (roslisp-beasty:move-beasty-and-wait
-         (getf demo-handle :beasty)
-         (joint-goal (list 0 0 0 0 0 0 0) (getf demo-handle :sim-p)))
+    (with-log-extraction
+      (let* ((demo-handle (make-demo-handle nil))
+             (arm (getf demo-handle :beasty)))
+        (cpl:top-level
+          (with-people-monitoring (cpl-impl::log-id demo-handle)
+            (loop do
+              (cpl:retry-after-suspension
+                (execute-beasty-goal
+                 arm cpl-impl::log-id
+                 (joint-goal (lookat-pickup-config) (getf demo-handle :sim-p))))
+              
+              (cpl:retry-after-suspension
+                (execute-beasty-goal
+                 arm cpl-impl::log-id
+                 (joint-goal (lookat-sorting-basket-config) (getf demo-handle :sim-p)))))
+            ))))))
         
-        (cpl-impl:pursue
-          (let ((goal (joint-goal (lookat-pickup-config) (getf demo-handle :sim-p))))
-            (when (collision-p (cpl:value (roslisp-beasty:collision-fluent arm)))
-              (roslisp-beasty:beasty-safety-reset arm goal))
-            ;; TODO: stuff BEASTY params into equated action-desig
-            (roslisp-beasty:move-beasty-and-wait arm goal))
-        
-          (cpl:whenever ((cpl:pulsed (roslisp-beasty:collision-fluent arm)))
-            (when (collision-p (cpl:value (roslisp-beasty:collision-fluent arm)))
-              (log-collision (cpl:value (roslisp-beasty:collision-fluent arm)) cpl-impl::log-id))))
-
-        (cpl-impl:pursue
-          (let ((goal (joint-goal (lookat-sorting-basket-config) (getf demo-handle :sim-p))))
-            (when (collision-p (cpl:value (roslisp-beasty:collision-fluent arm)))
-              (roslisp-beasty:beasty-safety-reset arm goal))
-            ;; TODO: stuff BEASTY params into equated action-desig
-            (roslisp-beasty:move-beasty-and-wait arm goal))
-
-          (cpl:seq
-            (cpl:wait-for (cpl:fl-funcall #'collision-p (roslisp-beasty:collision-fluent arm)))
-            (log-collision (cpl:value (roslisp-beasty:collision-fluent arm)) cpl-impl::log-id)))))))
-        
-
 (defun single-human-pnp-main ()
   (with-ros-node ("cram")
     (with-log-extraction
-      (let ((demo-handle (make-demo-handle)))
+      (let ((demo-handle (make-demo-handle nil)))
         (cpl:top-level
           (with-people-monitoring (cpl-impl::log-id (getf demo-handle :humans-percept-fluent))
             (pick-and-place-next-object demo-handle cpl-impl::log-id)))))))

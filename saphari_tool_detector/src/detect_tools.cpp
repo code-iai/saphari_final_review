@@ -124,22 +124,22 @@ public:
       fakeTools[2].name = "bandage-scissors";
       fakePoses[2] = tf::Transform(tf::Quaternion(0, 0, 0.17364, 0.9848), tf::Vector3(0.4, 0.4, 0.005));
       fakeTools[3].id = 3;
-      fakeTools[3].name = "scalpel";
+      fakeTools[3].name = "scalpel-holder";
       fakePoses[3] = tf::Transform(tf::Quaternion(0, 0, -0.08716, 0.99619), tf::Vector3(0.25, 0.45, 0.005));
       fakeTools[4].id = 4;
-      fakeTools[4].name = "scalpel";
+      fakeTools[4].name = "scalpel-holder";
       fakePoses[4] = tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0.4, 0.48, 0.005));
       fakeTools[5].id = 5;
       fakeTools[5].name = "pincers";
       fakePoses[5] = tf::Transform(tf::Quaternion(0, 0, -0.57357, 0.81915), tf::Vector3(0.15, 0.33, 0.005));
       fakeTools[6].id = 6;
-      fakeTools[6].name = "small-clamp";
+      fakeTools[6].name = "ball-socket-towel-forceps";
       fakePoses[6] = tf::Transform(tf::Quaternion(0, 0, 0.38268, 0.92388), tf::Vector3(0.4, 0.3, 0.005));
       fakeTools[7].id = 7;
-      fakeTools[7].name = "big-clamp";
+      fakeTools[7].name = "verbrugge-clamp";
       fakePoses[7] = tf::Transform(tf::Quaternion(0, 0, 0.25882, 0.96593), tf::Vector3(0.1, 0.5, 0.005));
       fakeTools[8].id = 8;
-      fakeTools[8].name = "small-clamp";
+      fakeTools[8].name = "ball-socket-towel-forceps";
       fakePoses[8] = tf::Transform(tf::Quaternion(0, 0, -0.57358, 0.81915), tf::Vector3(0.3, 0.55, 0.005));
     }
     else

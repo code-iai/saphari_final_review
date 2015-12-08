@@ -61,10 +61,10 @@
     (:retractor "package://saphari_task_executive/models/hospital/surgical-instruments/Hook.dae")
     (:bandage-scissors "package://saphari_task_executive/models/hospital/surgical-instruments/Scissors.dae")
     (:blunt-retractor "package://saphari_task_executive/models/hospital/surgical-instruments/Rake.dae")
-    (:scalpel-handle "package://saphari_task_executive/models/hospital/surgical-instruments/ScalpelHandle.dae")
+    (:scalpel-holder "package://saphari_task_executive/models/hospital/surgical-instruments/ScalpelHandle.dae")
     (:scalpel "package://saphari_task_executive/models/hospital/surgical-instruments/Scalpel.dae")
-    (:small-clamp "package://saphari_task_executive/models/hospital/surgical-instruments/SmallClamp.dae")
-    (:big-clamp "package://saphari_task_executive/models/hospital/surgical-instruments/BigClamp.dae")
+    (:ball-socket-towel-forceps "package://saphari_task_executive/models/hospital/surgical-instruments/SmallClamp.dae")
+    (:verbrugge-clamp "package://saphari_task_executive/models/hospital/surgical-instruments/BigClamp.dae")
     (:pincers "package://saphari_task_executive/models/hospital/surgical-instruments/Pincers.dae")
     (t nil)))
 
@@ -145,7 +145,7 @@
    :action (symbol-code 'visualization_msgs-msg:Marker :add)
    (:w :orientation :pose) 1.0
    :color (color-msg :transparent-red)
-   :lifetime 0.2
+   :lifetime 0.5
    :scale (conform-scale-msg 0.25)))
 
 (defun publish-intrusion-markers (demo-handle intrusions &optional (namespace "cram-intrusions"))

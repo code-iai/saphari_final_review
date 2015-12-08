@@ -23,6 +23,7 @@
 
       <node pkg="saphari_task_executive" type="fast_humans_viz" name="fast_humans_viz" >
         <remap from="~humans" to="/kinect_tracker/user_state" />
+        <remap from="~marker_array" to="/humans/visualization_marker_array" />
       </node>
     </group>
   </group>

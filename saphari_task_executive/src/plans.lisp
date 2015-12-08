@@ -163,25 +163,27 @@
   (with-logging
       ((alexandria:curry #'apply #'log-start-action-designator parent-log-id desig other-log-desigs)
        (alexandria:rcurry #'log-stop-action-designator parent-log-id))
-    (let ((arm (getf demo-handle :beasty)))
-      (cpl-impl:pursue
-        (cpl-impl:on-suspension (roslisp-beasty:stop-beasty arm)
-          (let ((goal (infer-motion-goal demo-handle desig)))
-            (when (collision-p (cpl:value (roslisp-beasty:collision-fluent arm)))
-              (roslisp-beasty:beasty-safety-reset arm goal))
-            ;; TODO: stuff BEASTY params into equated action-desig
-            (roslisp-beasty:move-beasty-and-wait arm goal)))
-        
-        (cpl:whenever ((cpl:pulsed (roslisp-beasty:collision-fluent arm)))
-          (when (collision-p (cpl:value (roslisp-beasty:collision-fluent arm)))
-            (log-collision (cpl:value (roslisp-beasty:collision-fluent arm)) log-id)))))))
+    (let ((arm (getf demo-handle :beasty))
+          (goal (infer-motion-goal demo-handle desig)))
+      ;; TODO: stuff BEASTY params into equated action-desig
+      (execute-beasty-goal arm log-id goal))))
+
+(defun execute-beasty-goal (arm parent-log-id goal)
+  (cpl-impl:pursue
+    (cpl-impl:on-suspension (roslisp-beasty:stop-beasty arm)
+      (when (collision-p (cpl:value (roslisp-beasty:collision-fluent arm)))
+        (roslisp-beasty:beasty-safety-reset arm goal))
+      (roslisp-beasty:move-beasty-and-wait arm goal))
+    (cpl:seq
+      (cpl:wait-for (cpl:fl-funcall #'collision-p (roslisp-beasty:collision-fluent arm)))
+      (log-collision (cpl:value (roslisp-beasty:collision-fluent arm)) parent-log-id))))
              
 (defun perform-gripper-motion (demo-handle parent-log-id desig &rest other-log-desigs)
   (with-logging
       ((alexandria:curry #'apply #'log-start-action-designator parent-log-id desig other-log-desigs)
        (alexandria:rcurry #'log-stop-action-designator parent-log-id))
-    (destructuring-bind (width speed force) (infer-gripper-goal desig)
-      (let ((new-desig (desig:copy-designator desig :new-description `((:width ,width) (:speed ,speed) (:force ,force)))))
-        (cram-wsg50:move-wsg50-and-wait (getf demo-handle :wsg50) width speed force 5 5)
+    (destructuring-bind (command width) (infer-gripper-goal desig)
+      (let ((new-desig (desig:copy-designator desig :new-description `((:width ,width) (:command ,command)))))
+        (cram-dlr-wsg50:cmd-wsg50-and-wait (getf demo-handle :wsg50) command width)
         (desig:equate desig new-desig)
         new-desig))))

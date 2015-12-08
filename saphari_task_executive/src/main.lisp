@@ -114,16 +114,18 @@
         (cpl:top-level
           (with-people-monitoring (cpl-impl::log-id demo-handle)
             (loop do
-              (cpl:retry-after-suspension
-                (execute-beasty-goal
-                 arm cpl-impl::log-id
-                 (joint-goal (lookat-pickup-config) (getf demo-handle :sim-p))))
+            (cpl:retry-after-suspension
+              (execute-beasty-goal
+               arm cpl-impl::log-id
+               (joint-goal (lookat-pickup-config) (getf demo-handle :sim-p))))
               
               (cpl:retry-after-suspension
                 (execute-beasty-goal
                  arm cpl-impl::log-id
-                 (joint-goal (lookat-sorting-basket-config) (getf demo-handle :sim-p)))))
-            ))))))
+                 (joint-goal (lookat-sorting-basket-config) (getf demo-handle :sim-p))))
+
+              (cpl:sleep 1)))
+            )))))
         
 (defun single-human-pnp-main ()
   (with-ros-node ("cram")
@@ -131,7 +133,8 @@
       (let ((demo-handle (make-demo-handle nil)))
         (cpl:top-level
           (with-people-monitoring (cpl-impl::log-id (getf demo-handle :humans-percept-fluent))
-            (pick-and-place-next-object demo-handle cpl-impl::log-id)))))))
+            (cpl:retry-after-suspension
+              (pick-and-place-next-object demo-handle cpl-impl::log-id))))))))
 
 ;;;
 ;;; TEMPORARY DEBUG/DEVEL CODE
@@ -229,11 +232,6 @@
 (defun bringup-scripting-environment ()
   (start-ros-node "cram")
   (setf *dh* (make-demo-handle)))
-
-(defun fill-knowrob-with-percepts (demo-handle)
-  (cpl:top-level
-    (with-log-extraction
-      (perceive-instruments demo-handle cpl-impl::log-id))))
 
 (defun test-desig-mongo-dump ()
   (beliefstate::init-semrec)

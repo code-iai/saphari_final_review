@@ -28,6 +28,34 @@
 
 (in-package :saphari-task-executive)
 
+;;;
+;;; UTILS
+;;;
+
+(defun delete-all-markers (demo-handle &optional (ns "cram_instrument_visualization"))
+  (alexandria:when-let ((pub (getf demo-handle :tools-marker-pub)))
+    (publish pub 
+             (make-message
+              "visualization_msgs/MarkerArray"
+              :markers
+              (vector (make-message "visualization_msgs/Marker"
+                                    :ns ns
+                                    :action 3))))))
+
+(defun color-msg (selector)
+  (ecase selector
+    (:red (make-msg "std_msgs/ColorRGBA" :r 1.0 :g 0.0 :b 0.0 :a 1.0))
+    (:transparent-red (make-msg "std_msgs/ColorRGBA" :r 1.0 :g 0.0 :b 0.0 :a 0.5))
+    (:green (make-msg "std_msgs/ColorRGBA" :r 0.0 :g 1.0 :b 0.0 :a 1.0))
+    (:gray (make-msg "std_msgs/ColorRGBA" :r 0.7 :g 0.7 :b 0.7 :a 1.0)) ))
+
+(defun conform-scale-msg (scale-scalar)
+  (make-msg "geometry_msgs/Vector3" :x scale-scalar :y scale-scalar :z scale-scalar))
+
+;;;
+;;; TOOLS
+;;;
+
 (defun instrument-type->mesh-path (type-keyword)
   (case type-keyword
     (:retractor "package://saphari_task_executive/models/hospital/surgical-instruments/Hook.dae")
@@ -59,16 +87,6 @@
        :mesh_resource mesh-path
        :mesh_use_embedded_materials t))))
 
-(defun delete-all-markers (demo-handle &optional (ns "cram_instrument_visualization"))
-  (alexandria:when-let ((pub (getf demo-handle :marker-pub)))
-    (publish pub 
-             (make-message
-              "visualization_msgs/MarkerArray"
-              :markers
-              (vector (make-message "visualization_msgs/Marker"
-                                    :ns ns
-                                    :action 3))))))
-
 (defun publish-tool-markers (demo-handle frame-locked-p &rest desigs)
   (delete-all-markers demo-handle)
   (alexandria:when-let ((markers
@@ -76,20 +94,13 @@
                                         (loop for desig in desigs
                                               counting t into index
                                               collect (tool-desig->marker desig index frame-locked-p))))
-                        (pub (getf demo-handle :marker-pub)))
+                        (pub (getf demo-handle :tools-marker-pub)))
     (publish pub (make-msg "visualization_msgs/MarkerArray" :markers (coerce markers 'vector)))))
-
-(defun color-msg (selector)
-  (ecase selector
-    (:red (make-msg "std_msgs/ColorRGBA" :r 1.0 :g 0.0 :b 0.0 :a 1.0))
-    (:green (make-msg "std_msgs/ColorRGBA" :r 0.0 :g 1.0 :b 0.0 :a 1.0))
-    (:gray (make-msg "std_msgs/ColorRGBA" :r 0.7 :g 0.7 :b 0.7 :a 1.0))
-    ))
 
 (defun publish-slot-markers (demo-handle empty-slots taken-slots)
   (delete-all-markers demo-handle "cram_empty_slots")
   (delete-all-markers demo-handle "cram_taken_slots")
-  (alexandria:when-let ((pub (getf demo-handle :marker-pub)))
+  (alexandria:when-let ((pub (getf demo-handle :tools-marker-pub)))
     (let* ((empty-markers (remove-if-not #'identity
                                          (loop for empty-slot in empty-slots
                                                counting t into index
@@ -118,4 +129,30 @@
        :color color
        :mesh_resource mesh-path
        :mesh_use_embedded_materials t))))
-       
+
+;;;
+;;; INTRUSIONS
+;;;
+
+(defun intrusion->marker (intrusion namespace id time)
+  (make-msg
+   "visualization_msgs/Marker"
+   (:frame_id :header) (car intrusion)
+   (:stamp :header) time
+   :ns namespace
+   :id id
+   :type (symbol-code 'visualization_msgs-msg:Marker :sphere)
+   :action (symbol-code 'visualization_msgs-msg:Marker :add)
+   (:w :orientation :pose) 1.0
+   :color (color-msg :transparent-red)
+   :lifetime 0.2
+   :scale (conform-scale-msg 0.25)))
+
+(defun publish-intrusion-markers (demo-handle intrusions &optional (namespace "cram-intrusions"))
+  (alexandria:when-let ((pub (getf demo-handle :humans-marker-pub))
+                        (time (ros-time)))
+    (let* ((markers (remove-if-not #'identity
+                                   (loop for intrusion in intrusions
+                                         counting t into index
+                                         collect (intrusion->marker intrusion namespace index time)))))
+      (publish pub (make-msg "visualization_msgs/MarkerArray" :markers (coerce markers 'vector))))))

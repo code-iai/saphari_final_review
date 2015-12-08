@@ -43,26 +43,29 @@
    (:w :orientation) (ensure-double-float (fourth rot-bindings))))
 
 (defun query-saphari-next-object ()
-  (let ((query "knowrob_saphari:saphari_next_object(
+  (let* ((query "knowrob_saphari:saphari_next_object(
                     SLOTID, (SLOTTRANS, SLOTROT), OBJCLASS, DESIGID).")
-        (before (ros-time)))
-    (cut:with-vars-bound (?SLOTID ?SLOTTRANS ?SLOTROT ?OBJCLASS ?DESIGID)
-        (cut:lazy-car (prolog-simple query))
-      (ros-info :saphari-next-object "query time: ~a" (- (ros-time) before))
-      (values 
-       (object-designator
-        `((:an :object)
-          (:type ,(json-symbol->keyword ?OBJCLASS))
-          (:knowrob-id ,(json-symbol->string ?DESIGID))))
-       (location-designator
-        `((:a :location)
-          (:in :sorting-basket)
-          (:slot-id ,(json-symbol->string ?SLOTID))
-          (:target-object-type ,(json-symbol->keyword ?OBJCLASS))
-          (:pose ,(make-msg
-                   "geometry_msgs/PoseStamped"
-                   (:frame_id :header) "map"
-                   (:pose) (knowrob-bindings->pose-msg ?SLOTTRANS ?SLOTROT)))))))))
+         (before (ros-time))
+         (bindings (prolog-simple query))
+         (after (ros-time)))
+    (ros-info :saphari-next-object "query time: ~a" (- after before))
+    (when bindings
+      (cut:with-vars-bound (?SLOTID ?SLOTTRANS ?SLOTROT ?OBJCLASS ?DESIGID)
+          (cut:lazy-car bindings)
+        (list 
+         (object-designator
+          `((:an :object)
+            (:type ,(json-symbol->keyword ?OBJCLASS))
+            (:knowrob-id ,(json-symbol->string ?DESIGID))))
+         (location-designator
+          `((:a :location)
+            (:in :sorting-basket)
+            (:slot-id ,(json-symbol->string ?SLOTID))
+            (:target-object-type ,(json-symbol->keyword ?OBJCLASS))
+            (:pose ,(make-msg
+                     "geometry_msgs/PoseStamped"
+                     (:frame_id :header) "map"
+                     (:pose) (knowrob-bindings->pose-msg ?SLOTTRANS ?SLOTROT))))))))))
 
 (defun query-saphari-empty-slots ()
   (let* ((query "knowrob_saphari:saphari_empty_slot((SLOTID, OBJCLASS, (SLOTTRANS, SLOTROT))).")
@@ -102,13 +105,15 @@
 
 (defun infer-target-object-and-location-desigs (perceived-desigs)
   (sleep 0.1) ; TODO: handle the race condition between logging and querying more gracefully
-  (multiple-value-bind (target-object target-location) (query-saphari-next-object)
-    (ros-info :next-object "~a" (desig-prop-value target-object :knowrob-id))
-    (dolist (perceived-desig perceived-desigs)
-      (ros-info :perceived-desig "~a" (desig-prop-value perceived-desig :knowrob-id)))
-    (values
-     (find target-object perceived-desigs :test #'desig-descr-included)
-     target-location)))
+  (alexandria:if-let ((binding (query-saphari-next-object)))
+    (destructuring-bind (target-object target-location) binding
+      (ros-info :next-object "~a" (desig-prop-value target-object :knowrob-id))
+      (dolist (perceived-desig perceived-desigs)
+        (ros-info :perceived-desig "~a" (desig-prop-value perceived-desig :knowrob-id)))
+      (list
+       (find target-object perceived-desigs :test #'desig-descr-included)
+       target-location))
+    (list nil nil)))
 
 (defun infer-empty-slots (demo-handle)
   (let ((empty-slots (query-saphari-empty-slots))

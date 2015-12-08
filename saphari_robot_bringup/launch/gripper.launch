@@ -38,6 +38,7 @@
     <group unless="$(arg simulation)" >
       <include file="$(find wsg_50_driver)/launch/wsg_50_tcp.launch">
         <arg name="ip" value="192.168.192.20"/>
+        <arg name="node_name" value="gripper"/>
       </include>
     </group>
 

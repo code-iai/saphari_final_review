@@ -113,7 +113,9 @@
     (let* ((object (desig-prop-value desig :obj))
            (logging-id (on-prepare-perception-request parent-log-id object))
            (objects (tool-perception-response->object-desigs
-                     (apply #'call-service (getf demo-handle :tool-perception))
+                     (apply #'call-service (conc-lists
+                                            (getf demo-handle :tool-perception)
+                                            (list :x 100 :y 50 :width 1620 :height 1100)))
                      '((:on :table))))
            (logged-objects (on-finish-perception-request logging-id objects parent-log-id)))
     (apply #'publish-tool-markers demo-handle nil logged-objects)

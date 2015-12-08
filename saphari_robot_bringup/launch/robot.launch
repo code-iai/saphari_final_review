@@ -1,10 +1,11 @@
 <launch>
   <arg name="simulation" default="false" />
   <arg name="with_tool_perception" default="false" />
-  <arg name="with_human_perception" default="false" />
+  <arg name="with_human_perception" default="true" />
   <arg name="with_knowledge_base" default="false" />
   <arg name="with_interactive_markers" default="false" />
-  <arg name="with_gripper" default="true" />
+  <arg name="with_gripper" default="false" />
+  <arg name="with_beasty" default="true" />
 
   <include file="$(find saphari_robot_description)/launch/upload.launch" />
 
@@ -20,6 +21,7 @@
 
   <include file="$(find saphari_robot_bringup)/launch/beasty.launch">
     <arg name="simulation" value="$(arg simulation)" />
+    <arg name="enabled" value="$(arg with_beasty)" />
   </include>
 
   <include file="$(find saphari_robot_bringup)/launch/gripper.launch">

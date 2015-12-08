@@ -33,29 +33,29 @@ class HumansTfPublisher
        case saphari_msgs::BodyPart::TORSO:
          return "torso";
        case saphari_msgs::BodyPart::RIGHTSHOULDER:
-         return "right_shoulder";
+         return "rightshoulder";
        case saphari_msgs::BodyPart::RIGHTELBOW:
-         return "right_elbow";
+         return "rightelbow";
        case saphari_msgs::BodyPart::RIGHTHAND:
-         return "right_hand";
+         return "righthand";
        case saphari_msgs::BodyPart::LEFTSHOULDER:
-         return "left_shoulder";
+         return "leftshoulder";
        case saphari_msgs::BodyPart::LEFTELBOW:
-         return "left_elbow";
+         return "leftelbow";
        case saphari_msgs::BodyPart::LEFTHAND:
-         return "left_hand";
+         return "lefthand";
        case saphari_msgs::BodyPart::RIGHTHIP:
-         return "right_hip";
+         return "righthip";
        case saphari_msgs::BodyPart::RIGHTKNEE:
-         return "right_knee";
+         return "rightknee";
        case saphari_msgs::BodyPart::RIGHTFOOT:
-         return "right_foot";
+         return "rightfoot";
        case saphari_msgs::BodyPart::LEFTHIP:
-         return "left_hip";
+         return "lefthip";
        case saphari_msgs::BodyPart::LEFTKNEE:
-         return "left_knee";
+         return "leftknee";
        case saphari_msgs::BodyPart::LEFTFOOT:
-         return "left_foot";
+         return "leftfoot";
        default:
          return "unknown_bodypart";
      }

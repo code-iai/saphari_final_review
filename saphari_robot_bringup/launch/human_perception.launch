@@ -1,5 +1,5 @@
 <launch>
-  <arg name="simulation" default="true" />
+  <arg name="simulation" default="false" />
   <arg name="enabled" default="true" />
 
   <group if="$(arg enabled)">
@@ -16,6 +16,14 @@
     </group>
   
     <group unless="$(arg simulation)" >
+      <node pkg="saphari_task_executive" type="humans_tf_publisher" name="humans_tf_publisher" >
+        <remap from="~tf" to="/tf" />
+        <remap from="~humans" to="/kinect_tracker/user_state" />
+      </node>
+
+      <node pkg="saphari_task_executive" type="fast_humans_viz" name="fast_humans_viz" >
+        <remap from="~humans" to="/kinect_tracker/user_state" />
+      </node>
     </group>
   </group>
 </launch>

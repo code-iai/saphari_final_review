@@ -217,8 +217,8 @@
 (defun bodypart-thresholds ()
   (list
    (cons "head" 0.4)
-   (cons "left_hand" 0.3)
-   (cons "right_hand" 0.3)))
+   (cons "lefthand" 0.3)
+   (cons "righthand" 0.3)))
 
 (defun intruding-bodyparts-for-human (demo-handle user-id
                                       &optional (bodypart-thresholds (bodypart-thresholds)))
@@ -252,6 +252,14 @@
      people))))
 
 ;;;
+;;; SOME MARKER VIZ
+;;;
+
+(defun visualize-intrusions (demo-handle intrusions-fluent)
+  (cpl:whenever ((cpl:pulsed intrusions-fluent))
+    (publish-intrusion-markers demo-handle (cpl:value intrusions-fluent))))
+
+;;;
 ;;; ACTUAL MONITORING MACRO
 ;;;
 
@@ -269,30 +277,25 @@
        (alexandria:rcurry #'log-stop-people-monitoring parent-log-id))
     (let* ((people-percept (getf demo-handle :humans-percept-fluent))
            (annotated-people (cpl:make-fluent :value nil))
-           (intrusions (cpl:make-fluent :value nil))
-           ;; (intrusions-fluent
-           ;;   (cpl:fl-funcall #'intrusions-for-people demo-handle people-percept-fluent bodypart-thresholds))
-           )
+           (intrusions (cpl:make-fluent :value nil)))
       (cpl:with-tags
         (cpl:pursue
           (log-people log-id people-percept annotated-people)
 
-          ;; TODO: to be replaced by something cooler
+          ;; TODO: to be replaced by something cooler working without tf but with the beasty fk
           (loop
             (setf (cpl:value intrusions)
                   (intrusions-for-people demo-handle (cpl:value annotated-people) bodypart-thresholds))
             (cpl:sleep 0.3))
           
           (log-intrusions log-id intrusions)
-          
-          
 
-          ;; TODO: suspend task
-          ;; (cpl:whenever ((cpl:pulsed intrusions-fluent))
-          ;;   ;; TODO: log task suspension?
-          ;;   ;; TODO: suspension
-          ;;   (when (cpl:value intrusions-fluent)
-          ;;     (ros-info :current-intrusions "~a" (cpl:value intrusions-fluent))))
+          (visualize-intrusions demo-handle intrusions)
+
+          (cpl:whenever ((cpl:pulsed intrusions))
+            (when (cpl:value intrusions)
+              (cpl:with-task-suspended (main)
+                (cpl:wait-for (cpl:not intrusions)))))
 
           ;; TODO: make gensym for main-symbol
           (:tag main (funcall main-lambda)))))))

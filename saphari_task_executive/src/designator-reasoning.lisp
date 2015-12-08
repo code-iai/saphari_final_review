@@ -185,10 +185,7 @@
    (desig-prop-value-p desig :to :clamp)
    (desig-prop-value-p desig :bodypart :gripper)
    ;; TODO: more about objects?
-   (list
-    cram-wsg50:*wsg50-closed-width*
-    cram-wsg50:*default-speed*
-    cram-wsg50:*default-force*)))
+   (list :grasp 0.005)))
 
 (defun infer-gripper-open-goal (desig)
   (and
@@ -196,10 +193,7 @@
    (desig-prop-value-p desig :to :open)
    (desig-prop-value-p desig :bodypart :gripper)
    ;; TODO: more about objects?
-   (list
-    40 ;;cram-wsg50:*wsg50-open-width*
-    cram-wsg50:*default-speed*
-    cram-wsg50:*default-force*)))
+   (list :move 0.04)))
 
 (defun infer-gripper-release-goal (desig)
   (and
@@ -207,10 +201,7 @@
    (desig-prop-value-p desig :to :release)
    (desig-prop-value desig :obj)
    ;; TODO: more about objects?
-   (list
-    40 ;;cram-wsg50:*wsg50-open-width*
-    cram-wsg50:*default-speed*
-    cram-wsg50:*default-force*)))
+   (list :release 0.04)))
 
 ;;;
 ;;; MERE UTILS

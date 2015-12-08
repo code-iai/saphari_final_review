@@ -38,7 +38,7 @@
   (apply #'roslisp-beasty:make-and-init-beasty-handle (conc-lists (beasty-default-parameters) (list sim-p))))
 
 (defun make-wsg-handle ()
-  (cram-wsg50:make-wsg50-handle "gripper"))
+  (cram-dlr-wsg50:make-dlr-wsg50-handle "EDDIE/gripper"))
 
 (defun saphari-tool-config ()
   (roslisp-beasty:tool-config :tool-mass 1.58 :tool-com  (make-3d-vector 0 0 0.17)))

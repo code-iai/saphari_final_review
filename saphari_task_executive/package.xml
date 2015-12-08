@@ -16,6 +16,8 @@
   <build_depend>message_generation</build_depend>
   <build_depend>geometry_msgs</build_depend>
   <build_depend>shape_msgs</build_depend>
+  <build_depend>saphari_msgs</build_depend>
+  <build_depend>visualization_msgs</build_depend>
   <build_depend>roslisp</build_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>cram_json_prolog</build_depend>
@@ -27,6 +29,8 @@
   <run_depend>message_runtime</run_depend>
   <run_depend>geometry_msgs</run_depend>
   <run_depend>shape_msgs</run_depend>
+  <run_depend>saphari_msgs</run_depend>
+  <run_depend>visualization_msgs</run_depend>
   <run_depend>roslisp</run_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>cram_json_prolog</run_depend>

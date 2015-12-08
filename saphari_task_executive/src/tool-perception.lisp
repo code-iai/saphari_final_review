@@ -117,7 +117,7 @@
                      '((:on :table))))
            (logged-objects (on-finish-perception-request logging-id objects parent-log-id)))
     (apply #'publish-tool-markers demo-handle nil logged-objects)
-    (publish-tool-poses-to-tf demo-handle logged-objects)
+    ;(publish-tool-poses-to-tf demo-handle logged-objects)
     logged-objects)))
 
 ;;;

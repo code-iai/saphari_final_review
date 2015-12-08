@@ -60,7 +60,10 @@
   (location-designator (conc-lists `((:a :location)(:pose ,pose-stamped)) extra-descr)))
 
 (defun make-human (user-id &optional knowrob-id)
-  (cons user-id (human-designator `((:user-id ,user-id)(:knowrob-id ,knowrob-id)))))
+  (let ((descr (if knowrob-id
+                   `((:user-id ,user-id)(:knowrob-id ,knowrob-id))
+                   `((:user-id ,user-id)))))
+    (cons user-id (human-designator descr))))
 
 (defun humans-msg->alist (msg)
   (declare (type saphari_msgs-msg:humans msg))

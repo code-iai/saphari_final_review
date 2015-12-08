@@ -282,20 +282,22 @@
         (cpl:pursue
           (log-people log-id people-percept annotated-people)
 
+          (log-intrusions log-id intrusions)
+
+          (visualize-intrusions demo-handle intrusions)
+          
           ;; TODO: to be replaced by something cooler working without tf but with the beasty fk
           (loop
             (setf (cpl:value intrusions)
                   (intrusions-for-people demo-handle (cpl:value annotated-people) bodypart-thresholds))
             (cpl:sleep 0.3))
           
-          (log-intrusions log-id intrusions)
-
-          (visualize-intrusions demo-handle intrusions)
+          
 
           (cpl:whenever ((cpl:pulsed intrusions))
             (when (cpl:value intrusions)
               (cpl:with-task-suspended (main)
-                (cpl:wait-for (cpl:not intrusions)))))
+                (cpl:wait-for (cpl:eql intrusions nil)))))
 
           ;; TODO: make gensym for main-symbol
           (:tag main (funcall main-lambda)))))))

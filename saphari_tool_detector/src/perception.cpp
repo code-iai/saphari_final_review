@@ -201,9 +201,9 @@ void Perception::trainConfidences()
     }
     else
     {
-      t1.minVote = minPositive[i] / 2;
+      t1.minVote = settings.thresholdHough;
       std::cout << "positive: " << minPositive[i] << " " << maxPositive[i] << " " << t1.maxVote << std::endl
-                << "negative: no false positives, using maxVote/2: " << t1.minVote << std::endl << std::endl;
+                << "negative: no false positives, using threshold hough: " << t1.minVote << std::endl << std::endl;
     }
     t1.maxVote = t1.maxVote - t1.minVote;
   }

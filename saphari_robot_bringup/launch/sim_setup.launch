@@ -1,0 +1,9 @@
+<launch>
+  <include file="$(find saphari_robot_bringup)/launch/robot.launch" >
+    <arg name="simulation" value="true" />
+    <arg name="with_tool_perception" default="true" />
+    <arg name="with_human_perception" default="true" />
+    <arg name="with_gripper" default="true" />
+    <arg name="with_beasty" default="true" />
+  </include>
+</launch>

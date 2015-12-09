@@ -54,7 +54,7 @@
 (defun cartesian-goal (goal-pose sim-p)
   (roslisp-beasty:goal
    :command-config (roslisp-beasty:command-config :command-type :cartesian-impedance)
-   :joint-goal-config (roslisp-beasty:cartesian-goal-config :cartesian-goal-pose goal-pose)
+   :cartesian-goal-config (roslisp-beasty:cartesian-goal-config :cartesian-goal-pose goal-pose)
    :simulated-config (roslisp-beasty:simulated-config :simulated-robot sim-p)
    :tool-config (saphari-tool-config)
    :motor-power-config (roslisp-beasty:motor-power-config :motor-power t)))

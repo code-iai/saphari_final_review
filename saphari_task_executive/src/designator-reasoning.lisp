@@ -33,12 +33,12 @@
  goal exists. Throws a CRAM failure if no matching motion goal exists.
  Uses resources from 'demo-handle', e.g. tf listener."
   (or
-   (infer-lookat-motion-goal desig)
+   (infer-lookat-motion-goal demo-handle desig)
    (infer-grasp-motion-goal demo-handle desig)
    (infer-put-down-motion-goal demo-handle desig)
    (cpl:fail "Could not resolve: ~a" desig)))
 
-(defun infer-lookat-motion-goal (desig)
+(defun infer-lookat-motion-goal (demo-handle desig)
   "Tries to match 'desig' to its internal description of a goals
  to look at the pickup-zone, and returns the corresponding motion
  goal if the match was successful. If no match is found, it returns
@@ -63,18 +63,7 @@
   ;;; * if &rest is not specified, it will fail in case of un-matched parts in desig
   ;;;
   (or
-   (and
-    (desig-descr-included
-     (action-designator
-      `((:an :action)
-        (:to :move)
-        (:at ,(location-designator
-               `((:a :location)
-                 (:above ,(location-designator
-                           `((:a :location)
-                             (:in :sorting-basket)))))))))
-     desig)
-    (joint-goal (lookat-sorting-basket-config) (desig-prop-value desig :sim)))
+   ;; JOINT MOVE ABOVE PICKUP ZONE
    (and
     (desig-descr-included
      (action-designator
@@ -86,7 +75,40 @@
                            `((:a :location)
                              (:in :pickup-zone)))))))))
      desig)
-    (joint-goal (lookat-pickup-config) (desig-prop-value desig :sim)))))
+    (joint-goal (lookat-pickup-config) (desig-prop-value desig :sim)))
+   ;; CARTESIAN MOVE ABOVE SORTING BASKET
+   (and
+    (desig-descr-included
+     (action-designator
+      `((:an :action)
+        (:to :move)
+        (:at ,(location-designator
+               `((:a :location)
+                 (:above ,(location-designator
+                           `((:a :location)
+                             (:in :sorting-basket)))))))))
+     desig)
+    (alexandria:when-let* ((loc (desig-prop-value (desig-prop-value desig :at) :above))
+                           (goal-pose-stamped (infer-put-down-pose-stamped nil loc (make-3d-vector 0 0 0.15)))
+                           (beasty-cartesian-goal (gripper-at-pose-stamped-msg
+                                                   demo-handle goal-pose-stamped)))
+      (cartesian-goal beasty-cartesian-goal (desig-prop-value desig :sim))))
+   ;; CARTESIAN MOVE ABOVE TOOLS
+   (and
+    (desig-descr-included
+     (action-designator
+      `((:an :action)
+        (:to :move)
+        (:at ,(location-designator
+               `((:a :location))))))
+     desig)
+    (alexandria:when-let*
+        ((obj (desig-prop-value (desig-prop-value desig :at) :above))
+         (goal-pose-stamped (infer-object-grasping-pose-stamped obj (make-3d-vector 0 0 0.1)))
+         (beasty-cartesian-goal (gripper-at-pose-stamped-msg
+                                 demo-handle goal-pose-stamped)))
+      (cartesian-goal beasty-cartesian-goal (desig-prop-value desig :sim))))
+   ))
 
 (defun infer-grasp-motion-goal (demo-handle desig)
   (and
@@ -100,21 +122,40 @@
                                 demo-handle goal-pose-stamped)))
      (cartesian-goal beasty-cartesian-goal (desig-prop-value desig :sim)))))
 
-(defun infer-object-grasping-offset (desig)
+(defun infer-object-grasping-offset (desig &optional (offset (cl-transforms:make-identity-vector)))
   (declare (ignore desig))
   ;; TODO: make this smart
   (cl-transforms:make-transform
-   (cl-transforms:make-identity-vector)
+   offset
    (cl-transforms:q*
     (cl-transforms:axis-angle->quaternion
      (cl-transforms:make-3d-vector 1 0 0) pi)
     (cl-transforms:axis-angle->quaternion
      (cl-transforms:make-3d-vector 0 0 1) (/ pi 2.0)))))
 
-(defun infer-object-grasping-pose-stamped (desig)
+(defun test ()
+  (object-designator
+   `((:an :object)
+     (:at ,(location-designator
+            `((:a :location)
+              (:pose ,(make-msg
+                       "geometry_msgs/PoseStamped"
+                       (:frame_id :header) "sorting_basket"
+                       (:stamp :header) (ros-time)
+                       (:w :orientation :pose) 1.0))))))))
+
+(defun test2 ()
+  (action-designator
+   `((:an :action)
+     (:to :move)
+     (:at ,(location-designator
+            `((:a :location)
+              (:above ,(test))))))))
+
+(defun infer-object-grasping-pose-stamped (desig &optional (offset (cl-transforms:make-identity-vector)))
   (alexandria:when-let*
       ((obj-pose-stamped-msg (infer-object-pose desig))
-       (obj-grasping-offset (infer-object-grasping-offset desig)))
+       (obj-grasping-offset (infer-object-grasping-offset desig offset)))
     (with-fields (header pose) obj-pose-stamped-msg
       (make-msg
        "geometry_msgs/PoseStamped"
@@ -134,10 +175,10 @@
    (:z :position :pose) 0.02
    (:w :orientation :pose) 1.0))
   
-(defun infer-put-down-pose-stamped (object location)
+(defun infer-put-down-pose-stamped (object location &optional (offset (make-identity-vector)))
   (alexandria:when-let*
       ((put-down-pose-stamped-msg (infer-location-pose location))
-       (obj-grasping-offset (infer-object-grasping-offset object)))
+       (obj-grasping-offset (infer-object-grasping-offset object offset)))
     (with-fields (header pose) put-down-pose-stamped-msg
       (make-msg
        "geometry_msgs/PoseStamped"

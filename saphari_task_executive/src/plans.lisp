@@ -83,9 +83,7 @@
          (above-location
            (location-designator
             `((:a :location)
-              (:above ,(location-designator
-                      '((:a :location)
-                        (:in :pickup-zone)))))))
+              (:above ,object))))
          (move
            (action-designator
             `((:an :action) (:to :move)
@@ -93,10 +91,16 @@
     (with-logging
         ((alexandria:curry #'log-start-grasping parent-log-id grasp object)
          (alexandria:rcurry #'log-stop-grasping parent-log-id))
-      ;; TODO: refactor to be longer because logs look better?
-      (perform-gripper-motion demo-handle log-id open)
+      (unless (getf demo-handle :sim-p)
+        (perform-gripper-motion demo-handle log-id open))
+      (ros-info :grasp "above")
+      (perform-beasty-motion demo-handle log-id move above-location)
+      (ros-info :grasp "reach")
       (perform-beasty-motion demo-handle log-id reach object)
-      (perform-gripper-motion demo-handle log-id clamp object)
+      (unless (getf demo-handle :sim-p)
+        (perform-gripper-motion demo-handle log-id clamp object))
+      (ros-info :grasp "above")
+      (perform-beasty-motion demo-handle log-id move above-location)
       ;; TODO: move this into perform-gripper-motion
       (alexandria:when-let*
           ((obj-in-gripper-pose
@@ -111,7 +115,7 @@
         (desig:equate object new-obj-desig)
         (publish-tool-markers demo-handle t new-obj-desig)
         new-obj-desig)
-      (perform-beasty-motion demo-handle log-id move above-location))
+      )
     object))
 
     
@@ -144,7 +148,8 @@
          (alexandria:rcurry #'log-stop-put-down parent-log-id))
       (perform-beasty-motion demo-handle log-id move above-location)
       (perform-beasty-motion demo-handle log-id reach location)
-      (perform-gripper-motion demo-handle log-id release object location)
+      (unless (getf demo-handle :sim-p)
+        (perform-gripper-motion demo-handle log-id release object location))
       ;; TODO: move this code into perform-gripper-motion
       (let ((new-object (desig:copy-designator object :new-description `((:at ,location)))))
         (desig:equate object new-object)

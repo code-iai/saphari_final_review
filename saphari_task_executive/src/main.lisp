@@ -77,14 +77,26 @@
 ;; TODO: test this
 ;;
 
+(defmacro with-saphari-main ((&key (node-name "cram") sim-p) &body body)
+  (alexandria:with-gensyms (node-name-sym sim-p-sym)
+    `(let ((,node-name-sym ,node-name)
+           (,sim-p-sym ,sim-p))
+       (with-ros-node (,node-name-sym)
+         (with-log-extraction
+           (let ((demo-handle (make-demo-handle ,sim-p-sym)))
+             (cpl:top-level
+               (with-owl-namespaces
+                 ,@body))))))))
+
 (defun loop-main ()
   (with-ros-node ("cram")
     (with-log-extraction
       (let ((demo-handle (make-demo-handle nil)))
         (cpl:top-level
-          (loop-until-succeed (:loop-wait 0.5)
-            (unless (pick-and-place-next-object demo-handle cpl-impl::log-id)
-              (loop-succeed))))))))
+          (with-owl-namespaces
+            (loop-until-succeed (:loop-wait 0.5)
+              (unless (pick-and-place-next-object demo-handle cpl-impl::log-id)
+                (loop-succeed)))))))))
 
 (defun single-pnp-main ()
   (with-ros-node ("cram")
@@ -99,12 +111,9 @@
         (cpl:top-level (perceive-instruments demo-handle cpl-impl::log-id))))))
 
 (defun human-percept-main ()
-  (with-ros-node ("cram")
-    (with-log-extraction
-      (let ((demo-handle (make-demo-handle nil)))
-        (cpl:top-level
-          (with-people-monitoring (cpl-impl::log-id demo-handle)
-            (cpl:wait-for (cpl:make-fluent))))))))
+  (with-saphari-main ()
+      (with-people-monitoring (cpl-impl::log-id demo-handle)
+        (cpl:wait-for (cpl:make-fluent)))))
 
 (defun beasty-test-main()
   (with-ros-node ("cram")

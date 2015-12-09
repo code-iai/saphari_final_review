@@ -28,6 +28,22 @@
 
 (in-package :saphari-task-executive)
 
+(defmacro with-owl-namespaces (&body body)
+  `(progn
+     (beliefstate:register-owl-namespace
+      "knowrob_cram"
+      "http://knowrob.org/kb/knowrob_cram.owl#"
+      cpl-impl::log-id)
+     (beliefstate:register-owl-namespace
+      "saphari"
+      "http://knowrob.org/kb/saphari.owl#"
+      cpl-impl::log-id)
+     (beliefstate:register-owl-namespace
+      "srdl2-comp"
+      "http://knowrob.org/kb/srdl2-comp.owl#"
+      cpl-impl::log-id)
+     ,@body))
+
 (defmacro with-log-extraction (&body body)
   `(progn
      (beliefstate::init-semrec)

@@ -118,9 +118,10 @@
                                             (list :x 100 :y 50 :width 1620 :height 1100)))
                      '((:on :table))))
            (logged-objects (on-finish-perception-request logging-id objects parent-log-id)))
-    (apply #'publish-tool-markers demo-handle nil logged-objects)
+      (apply #'publish-tool-markers demo-handle nil logged-objects)
     ;(publish-tool-poses-to-tf demo-handle logged-objects)
-    logged-objects)))
+      (ros-info :trigger-tool-perception "~a objects" (length logged-objects))
+      logged-objects)))
 
 ;;;
 ;;; LOGGING INTERFACE
@@ -138,20 +139,22 @@
     id))
 
 (defun on-finish-perception-request (id results parent-log-id)
+  ;; RACE CONDITION: semrec occasionally crashes when asking for knowrob-ids
+  (loop for desig in results do
+    (beliefstate:add-designator-to-node
+     desig id
+     :annotation "perception-result"
+     :relative-context-id id))
   (let ((logged-results
           (loop for desig in results
                 collect
-                (progn
-                  (beliefstate:add-designator-to-node
-                   desig id
-                   :annotation "perception-result"
-                   :relative-context-id id)
+                (let ((knowrob-id (beliefstate:resolve-designator-knowrob-id desig)))
                   (desig:equate
                    desig
-                   (desig:copy-designator 
+                   (desig:copy-designator
                     desig
                     :new-description
-                    `((:knowrob-id ,(beliefstate:resolve-designator-knowrob-id desig)))))))))
+                    `((:knowrob-id ,knowrob-id))))))))
     ; TODO:  (beliefstate:add-topic-image-to-active-node cram-beliefstate::*kinect-topic-rgb*)
     (beliefstate:stop-node id :success (not (eql logged-results nil)) :relative-context-id parent-log-id)
     logged-results))

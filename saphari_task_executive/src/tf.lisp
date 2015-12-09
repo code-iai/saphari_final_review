@@ -28,22 +28,24 @@
 
 (in-package :saphari-task-executive)
 
-(defun tf2-lookup (tf frame-id child-frame-id)
-  (handler-case (cl-tf2:lookup-transform tf frame-id child-frame-id)
+(defun tf2-lookup (tf frame-id child-frame-id &optional (stamp 0.0))
+  (handler-case (cl-tf2:lookup-transform tf frame-id child-frame-id stamp)
     (cl-tf2::tf2-server-error () (progn (sleep 0.1) (tf2-lookup tf frame-id child-frame-id)))))
 
-(defun tf2-transform-pose (tf pose frame-id target-frame)
+(defun tf2-transform-pose (tf pose frame-id target-frame &optional (stamp 0.0))
   (declare (type cl-tf2:buffer-client tf)
            (type cl-transforms:pose pose)
            (type string frame-id target-frame))
   (alexandria:when-let*
-      ((transform-stamped (tf2-lookup tf target-frame frame-id))
+      ((transform-stamped (tf2-lookup tf target-frame frame-id stamp))
        (transform (cl-tf2:transform transform-stamped)))
     (cl-transforms:transform-pose transform pose)))
 
 (defun tf2-transform-pose-stamped-msg (tf pose-stamped-msg target-frame)
-  (with-fields ((frame-id (frame_id header)) pose) pose-stamped-msg
-    (tf2-transform-pose tf (pose-msg->pose pose) frame-id target-frame)))
+  (declare (type geometry_msgs-msg:posestamped pose-stamped-msg))
+  (with-fields (header pose) pose-stamped-msg
+    (with-fields (stamp frame_id) header
+      (tf2-transform-pose tf (pose-msg->pose pose) frame_id target-frame stamp))))
   
 (defun publish-tool-poses-to-tf (demo-handle desigs)
   (alexandria:when-let ((transforms

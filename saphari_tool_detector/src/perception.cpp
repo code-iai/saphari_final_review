@@ -27,7 +27,7 @@ Perception::Perception()
 {
   settings.thresholdLow = 50;
   settings.thresholdHigh = 100;
-  settings.thresholdHough = 70;
+  settings.thresholdHough = 50;
   settings.scale = 0.5;
   settings.estimateScale = false;
   settings.estimateRotation = true;

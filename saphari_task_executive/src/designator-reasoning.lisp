@@ -165,12 +165,11 @@
    (desig-prop-value-p desig :an :action)
    (desig-prop-value-p desig :to :reach)
    (alexandria:when-let*
-       ((sim-p (desig-prop-value desig :sim))
-        (loc (desig-prop-value desig :at))
+       ((loc (desig-prop-value desig :at))
         (obj (desig-prop-value desig :obj))
         (put-down-pose-stamped (infer-put-down-pose-stamped obj loc))
         (goal-pose-stamped (gripper-at-pose-stamped-msg demo-handle put-down-pose-stamped)))
-     (cartesian-goal goal-pose-stamped sim-p))))
+     (cartesian-goal goal-pose-stamped (desig-prop-value desig :sim)))))
                           
 (defun infer-gripper-goal (desig)
   (or

@@ -86,7 +86,14 @@
            (let ((demo-handle (make-demo-handle ,sim-p-sym)))
              (cpl:top-level
                (with-owl-namespaces
-                 ,@body))))))))
+                 (let ((log-id (beliefstate:start-node
+                                "SEMANTIC-MAP-TARGET-OBJECT"
+                                nil 2 cpl-impl::log-id
+                                `((:_targetobject "http://knowrob.org/kb/Saphari.owl#saphari_robot_sorting_basket")
+                                  (:_class "SaphariTaskDescription")
+                                  (:_classnamespace "&saphari;")))))
+                   (unwind-protect ,@body
+                     (beliefstate:stop-node log-id)))))))))))
 
 (defun loop-main ()
   (with-ros-node ("cram")
@@ -112,8 +119,8 @@
 
 (defun human-percept-main ()
   (with-saphari-main ()
-      (with-people-monitoring (cpl-impl::log-id demo-handle)
-        (cpl:wait-for (cpl:make-fluent)))))
+    (with-people-monitoring (log-id demo-handle)
+      (cpl:wait-for (cpl:make-fluent)))))
 
 (defun beasty-test-main()
   (with-ros-node ("cram")

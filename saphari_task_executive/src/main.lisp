@@ -103,8 +103,8 @@
      (unless (pick-and-place-next-object demo-handle cpl-impl::log-id)
        (loop-succeed)))))
 
-(defun single-pnp-main ()
-  (with-saphari-main ()
+(defun single-pnp-main (&optional sim-p)
+  (with-saphari-main (:sim-p sim-p)
     (pick-and-place-next-object demo-handle cpl-impl::log-id)))
 
 (defun tool-perception-main ()

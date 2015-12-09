@@ -109,7 +109,7 @@ bool Perception::loadTemplates(const bool checkConfidence)
     for(size_t i = 0; i < templates.size(); ++i)
     {
       const GHTTemplate &t = templates[i];
-      if(t.minVote < 0 || t.maxVote < 0)
+      if(t.minVote <= 0 || t.maxVote <= 0)
       {
         std::cerr << "invalid confidence data. Maybe train_confidence was not executed?" << std::endl;
         return false;
@@ -193,10 +193,18 @@ void Perception::trainConfidences()
     }
     t1.ght->release();
     t1.maxVote = sumPositive[i] / (double)countPositive;
-    t1.minVote = sumNegative[i] / (double)countNegative;
-
-    std::cout << "positive: " << minPositive[i] << " " << maxPositive[i] << " " << t1.maxVote << std::endl
-              << "negative: " << minNegative[i] << " " << maxNegative[i] << " " << t1.minVote << std::endl << std::endl;
+    if(sumNegative[i] > 0)
+    {
+      t1.minVote = sumNegative[i] / (double)countNegative;
+      std::cout << "positive: " << minPositive[i] << " " << maxPositive[i] << " " << t1.maxVote << std::endl
+                << "negative: " << minNegative[i] << " " << maxNegative[i] << " " << t1.minVote << std::endl << std::endl;
+    }
+    else
+    {
+      t1.minVote = minPositive[i] / 2;
+      std::cout << "positive: " << minPositive[i] << " " << maxPositive[i] << " " << t1.maxVote << std::endl
+                << "negative: no false positives, using maxVote/2: " << t1.minVote << std::endl << std::endl;
+    }
     t1.maxVote = t1.maxVote - t1.minVote;
   }
 

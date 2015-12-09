@@ -77,6 +77,15 @@
 ;; TODO: test this
 ;;
 
+(defun assert-goal-state (parent-log-id)
+  (let ((log-id (beliefstate:start-node
+                 "SEMANTIC-MAP-TARGET-OBJECT"
+                 nil 2 parent-log-id
+                 `((:_targetobject "&saphari;BasketSlot_c2u5sfFh")
+                   (:_class "SaphariTaskDescription")
+                   (:_classnamespace "&saphari;")))))
+    (beliefstate:stop-node log-id)))
+
 (defmacro with-saphari-main ((&key (node-name "cram") sim-p) &body body)
   (alexandria:with-gensyms (node-name-sym sim-p-sym)
     `(let ((,node-name-sym ,node-name)
@@ -86,62 +95,42 @@
            (let ((demo-handle (make-demo-handle ,sim-p-sym)))
              (cpl:top-level
                (with-owl-namespaces
-                 (let ((log-id (beliefstate:start-node
-                                "SEMANTIC-MAP-TARGET-OBJECT"
-                                nil 2 cpl-impl::log-id
-                                `((:_targetobject "http://knowrob.org/kb/Saphari.owl#saphari_robot_sorting_basket")
-                                  (:_class "SaphariTaskDescription")
-                                  (:_classnamespace "&saphari;")))))
-                   (unwind-protect ,@body
-                     (beliefstate:stop-node log-id)))))))))))
+                 ,@body))))))))
 
 (defun loop-main ()
-  (with-ros-node ("cram")
-    (with-log-extraction
-      (let ((demo-handle (make-demo-handle nil)))
-        (cpl:top-level
-          (with-owl-namespaces
-            (loop-until-succeed (:loop-wait 0.5)
-              (unless (pick-and-place-next-object demo-handle cpl-impl::log-id)
-                (loop-succeed)))))))))
+  (with-saphari-main ()
+   (loop-until-succeed (:loop-wait 0.5)
+     (unless (pick-and-place-next-object demo-handle cpl-impl::log-id)
+       (loop-succeed)))))
 
 (defun single-pnp-main ()
-  (with-ros-node ("cram")
-    (with-log-extraction
-      (let ((demo-handle (make-demo-handle nil)))
-        (cpl:top-level (pick-and-place-next-object demo-handle cpl-impl::log-id))))))
+  (with-saphari-main ()
+    (pick-and-place-next-object demo-handle cpl-impl::log-id)))
 
 (defun tool-perception-main ()
-  (with-ros-node ("cram")
-    (with-log-extraction
-      (let ((demo-handle (make-demo-handle nil)))
-        (cpl:top-level (perceive-instruments demo-handle cpl-impl::log-id))))))
+  (with-saphari-main ()
+    (perceive-instruments demo-handle cpl-impl::log-id)))
 
 (defun human-percept-main ()
   (with-saphari-main ()
-    (with-people-monitoring (log-id demo-handle)
+    (with-people-monitoring (cpl-impl::log-id demo-handle)
       (cpl:wait-for (cpl:make-fluent)))))
 
 (defun beasty-test-main()
-  (with-ros-node ("cram")
-    (with-log-extraction
-      (let* ((demo-handle (make-demo-handle nil))
-             (arm (getf demo-handle :beasty)))
-        (cpl:top-level
-          (with-people-monitoring (cpl-impl::log-id demo-handle)
-            (loop do
-            (cpl:retry-after-suspension
-              (execute-beasty-goal
-               arm cpl-impl::log-id
-               (joint-goal (lookat-pickup-config) (getf demo-handle :sim-p))))
-              
-              (cpl:retry-after-suspension
-                (execute-beasty-goal
-                 arm cpl-impl::log-id
-                 (joint-goal (lookat-sorting-basket-config) (getf demo-handle :sim-p))))
-
-              (cpl:sleep 1)))
-            )))))
+  (with-saphari-main ()
+    (let ((arm (getf demo-handle :beasty)))
+      (loop do
+        (cpl:retry-after-suspension
+          (execute-beasty-goal
+           arm cpl-impl::log-id
+           (joint-goal (lookat-pickup-config) (getf demo-handle :sim-p))))
+        
+        (cpl:retry-after-suspension
+          (execute-beasty-goal
+           arm cpl-impl::log-id
+           (joint-goal (lookat-sorting-basket-config) (getf demo-handle :sim-p))))
+        
+        (cpl:sleep 1)))))
         
 (defun single-human-pnp-main ()
   (with-ros-node ("cram")
@@ -166,10 +155,13 @@
               (:pose ,(make-msg
                        "geometry_msgs/PoseStamped"
                        (:frame_id :header) "sorting_basket"
+                       (:stamp :header) (ros-time)
                        :pose (pose->pose-msg pose)))))))))
 
 (defun visualize-goal-objects (goal-id demo-handle)
-  (apply #'publish-tool-markers demo-handle nil (target-objects goal-id)))
+  (let ((objects (target-objects goal-id)))
+    (apply #'publish-tool-markers demo-handle nil objects)
+    (publish-tool-poses-to-tf demo-handle objects)))
 
 (defun target-objects (goal-id)
   (case goal-id
@@ -183,6 +175,16 @@
       (make-target-object :big-clamp 5 (make-pose (make-3d-vector 0.16 (+ -0.03 0.125) 0.02) (make-identity-rotation)))
       (make-target-object :pincers 6 (make-pose (make-3d-vector 0.13 (+ 0.03 0.125) 0.02) (make-identity-rotation)))
       (make-target-object :pincers 7 (make-pose (make-3d-vector 0.13 (+ 0.08 0.125) 0.02) (make-identity-rotation)))))
+
+    (2
+     (list
+      (make-target-object :retractor 0 (make-pose (make-3d-vector 0.25 0.05 0.02) (make-identity-rotation)))
+      (make-target-object :scalpel-holder 1 (make-pose (make-3d-vector 0.15 0.12 0.02) (make-quaternion 0 0 1 0)))
+      (make-target-object :ball-socket-towel-forceps 2 (make-pose (make-3d-vector 0.06 0.1 0.02) (make-quaternion 0 0 0.707107 0.707107)))
+      (make-target-object :ball-socket-towel-forceps 3 (make-pose (make-3d-vector 0.32 0.18 0.02) (make-identity-rotation)))
+      (make-target-object :verbrugge-clamp 4 (make-pose (make-3d-vector 0.11 0.19 0.02) (make-quaternion 0 0 1 0)))
+      ))
+    
     (t nil)))
 
 (defun desig-pose-in-map (demo-handle desig)
@@ -234,7 +236,7 @@
            transform-hash transform-hash slot-hash))))))
 
 (defun object-desigs->basket-owl (demo-handle desigs &key (princ-result t) (return-result nil))
-  (let* ((basket-hash "http://knowrob.org/kb/Saphari.owl#saphari_robot_sorting_basket")
+  (let* ((basket-hash (conc-strings "&saphari;BasketSlot_" (random-password 8))) 
          (result
            (apply
             #'conc-strings
@@ -364,3 +366,18 @@
             (cpl:sleep 1)
             (beliefstate:stop-node log-id :relative-context-id cram-language-implementation::log-id)
             ))))))
+
+(defun reach-desig ()
+  (action-designator
+   `((:an :action) (:to :reach)
+     (:obj ,(object-designator nil))
+     (:at ,(location-designator
+            `((:a :location)
+              (:in :sorting-basket)
+              (:slot-id "http://knowrob.org/kb/saphari.owl#BasketSlot_6rjlEafQ")
+              (:target-object-type :retractor)
+              (:pose ,(make-msg
+                       "geometry_msgs/PoseStamped"
+                       (:frame_id :header) "map"
+                       (:x :position :pose) 0.8828204703428291d0)))))
+     (:sim nil))))

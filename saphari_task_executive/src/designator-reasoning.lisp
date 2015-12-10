@@ -125,12 +125,12 @@
                                 demo-handle goal-pose-stamped)))
      (cartesian-goal beasty-cartesian-goal (desig-prop-value desig :sim)))))
 
-(defun axis-angle-too-small-p (pose &key (thresh (/ pi 2.0)) (rot-axis (make-3d-vector 0 0 1)))
+(defun axis-angle-too-small-p (pose &key (thresh pi) (rot-axis (make-3d-vector 0 0 1)))
   (declare (type pose pose))
   (multiple-value-bind (axis angle) (quaternion->axis-angle (orientation pose))
     (ros-info :angle "~a" angle)
     (if (axes-aligned-p axis rot-axis)
-        (< (abs (mod angle (/ pi 2.0))) (abs thresh))
+        (< (abs angle) (abs thresh))
         (ros-warn :z-rot-too-far "given axis of rotation not aligned with ~a" rot-axis))))
     
 (defun axes-aligned-p (v1 v2 &optional (thresh 0.1))
@@ -147,7 +147,9 @@
                     (tf2-transform-pose-stamped-msg
                      (getf demo-handle :tf-listener) obj-pose-stamped-msg "arm_base_link")))
               (if (axis-angle-too-small-p obj-pose-in-arm-base)
-                  (axis-angle->quaternion (make-3d-vector 0 0 1) pi)
+                  (progn
+                    (ros-info :grasping-offset "angle too small")
+                    (axis-angle->quaternion (make-3d-vector 0 0 1) pi))
                   (make-identity-rotation)))
             (progn
               (ros-warn :infer-object-grasping-offset "could not infer desig pose")

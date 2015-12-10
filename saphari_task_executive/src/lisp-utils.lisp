@@ -100,6 +100,18 @@
     (error "Merge-plists encountered the following duplicate keys in its inputs: ~a" duplicate-keys))
   (apply #'conc-lists plists))
 
+(defun plist->list-of-lists (plist)
+  "Recursively turns 'plist' into a list of lists."
+  (if (and (listp plist) (evenp (length plist)))
+      (if (not plist)
+          nil
+          (destructuring-bind (key value &rest rest) plist
+            (conc-lists
+             (list (list key (if (and (listp value) (keyword-plist-p value))
+                                 (plist->list-of-lists value)
+                                 value)))
+             (plist->list-of-lists rest))))))
+      
 ;;;
 ;;; ALIST UTILS
 ;;;

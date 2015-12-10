@@ -64,7 +64,7 @@
     (:scalpel-holder "package://saphari_task_executive/models/hospital/surgical-instruments/ScalpelHandle.dae")
     (:scalpel "package://saphari_task_executive/models/hospital/surgical-instruments/Scalpel.dae")
     (:ball-socket-towel-forceps "package://saphari_task_executive/models/hospital/surgical-instruments/SmallClamp.dae")
-    (:verbrugge-clamp "package://saphari_task_executive/models/hospital/surgical-instruments/BigClamp.dae")
+    (:surgical-tubing-clamp "package://saphari_task_executive/models/hospital/surgical-instruments/BigClamp.dae")
     (:pincers "package://saphari_task_executive/models/hospital/surgical-instruments/Pincers.dae")
     (t nil)))
 

@@ -30,7 +30,7 @@
 
 (defun tf2-lookup (tf frame-id child-frame-id &optional (stamp 0.0))
   (handler-case (cl-tf2:lookup-transform tf frame-id child-frame-id stamp)
-    (cl-tf2::tf2-server-error () (progn (sleep 0.1) (tf2-lookup tf frame-id child-frame-id)))))
+    (cl-tf2::tf2-server-error () (progn (sleep 0.1) (tf2-lookup tf frame-id child-frame-id stamp)))))
 
 (defun tf2-transform-pose (tf pose frame-id target-frame &optional (stamp 0.0))
   (declare (type cl-tf2:buffer-client tf)
@@ -45,7 +45,9 @@
   (declare (type geometry_msgs-msg:posestamped pose-stamped-msg))
   (with-fields (header pose) pose-stamped-msg
     (with-fields (stamp frame_id) header
-      (tf2-transform-pose tf (pose-msg->pose pose) frame_id target-frame stamp))))
+      (if (string= target-frame frame_id)
+          (pose-msg->pose pose)
+          (tf2-transform-pose tf (pose-msg->pose pose) frame_id target-frame stamp)))))
   
 (defun publish-tool-poses-to-tf (demo-handle desigs)
   (alexandria:when-let ((transforms

@@ -103,17 +103,26 @@
      (unless (pick-and-place-next-object demo-handle cpl-impl::log-id)
        (loop-succeed)))))
 
+(defun main (&optional sim-p)
+  (with-saphari-main (:sim-p sim-p)
+    (with-safety-monitoring (cpl-impl::log-id demo-handle)
+      (loop-until-succeed (:loop-wait 0.5)
+        (unless (pick-and-place-next-object demo-handle cpl-impl::log-id)
+          (loop-succeed))))))
+    
 (defun single-pnp-main (&optional sim-p)
   (with-saphari-main (:sim-p sim-p)
-    (pick-and-place-next-object demo-handle cpl-impl::log-id)))
+    (with-safety-monitoring (cpl-impl::log-id demo-handle)
+      (pick-and-place-next-object demo-handle cpl-impl::log-id)
+      1)))
 
 (defun tool-perception-main ()
   (with-saphari-main ()
     (perceive-instruments demo-handle cpl-impl::log-id)))
 
-(defun human-percept-main ()
-  (with-saphari-main ()
-    (with-people-monitoring (cpl-impl::log-id demo-handle)
+(defun human-percept-main (&optional sim-p)
+  (with-saphari-main (:sim-p sim-p)
+    (with-safety-monitoring (cpl-impl::log-id demo-handle)
       (cpl:wait-for (cpl:make-fluent)))))
 
 (defun beasty-test-main (&optional sim-p)
@@ -132,15 +141,6 @@
         
         (cpl:sleep 1)))))
         
-(defun single-human-pnp-main ()
-  (with-ros-node ("cram")
-    (with-log-extraction
-      (let ((demo-handle (make-demo-handle nil)))
-        (cpl:top-level
-          (with-people-monitoring (cpl-impl::log-id (getf demo-handle :humans-percept-fluent))
-            (cpl:retry-after-suspension
-              (pick-and-place-next-object demo-handle cpl-impl::log-id))))))))
-
 ;;;
 ;;; TEMPORARY DEBUG/DEVEL CODE
 ;;;

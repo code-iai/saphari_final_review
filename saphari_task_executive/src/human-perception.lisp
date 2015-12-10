@@ -263,26 +263,33 @@
 ;;; ACTUAL MONITORING MACRO
 ;;;
 
-(defmacro with-people-monitoring ((parent-log-id demo-handle &optional bodypart-thresholds) &body body)
+(defmacro with-safety-monitoring ((parent-log-id demo-handle &optional bodypart-thresholds) &body body)
   (alexandria:with-gensyms (parent-log-id-sym demo-handle-sym bodypart-thresholds-sym)
     `(let ((,demo-handle-sym ,demo-handle)
            (,parent-log-id-sym ,parent-log-id)
            (,bodypart-thresholds-sym ,bodypart-thresholds))
-       (with-people-monitoring-fn
+       (with-safety-monitoring-fn
         ,parent-log-id-sym ,demo-handle-sym (lambda () ,@body) ,bodypart-thresholds-sym))))
 
-(defun with-people-monitoring-fn (parent-log-id demo-handle main-lambda &optional bodypart-thresholds)
+(defun with-safety-monitoring-fn (parent-log-id demo-handle main-lambda &optional bodypart-thresholds)
   (with-logging
       ((alexandria:curry #'log-start-people-monitoring parent-log-id)
        (alexandria:rcurry #'log-stop-people-monitoring parent-log-id))
     (let* ((people-percept (getf demo-handle :humans-percept-fluent))
            (annotated-people (cpl:make-fluent :value nil))
-           (intrusions (cpl:make-fluent :value nil)))
+           (intrusions (cpl:make-fluent :value nil))
+           (collision-fluent (roslisp-beasty:collision-fluent (getf demo-handle :beasty))))
       (cpl:with-tags
         (cpl:pursue
           (log-people log-id people-percept annotated-people)
 
           (log-intrusions log-id intrusions)
+
+          (cpl:whenever ((cpl:pulsed collision-fluent))
+            (let ((collision (cpl:value collision-fluent)))
+              (unless (eql collision :no-collision)
+                (log-collision collision log-id)
+                (cpl:wait-for (cpl:not (cpl:eql collision-fluent collision))))))
 
           (visualize-intrusions demo-handle intrusions)
           

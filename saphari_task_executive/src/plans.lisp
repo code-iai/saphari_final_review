@@ -239,6 +239,7 @@
        (alexandria:rcurry #'log-stop-action-designator parent-log-id))
     (destructuring-bind (command width) (infer-gripper-goal desig)
       (let ((new-desig (desig:copy-designator desig :new-description `((:width ,width) (:command ,command)))))
-        (cram-dlr-wsg50:cmd-wsg50-and-wait (getf demo-handle :wsg50) command width)
+        (cpl-impl:retry-after-suspension
+          (cram-dlr-wsg50:cmd-wsg50-and-wait (getf demo-handle :wsg50) command width))
         (desig:equate desig new-desig)
         new-desig))))

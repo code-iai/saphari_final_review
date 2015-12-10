@@ -189,7 +189,8 @@
        (alexandria:rcurry #'log-stop-action-designator parent-log-id))
     (let ((arm (getf demo-handle :beasty))
           (goal (infer-motion-goal demo-handle desig)))
-      ;; TODO: stuff BEASTY params into equated action-desig
+      (let ((new-desig (desig:copy-designator desig :new-description (plist->list-of-lists goal))))
+        (desig:equate desig new-desig))
       (execute-beasty-goal arm log-id goal))))
 
 (defun execute-beasty-goal (arm parent-log-id goal)

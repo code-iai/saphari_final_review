@@ -106,9 +106,10 @@
 (defun main (&optional sim-p)
   (with-saphari-main (:sim-p sim-p)
     (with-safety-monitoring (cpl-impl::log-id demo-handle)
-      (loop-until-succeed (:loop-wait 0.5)
+      (loop do
         (unless (pick-and-place-next-object demo-handle cpl-impl::log-id)
-          (loop-succeed))))))
+          (return))
+        (cpl:sleep 0.5)))))
     
 (defun single-pnp-main (&optional sim-p)
   (with-saphari-main (:sim-p sim-p)

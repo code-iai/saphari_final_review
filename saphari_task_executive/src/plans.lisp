@@ -183,6 +183,34 @@
 (defun collision-p (collision-type)
   (declare (type symbol collision-type))
   (member collision-type (list :LIGHT-COLLISION :STRONG-COLLISION :SEVERE-COLLISION)))
+
+(defun beasty-goal->msgs-list (goal)
+  (flet ((my-set-in-alist (key value alist)
+           (conc-lists
+            (list (list key value))
+            (remove-if (alexandria:curry #'equal key) alist :key #'car))))
+           
+  (let ((joint-goal-config (second (assoc :joint-goal-config goal)))
+        (cartesian-goal-pose (second (assoc :cartesian-goal-pose goal)))
+        (ee-transform (second (assoc :ee-transform goal)))
+        (base-transform (second (assoc :base-transform goal)))
+        (nullspace-dir (second (assoc :nullspace-dir goal)))
+        (base-acceleration (second (assoc :base-acceleration goal)))
+        (tool-com (second (assoc :tool-com goal))))
+    (my-set-in-alist
+     :joint-goal-config (coerce joint-goal-config 'vector)
+     (my-set-in-alist
+      :cartesian-goal-pose (transform->pose-msg cartesian-goal-pose)
+      (my-set-in-alist
+       :ee-transform (transform->pose-msg ee-transform)
+       (my-set-in-alist
+        :base-transform (transform->pose-msg base-transform)
+        (my-set-in-alist
+         :nullspace-dir (3d-vector->point-msg nullspace-dir)
+         (my-set-in-alist
+          :base-acceleration (wrench->wrench-msg base-acceleration)
+          (my-set-in-alist
+           :tool-com (3d-vector->point-msg tool-com) goal))))))))))
   
 (defun perform-beasty-motion (demo-handle parent-log-id desig &rest other-log-desigs)
   (with-logging
@@ -190,7 +218,7 @@
        (alexandria:rcurry #'log-stop-action-designator parent-log-id))
     (let ((arm (getf demo-handle :beasty))
           (goal (infer-motion-goal demo-handle desig)))
-      (let ((new-desig (desig:copy-designator desig :new-description (plist->list-of-lists goal))))
+      (let ((new-desig (desig:copy-designator desig :new-description (beasty-goal->msgs-list (plist->list-of-lists goal)))))
         (desig:equate desig new-desig))
       (execute-beasty-goal arm log-id goal))))
 

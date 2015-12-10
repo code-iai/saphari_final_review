@@ -133,6 +133,14 @@
 ;;; ROS MESSAGE AND CL-TRANSFORMS CONVERSIONS
 ;;;
 
+(defun wrench->wrench-msg (wrench)
+  (declare (type cl-transforms:wrench wrench))
+  (with-slots (translation rotation) wrench
+    (make-msg
+     "geometry_msgs/Wrench"
+     :force (3d-vector->vector3-msg translation)
+     :torque (3d-vector->vector3-msg rotation))))
+
 (defun point-msg->3d-vector (msg)
   (declare (type geometry_msgs-msg:point msg))
   (with-fields (x y z) msg
@@ -142,6 +150,11 @@
   (declare (type cl-transforms:3d-vector 3d-vector))
   (with-slots (x y z) 3d-vector
     (make-msg "geometry_msgs/Point" :x x :y y :z z)))
+
+(defun 3d-vector->vector3-msg (3d-vector)
+  (declare (type cl-transforms:3d-vector 3d-vector))
+  (with-slots (x y z) 3d-vector
+    (make-msg "geometry_msgs/Vector3" :x x :y y :z z)))
 
 (defun quaternion-msg->quaternion (msg)
   (declare (type geometry_msgs-msg:quaternion msg))

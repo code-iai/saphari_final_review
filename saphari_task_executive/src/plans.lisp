@@ -95,7 +95,6 @@
         (perform-gripper-motion demo-handle log-id open))
       (ros-info :grasp "above")
       (perform-beasty-motion demo-handle log-id move above-location)
-      (ros-info :grasp "reach")
       (perform-beasty-motion demo-handle log-id reach object)
       (unless (getf demo-handle :sim-p)
         (perform-gripper-motion demo-handle log-id clamp object))
@@ -105,7 +104,7 @@
       (alexandria:when-let*
           ((obj-in-gripper-pose
             (transform->pose-stamped-msg
-             (infer-object-grasping-offset object)
+             (infer-object-grasping-offset demo-handle object)
              "gripper_tool_frame"))
            (new-obj-desig
             (desig:copy-designator
@@ -127,7 +126,7 @@
              (:sim ,(getf demo-handle :sim-p)))))
         (above-location
           (location-designator
-           `((:a :location) (:above ,location))))
+           `((:a :location) (:above ,location) (:obj ,object))))
         (move
           (action-designator
            `((:an :action) (:to :move)
@@ -146,6 +145,25 @@
     (with-logging
         ((alexandria:curry #'log-start-put-down parent-log-id put-down object location)
          (alexandria:rcurry #'log-stop-put-down parent-log-id))
+
+      
+      ;; TODO: desig!
+      (execute-beasty-goal
+       (getf demo-handle :beasty) log-id 
+       (cartesian-goal
+        (gripper-at-pose-stamped-msg
+         demo-handle
+         (make-msg
+          "geometry_msgs/PoseStamped"
+          (:frame_id :header) "arm_base_link"
+          (:stamp :header) (ros-time)
+          (:x :position :pose) -0.6
+          (:z :position :pose) 0.2
+          (:x :orientation :pose) -0.707
+          (:y :orientation :pose) -0.707))
+        (getf demo-handle :sim-p)))
+
+      
       (perform-beasty-motion demo-handle log-id move above-location)
       (perform-beasty-motion demo-handle log-id reach location)
       (unless (getf demo-handle :sim-p)

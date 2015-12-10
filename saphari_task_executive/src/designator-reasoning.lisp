@@ -88,8 +88,10 @@
                            `((:a :location)
                              (:in :sorting-basket)))))))))
      desig)
-    (alexandria:when-let* ((loc (desig-prop-value (desig-prop-value desig :at) :above))
-                           (goal-pose-stamped (infer-put-down-pose-stamped nil loc (make-3d-vector 0 0 0.15)))
+    (alexandria:when-let* ((above-loc (desig-prop-value desig :at))
+                           (loc (desig-prop-value above-loc :above))
+                           (obj (desig-prop-value above-loc :obj))
+                           (goal-pose-stamped (infer-put-down-pose-stamped demo-handle obj loc (make-3d-vector 0 0 0.15)))
                            (beasty-cartesian-goal (gripper-at-pose-stamped-msg
                                                    demo-handle goal-pose-stamped)))
       (cartesian-goal beasty-cartesian-goal (desig-prop-value desig :sim))))
@@ -104,9 +106,10 @@
      desig)
     (alexandria:when-let*
         ((obj (desig-prop-value (desig-prop-value desig :at) :above))
-         (goal-pose-stamped (infer-object-grasping-pose-stamped obj (make-3d-vector 0 0 0.1)))
+         (goal-pose-stamped (infer-object-grasping-pose-stamped demo-handle obj (make-3d-vector 0 0 0.1)))
          (beasty-cartesian-goal (gripper-at-pose-stamped-msg
-                                 demo-handle goal-pose-stamped)))
+                                 demo-handle goal-pose-stamped))
+         )
       (cartesian-goal beasty-cartesian-goal (desig-prop-value desig :sim))))
    ))
 
@@ -117,45 +120,48 @@
    (not (desig-prop-value desig :at))
    (alexandria:when-let*
        ((obj (desig-prop-value desig :obj))
-        (goal-pose-stamped (infer-object-grasping-pose-stamped obj))
+        (goal-pose-stamped (infer-object-grasping-pose-stamped demo-handle obj))
         (beasty-cartesian-goal (gripper-at-pose-stamped-msg
                                 demo-handle goal-pose-stamped)))
      (cartesian-goal beasty-cartesian-goal (desig-prop-value desig :sim)))))
 
-(defun infer-object-grasping-offset (desig &optional (offset (cl-transforms:make-identity-vector)))
-  (declare (ignore desig))
-  ;; TODO: make this smart
-  (cl-transforms:make-transform
-   offset
-   (cl-transforms:q*
-    (cl-transforms:axis-angle->quaternion
-     (cl-transforms:make-3d-vector 1 0 0) pi)
-    (cl-transforms:axis-angle->quaternion
-     (cl-transforms:make-3d-vector 0 0 1) (/ pi 2.0)))))
+(defun axis-angle-too-small-p (pose &key (thresh (/ pi 2.0)) (rot-axis (make-3d-vector 0 0 1)))
+  (declare (type pose pose))
+  (multiple-value-bind (axis angle) (quaternion->axis-angle (orientation pose))
+    (ros-info :angle "~a" angle)
+    (if (axes-aligned-p axis rot-axis)
+        (< (abs (mod angle (/ pi 2.0))) (abs thresh))
+        (ros-warn :z-rot-too-far "given axis of rotation not aligned with ~a" rot-axis))))
+    
+(defun axes-aligned-p (v1 v2 &optional (thresh 0.1))
+  (let ((angle-equivalent ; not the real angle but sth directly correletad
+          (v-norm (cross-product (normalize-vector v1) (normalize-vector v2)))))
+    (ros-info :inputs "~a ~a" v1 v2)
+    (ros-info :equivalent-angle "~a" angle-equivalent)
+    (< (abs angle-equivalent) (abs thresh))))
+  
+(defun infer-object-grasping-offset (demo-handle desig &optional (trans-offset (cl-transforms:make-identity-vector)))
+  (let ((rot-offset
+          (alexandria:if-let ((obj-pose-stamped-msg (infer-object-pose desig)))
+            (let ((obj-pose-in-arm-base
+                    (tf2-transform-pose-stamped-msg
+                     (getf demo-handle :tf-listener) obj-pose-stamped-msg "arm_base_link")))
+              (if (axis-angle-too-small-p obj-pose-in-arm-base)
+                  (axis-angle->quaternion (make-3d-vector 0 0 1) pi)
+                  (make-identity-rotation)))
+            (progn
+              (ros-warn :infer-object-grasping-offset "could not infer desig pose")
+              (make-identity-rotation)))))
+    (make-transform
+     trans-offset
+     (q* rot-offset
+         (axis-angle->quaternion (make-3d-vector 1 0 0) pi)
+         (axis-angle->quaternion (make-3d-vector 0 0 1) (/ pi 2.0))))))
 
-(defun test ()
-  (object-designator
-   `((:an :object)
-     (:at ,(location-designator
-            `((:a :location)
-              (:pose ,(make-msg
-                       "geometry_msgs/PoseStamped"
-                       (:frame_id :header) "sorting_basket"
-                       (:stamp :header) (ros-time)
-                       (:w :orientation :pose) 1.0))))))))
-
-(defun test2 ()
-  (action-designator
-   `((:an :action)
-     (:to :move)
-     (:at ,(location-designator
-            `((:a :location)
-              (:above ,(test))))))))
-
-(defun infer-object-grasping-pose-stamped (desig &optional (offset (cl-transforms:make-identity-vector)))
+(defun infer-object-grasping-pose-stamped (demo-handle desig &optional (offset (cl-transforms:make-identity-vector)))
   (alexandria:when-let*
       ((obj-pose-stamped-msg (infer-object-pose desig))
-       (obj-grasping-offset (infer-object-grasping-offset desig offset)))
+       (obj-grasping-offset (infer-object-grasping-offset demo-handle desig offset)))
     (with-fields (header pose) obj-pose-stamped-msg
       (make-msg
        "geometry_msgs/PoseStamped"
@@ -175,10 +181,10 @@
    (:z :position :pose) 0.02
    (:w :orientation :pose) 1.0))
   
-(defun infer-put-down-pose-stamped (object location &optional (offset (make-identity-vector)))
+(defun infer-put-down-pose-stamped (demo-handle object location &optional (offset (make-identity-vector)))
   (alexandria:when-let*
       ((put-down-pose-stamped-msg (infer-location-pose location))
-       (obj-grasping-offset (infer-object-grasping-offset object offset)))
+       (obj-grasping-offset (infer-object-grasping-offset demo-handle object offset)))
     (with-fields (header pose) put-down-pose-stamped-msg
       (make-msg
        "geometry_msgs/PoseStamped"
@@ -208,7 +214,7 @@
    (alexandria:when-let*
        ((loc (desig-prop-value desig :at))
         (obj (desig-prop-value desig :obj))
-        (put-down-pose-stamped (infer-put-down-pose-stamped obj loc))
+        (put-down-pose-stamped (infer-put-down-pose-stamped demo-handle obj loc))
         (goal-pose-stamped (gripper-at-pose-stamped-msg demo-handle put-down-pose-stamped)))
      (cartesian-goal goal-pose-stamped (desig-prop-value desig :sim)))))
                           

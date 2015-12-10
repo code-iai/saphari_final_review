@@ -30,6 +30,7 @@
 
 (defmacro with-owl-namespaces (&body body)
   `(progn
+     (prolog-simple "mng_db('Safe-Interaction_picking-surgical-instruments_0').")
      (beliefstate:register-owl-namespace
       "knowrob_cram"
       "http://knowrob.org/kb/knowrob_cram.owl#"

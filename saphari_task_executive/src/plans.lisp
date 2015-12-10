@@ -177,6 +177,7 @@
 (defun log-collision (collision parent-log-id)
   (let ((logging-id (beliefstate:start-node (string collision) nil 2 parent-log-id)))
     (beliefstate:stop-node logging-id :relative-context-id parent-log-id))
+  (ros-info :log-collision "~a" (string collision))
   collision)
 
 (defun collision-p (collision-type)

@@ -224,10 +224,11 @@
 
 (defun execute-beasty-goal (arm parent-log-id goal)
   (cpl-impl:pursue
-    (cpl-impl:on-suspension (roslisp-beasty:stop-beasty arm)
-      (when (collision-p (cpl:value (roslisp-beasty:collision-fluent arm)))
-        (roslisp-beasty:beasty-safety-reset arm goal))
-      (roslisp-beasty:move-beasty-and-wait arm goal))
+    (cpl-impl:retry-after-suspension
+      (cpl-impl:on-suspension (roslisp-beasty:stop-beasty arm)
+        (when (collision-p (cpl:value (roslisp-beasty:collision-fluent arm)))
+          (roslisp-beasty:beasty-safety-reset arm goal))
+        (roslisp-beasty:move-beasty-and-wait arm goal)))
     (cpl:seq
       (cpl:wait-for (cpl:fl-funcall #'collision-p (roslisp-beasty:collision-fluent arm)))
       (log-collision (cpl:value (roslisp-beasty:collision-fluent arm)) parent-log-id))))

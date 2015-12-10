@@ -97,8 +97,8 @@
                (with-owl-namespaces
                  ,@body))))))))
 
-(defun loop-main ()
-  (with-saphari-main ()
+(defun loop-main (&optional sim-p)
+  (with-saphari-main (:sim-p sim-p)
    (loop-until-succeed (:loop-wait 0.5)
      (unless (pick-and-place-next-object demo-handle cpl-impl::log-id)
        (loop-succeed)))))
@@ -116,8 +116,8 @@
     (with-people-monitoring (cpl-impl::log-id demo-handle)
       (cpl:wait-for (cpl:make-fluent)))))
 
-(defun beasty-test-main()
-  (with-saphari-main ()
+(defun beasty-test-main (&optional sim-p)
+  (with-saphari-main (:sim-p sim-p)
     (let ((arm (getf demo-handle :beasty)))
       (loop do
         (cpl:retry-after-suspension
